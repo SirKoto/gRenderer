@@ -152,12 +152,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Engine.cpp" />
+    <ClCompile Include="src\graphics\AppInstance.cpp" />
     <ClCompile Include="src\graphics\DebugVk.cpp" />
     <ClCompile Include="src\graphics\Window.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engine.h" />
+    <ClInclude Include="src\graphics\AppInstance.h" />
     <ClInclude Include="src\graphics\DebugVk.h" />
     <ClInclude Include="src\graphics\Window.h" />
   </ItemGroup>

@@ -8,6 +8,7 @@
 #include <GLFW/glfw3.h>
 
 #include "graphics/Window.h"
+#include "graphics/AppInstance.h"
 
 void Engine::init()
 {
@@ -22,6 +23,7 @@ void Engine::terminate()
 void Engine::run()
 {
 	Window window(800, 600, "Test");
+	AppInstance app;
 
 	while (!window.windowShouldClose()) {
 		Window::pollEvents();

@@ -9,17 +9,15 @@ namespace DebugVk
 	const bool validationLayersVkEnabled = false;
 #endif // DEBUG
 
-	constexpr const char* getVkDebugExtensionName() {
-		return VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
-	}
+	constexpr const char* debugExtensionName  =
+		VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
 
-	static const std::vector<const char*> getValidationLayers() {
-		return { "VK_LAYER_KHRONOS_validation" };
-	}
+	constexpr std::array<const char*, 1> validationLayersArray = 
+		{ "VK_LAYER_KHRONOS_validation" };
 
-	static vk::DebugUtilsMessengerCreateInfoEXT createDebugMessengerCreateInfo();
+	vk::DebugUtilsMessengerCreateInfoEXT createDebugMessengerCreateInfo();
 
-	static bool checkValidationLayersSupport();
+	bool checkValidationLayersSupport();
 
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -27,5 +25,14 @@ namespace DebugVk
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 		void* pUserData);
 
-};
+	vk::Result CreateDebugUtilsMessengerExt(vk::Instance instance,
+		const vk::DebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+		const vk::AllocationCallbacks* pAllocator,
+		vk::DebugUtilsMessengerEXT* pDebugMessenger);
+
+	void DestroyDebugUtilsMessengerEXT(vk::Instance instance,
+		vk::DebugUtilsMessengerEXT debugMessenger,
+		const vk::AllocationCallbacks* pAllocator);
+
+}; // Namespace DebugVK
 

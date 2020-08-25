@@ -44,7 +44,7 @@ std::vector<const char*> Window::getWindowVkExtensions()
 
 	if (DebugVk::validationLayersVkEnabled)
 	{
-		extensions.push_back(DebugVk::getVkDebugExtensionName());
+		extensions.push_back(DebugVk::debugExtensionName);
 	}
 
 	return extensions;

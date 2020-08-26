@@ -59,6 +59,10 @@ AppInstance::AppInstance(const std::vector<const char*>& extensionsToLoad,
 
 AppInstance::~AppInstance()
 {
+}
+
+void AppInstance::destroy()
+{
 	if (DebugVk::validationLayersVkEnabled) {
 		DebugVk::DestroyDebugUtilsMessengerEXT(mInstance, mDebugMessenger, nullptr);
 	}

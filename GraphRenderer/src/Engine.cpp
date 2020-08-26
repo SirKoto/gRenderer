@@ -9,6 +9,7 @@
 
 #include "graphics/Window.h"
 #include "graphics/AppInstance.h"
+#include "graphics/DeviceComp.h"
 
 void Engine::init()
 {
@@ -24,8 +25,16 @@ void Engine::run()
 {
 	Window window(800, 600, "Test");
 	AppInstance app;
+	window.createVkSurface(app);
+
+	DeviceComp device(app, true, true, &window.getSurface());
+	
 
 	while (!window.windowShouldClose()) {
 		Window::pollEvents();
 	}
+
+	device.destroy();
+	window.destroy(app);
+	app.destroy();
 }

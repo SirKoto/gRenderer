@@ -10,16 +10,18 @@ public:
 	Window() = delete;
 	Window(int width, int heigth, const std::string& windowTitle);
 
-
 	int getWidth() const { return mWidth; }
 	int getHeigth() const {	return mHeight; }
 
 	void createVkSurface(
-		const vk::Instance& instance,
-		vk::SurfaceKHR* surface
-	) const;
+		const vk::Instance& instance
+	);
 
 	bool windowShouldClose() const;
+
+	const vk::SurfaceKHR& getSurface() const { return mSurface; }
+
+	void destroy(const vk::Instance& instance);
 
 	static void pollEvents();
 
@@ -29,6 +31,7 @@ private:
 
 	const int mWidth, mHeight;
 	void* mWindow;
+	vk::SurfaceKHR mSurface;
 
 };
 

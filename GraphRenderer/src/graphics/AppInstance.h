@@ -12,6 +12,16 @@ public:
 	// For the moment, do not allow copy of this
 	AppInstance& operator=(const AppInstance&) = delete;
 
+	// Cast to instance
+	operator vk::Instance() { return mInstance; }
+	operator const vk::Instance&() const { return mInstance; }
+	operator vk::Instance& () { return mInstance; }
+
+
+	void destroy();
+
+	const vk::Instance& getInstance() const { return mInstance; }
+
 private:
 	vk::Instance mInstance;
 	vk::DebugUtilsMessengerEXT mDebugMessenger;

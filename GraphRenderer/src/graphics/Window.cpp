@@ -13,7 +13,9 @@ Window::Window(int width, int heigth, const std::string& windowTitle) :
 	mWindow = glfwCreateWindow(width, heigth, windowTitle.c_str(), nullptr, nullptr);
 }
 
-void Window::createVkSurface(const vk::Instance& instance, vk::SurfaceKHR* surface) const
+
+
+void Window::createVkSurface(const vk::Instance& instance)
 {
 	VkSurfaceKHR surfRaw;
 	VkResult res = glfwCreateWindowSurface(
@@ -21,12 +23,21 @@ void Window::createVkSurface(const vk::Instance& instance, vk::SurfaceKHR* surfa
 		reinterpret_cast<GLFWwindow*>( mWindow ),
 		nullptr,
 		&surfRaw);
-	*surface = vk::createResultValue(static_cast<vk::Result>(res), surfRaw, "Error: Failed to create VkSurface");
+	mSurface = vk::createResultValue(static_cast<vk::Result>(res), surfRaw, "Error: Failed to create VkSurface");
 }
 
 bool Window::windowShouldClose() const
 {
 	return glfwWindowShouldClose(reinterpret_cast<GLFWwindow*>(mWindow));
+}
+
+
+void Window::destroy(const vk::Instance& instance)
+{
+	if (mSurface != VK_NULL_HANDLE) {
+		instance.destroySurfaceKHR(mSurface, nullptr);
+	}
+	glfwDestroyWindow(reinterpret_cast<GLFWwindow*>(mWindow));
 }
 
 void Window::pollEvents()

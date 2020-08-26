@@ -11,9 +11,9 @@ public:
 
 	DeviceComp() = delete;
 
+	// If a surface is provided, a present queue will be created
 	DeviceComp(
 		const AppInstance& instance,
-		bool requestPresentQueue,
 		bool enableAnisotropySampler,
 		const vk::SurfaceKHR* surfaceToRequestSwapChain = nullptr);
 
@@ -26,7 +26,14 @@ public:
 	vk::Queue getGraphicsQueue() const { return mGraphicsQueue; }
 	vk::Queue getComputeQueue() const { return mComputeQueue; }
 	vk::Queue getTransferQueue() const { return mTransferQueue; }
+	vk::Queue getPresentQueue() const { return mPresentQueue; }
 
+	uint32_t getGraphicsFamilyIdx() const { return mGraphicsFamilyIdx; }
+	uint32_t getComputeFamilyIdx() const { return mComputeFamilyIdx; }
+	uint32_t getTransferFamilyIdx() const { return mTransferFamilyIdx; }
+	uint32_t getPresentFamilyIdx() const { return mPresentFamilyIdx; }
+
+	bool isPresentQueueCreated() const { return mPresentQueueRequested; }
 
 	vk::SampleCountFlags getMsaaSampleCount() const { return mMsaaSamples; }
 
@@ -40,6 +47,10 @@ protected:
 	vk::Queue mGraphicsQueue;
 	vk::Queue mComputeQueue;
 	vk::Queue mTransferQueue;
+	vk::Queue mPresentQueue;
+
+	uint32_t mGraphicsFamilyIdx, mComputeFamilyIdx, mTransferFamilyIdx, mPresentFamilyIdx;
+
 
 
 	bool mAnisotropySamplerEnabled, mPresentQueueRequested;
@@ -50,20 +61,26 @@ protected:
 		std::optional<uint32_t> graphicsFamily;
 		std::optional<uint32_t> computeFamily;
 		std::optional<uint32_t> transferFamily;
+		std::optional<uint32_t> presentFamily;
+
+		bool takePresentIntoAccount = false;
 
 		bool isComplete() {
-			return graphicsFamily.has_value() && computeFamily.has_value() && transferFamily.has_value();
+			return graphicsFamily.has_value() && computeFamily.has_value() && transferFamily.has_value()
+				&& (!takePresentIntoAccount || presentFamily.has_value());
 		}
 
 		std::set<uint32_t> getUniqueIndices() const {
-			return {graphicsFamily.value(), computeFamily.value(), transferFamily.value()};
+			return (takePresentIntoAccount ? 
+				std::set<uint32_t>{graphicsFamily.value(), computeFamily.value(), transferFamily.value(), presentFamily.value()} :
+				std::set<uint32_t>{graphicsFamily.value(), computeFamily.value(), transferFamily.value()});
 		}
 	} QueueIndices;
 
 	void pickAndCreatePysicalDevice(const AppInstance& instance,
 		const vk::SurfaceKHR* surfaceToRequestSwapChain);
 
-	void createLogicalDevice();
+	void createLogicalDevice(const vk::SurfaceKHR* surf = nullptr);
 
 	void createQueues();
 
@@ -72,6 +89,7 @@ protected:
 		const vk::SurfaceKHR* surfaceToRequestSwapChain,
 		bool requestAnisotropySampler) const;
 
-	QueueIndices findQueueFamiliesIndices(const vk::PhysicalDevice& device) const;
+	QueueIndices findQueueFamiliesIndices(const vk::PhysicalDevice& device,
+		const vk::SurfaceKHR* surf) const;
 };
 

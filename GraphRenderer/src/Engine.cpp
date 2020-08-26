@@ -10,6 +10,7 @@
 #include "graphics/Window.h"
 #include "graphics/AppInstance.h"
 #include "graphics/DeviceComp.h"
+#include "graphics/memory/MemoryManager.h"
 
 void Engine::init()
 {
@@ -27,13 +28,16 @@ void Engine::run()
 	AppInstance app;
 	window.createVkSurface(app);
 
-	DeviceComp device(app, true, true, &window.getSurface());
+	DeviceComp device(app, true, &window.getSurface());
+
+	MemoryManager memManager(app.getInstance(), device, device);
 	
 
 	while (!window.windowShouldClose()) {
 		Window::pollEvents();
 	}
 
+	memManager.destroy();
 	device.destroy();
 	window.destroy(app);
 	app.destroy();

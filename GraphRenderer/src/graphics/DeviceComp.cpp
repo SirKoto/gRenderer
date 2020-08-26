@@ -4,14 +4,13 @@
 
 DeviceComp::DeviceComp(
 	const AppInstance& instance, 
-	bool requestPresentQueue,
 	bool enableAnisotropySampler,
 	const vk::SurfaceKHR* surfaceToRequestSwapChain)
 {
 	mAnisotropySamplerEnabled = enableAnisotropySampler;
-	mPresentQueueRequested = requestPresentQueue;
+	mPresentQueueRequested = surfaceToRequestSwapChain != nullptr;
 	pickAndCreatePysicalDevice(instance, surfaceToRequestSwapChain);
-	createLogicalDevice();
+	createLogicalDevice(surfaceToRequestSwapChain);
 	createQueues();
 }
 
@@ -60,10 +59,17 @@ void DeviceComp::pickAndCreatePysicalDevice(
 	}
 }
 
-void DeviceComp::createLogicalDevice()
+void DeviceComp::createLogicalDevice(const vk::SurfaceKHR* surf)
 {
-	QueueIndices indices = findQueueFamiliesIndices(mPhysicalDevice);
+	QueueIndices indices = findQueueFamiliesIndices(mPhysicalDevice, surf);
 	std::set<uint32_t> familyIndices = indices.getUniqueIndices();
+	// Preamptively store results if true
+	mGraphicsFamilyIdx = indices.graphicsFamily.value();
+	mComputeFamilyIdx = indices.computeFamily.value();
+	mTransferFamilyIdx = indices.transferFamily.value();
+	if (indices.presentFamily.has_value()) {
+		mPresentFamilyIdx = indices.presentFamily.value();
+	}
 
 	std::vector<vk::DeviceQueueCreateInfo> queuesCreateInfos(familyIndices.size());
 
@@ -102,14 +108,15 @@ void DeviceComp::createLogicalDevice()
 }
 
 void DeviceComp::createQueues()
-{
-	QueueIndices indices = findQueueFamiliesIndices(mPhysicalDevice);
-	
-	mGraphicsQueue = mDevice.getQueue(indices.graphicsFamily.value(), 0);
-	mComputeQueue = mDevice.getQueue(indices.computeFamily.value(), 0);
-	mTransferQueue = mDevice.getQueue(indices.transferFamily.value(), 0);
-
+{	
+	mGraphicsQueue = mDevice.getQueue(mGraphicsFamilyIdx, 0);
+	mComputeQueue = mDevice.getQueue(mComputeFamilyIdx, 0);
+	mTransferQueue = mDevice.getQueue(mTransferFamilyIdx, 0);
+	if (mPresentQueueRequested) {
+		mPresentQueue = mDevice.getQueue(mPresentFamilyIdx, 0);
+	}
 }
+
 
 bool DeviceComp::isDeviceSuitable(
 	const vk::PhysicalDevice& device,
@@ -132,7 +139,7 @@ bool DeviceComp::isDeviceSuitable(
 	// Check for family indices
 	bool familySupport = false;
 	{
-		QueueIndices indices = findQueueFamiliesIndices(device);
+		QueueIndices indices = findQueueFamiliesIndices(device, surfaceToRequestSwapChain);
 		familySupport = indices.isComplete();
 	}
 
@@ -159,9 +166,11 @@ bool DeviceComp::isDeviceSuitable(
 	return extensionSupport && familySupport && featureSupport && swapChainAvailable;
 }
 
-DeviceComp::QueueIndices DeviceComp::findQueueFamiliesIndices(const vk::PhysicalDevice& device) const
+DeviceComp::QueueIndices DeviceComp::findQueueFamiliesIndices(const vk::PhysicalDevice& device,
+	const vk::SurfaceKHR* surf) const
 {
 	QueueIndices indices;
+	indices.takePresentIntoAccount = surf != nullptr;
 
 	std::vector<vk::QueueFamilyProperties> families =
 		device.getQueueFamilyProperties();
@@ -178,6 +187,14 @@ DeviceComp::QueueIndices DeviceComp::findQueueFamiliesIndices(const vk::Physical
 
 		if (family.queueFlags & vk::QueueFlagBits::eTransfer) {
 			indices.transferFamily = i;
+		}
+
+		// Request also surface support if surface provided
+		if (surf != nullptr) {
+			vk::Bool32 res = device.getSurfaceSupportKHR(i, *surf);
+			if (res) {
+				indices.presentFamily = i;
+			}
 		}
 	}
 

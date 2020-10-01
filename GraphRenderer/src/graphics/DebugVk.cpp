@@ -6,9 +6,10 @@ vk::DebugUtilsMessengerCreateInfoEXT DebugVk::createDebugMessengerCreateInfo()
 {
 	vk::DebugUtilsMessengerCreateInfoEXT createInfo;
 	createInfo.messageSeverity =
-		vk::DebugUtilsMessageSeverityFlagBitsEXT::eError |
-		vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
-		vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose;
+		vk::DebugUtilsMessageSeverityFlagBitsEXT::eError 
+		| vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning 
+		//| vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose
+		;
 
 	createInfo.messageType =
 		vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
@@ -45,7 +46,22 @@ VKAPI_ATTR VkBool32 VKAPI_CALL DebugVk::debugCallback(
 	const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 	void* pUserData)
 {
-	std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+	std::string type = [&messageSeverity]() {
+		switch (messageSeverity)
+		{
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+			return "VERBOSE";
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
+			return "INFO";
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+			return "WARNING";
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+			return "ERROR";
+		default:
+			return "TYPE NOT FOUND";
+		}}();
+
+	std::cerr << "[" + type + "] validation layer: " << pCallbackData->pMessage << std::endl;
 
 	return VK_FALSE;
 }

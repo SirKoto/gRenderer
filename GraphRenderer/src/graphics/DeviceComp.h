@@ -23,6 +23,8 @@ public:
 	operator vk::PhysicalDevice() const { return mPhysicalDevice; }
 	operator vk::Device() const { return mDevice; }
 
+	vk::Device getVkDevice() const { return mDevice; }
+
 	vk::Queue getGraphicsQueue() const { return mGraphicsQueue; }
 	vk::Queue getComputeQueue() const { return mComputeQueue; }
 	vk::Queue getTransferQueue() const { return mTransferQueue; }

@@ -11,6 +11,8 @@
 #include "graphics/AppInstance.h"
 #include "graphics/DeviceComp.h"
 #include "graphics/memory/MemoryManager.h"
+#include "graphics/present/SwapChain.h"
+#include "graphics/Admin.h"
 
 void Engine::init()
 {
@@ -25,20 +27,32 @@ void Engine::terminate()
 void Engine::run()
 {
 	Window window(800, 600, "Test");
-	AppInstance app;
-	window.createVkSurface(app);
+	AppInstance instance;
+	window.createVkSurface(instance);
 
-	DeviceComp device(app, true, &window.getSurface());
+	DeviceComp device(instance, true, &window.getSurface());
 
-	MemoryManager memManager(app.getInstance(), device, device);
+	MemoryManager memManager(instance.getInstance(), device, device);
 	
+	Admin admin(std::move(device), std::move(memManager));
+
+	SwapChain swapChain(device, window);
+
+	Image2D image = admin.createDeviceImage2D({ 800,600 },
+		1,
+		vk::SampleCountFlagBits::e1,
+		vk::Format::eR8G8B8A8Unorm,
+		vk::ImageTiling::eOptimal,
+		vk::ImageUsageFlagBits::eSampled);
 
 	while (!window.windowShouldClose()) {
 		Window::pollEvents();
 	}
 
-	memManager.destroy();
-	device.destroy();
-	window.destroy(app);
-	app.destroy();
+	admin.destroyImage(image);
+
+	swapChain.destroy(device);
+	admin.destroy();
+	window.destroy(instance);
+	instance.destroy();
 }

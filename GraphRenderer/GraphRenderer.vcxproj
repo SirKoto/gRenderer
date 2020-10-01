@@ -152,20 +152,30 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Engine.cpp" />
+    <ClCompile Include="src\graphics\Admin.cpp" />
     <ClCompile Include="src\graphics\AppInstance.cpp" />
+    <ClCompile Include="src\graphics\command\CommandPool.cpp" />
     <ClCompile Include="src\graphics\DebugVk.cpp" />
     <ClCompile Include="src\graphics\DeviceComp.cpp" />
     <ClCompile Include="src\graphics\memory\MemoryManager.cpp" />
+    <ClCompile Include="src\graphics\present\SwapChain.cpp" />
+    <ClCompile Include="src\graphics\resources\Image.cpp" />
+    <ClCompile Include="src\graphics\resources\Image2D.cpp" />
     <ClCompile Include="src\graphics\Window.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\utils\vk_mem_alloc.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engine.h" />
+    <ClInclude Include="src\graphics\Admin.h" />
     <ClInclude Include="src\graphics\AppInstance.h" />
+    <ClInclude Include="src\graphics\command\CommandPool.h" />
     <ClInclude Include="src\graphics\DebugVk.h" />
     <ClInclude Include="src\graphics\DeviceComp.h" />
     <ClInclude Include="src\graphics\memory\MemoryManager.h" />
+    <ClInclude Include="src\graphics\present\SwapChain.h" />
+    <ClInclude Include="src\graphics\resources\Image.h" />
+    <ClInclude Include="src\graphics\resources\Image2D.h" />
     <ClInclude Include="src\graphics\Window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

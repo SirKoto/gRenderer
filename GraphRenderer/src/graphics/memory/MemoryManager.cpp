@@ -1,5 +1,10 @@
 #include "MemoryManager.h"
 
+namespace gr
+{
+namespace vkg
+{
+
 MemoryManager::MemoryManager(vk::Instance instance, vk::PhysicalDevice physicalDevice, vk::Device logicalDevice)
 {
 	VmaAllocatorCreateInfo createInfo = {};
@@ -82,3 +87,7 @@ void MemoryManager::destroy()
 {
 	vmaDestroyAllocator(mAllocator);
 }
+
+
+}; // namespace vkg
+}; // namespace gr

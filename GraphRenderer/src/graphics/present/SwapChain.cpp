@@ -1,6 +1,11 @@
 #include "SwapChain.h"
 #include <algorithm>
 
+namespace gr
+{
+namespace vkg
+{
+
 SwapChain::SwapChain(const DeviceComp& device, const Window& window)
 {
 	vk::SurfaceKHR surface = window.getSurface();
@@ -104,3 +109,6 @@ void SwapChain::destroy(const vk::Device& device)
 {
 	device.destroySwapchainKHR(mSwapChain);
 }
+
+}; // namespace vkg
+}; // namespace gr

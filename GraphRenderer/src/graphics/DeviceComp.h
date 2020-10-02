@@ -5,93 +5,103 @@
 #include <set>
 #include "AppInstance.h"
 
-class DeviceComp
+namespace gr
 {
-public:
+namespace vkg
+{
 
-	DeviceComp() = delete;
+	class DeviceComp
+	{
+	public:
 
-	// If a surface is provided, a present queue will be created
-	DeviceComp(
-		const AppInstance& instance,
-		bool enableAnisotropySampler,
-		const vk::SurfaceKHR* surfaceToRequestSwapChain = nullptr);
+		DeviceComp() = delete;
 
-	void destroy();
+		// If a surface is provided, a present queue will be created
+		DeviceComp(
+			const AppInstance& instance,
+			bool enableAnisotropySampler,
+			const vk::SurfaceKHR* surfaceToRequestSwapChain = nullptr);
+
+		void destroy();
 	
 
-	operator vk::PhysicalDevice() const { return mPhysicalDevice; }
-	operator vk::Device() const { return mDevice; }
+		operator vk::PhysicalDevice() const { return mPhysicalDevice; }
+		operator vk::Device() const { return mDevice; }
 
-	vk::Device getVkDevice() const { return mDevice; }
+		vk::Device getVkDevice() const { return mDevice; }
 
-	vk::Queue getGraphicsQueue() const { return mGraphicsQueue; }
-	vk::Queue getComputeQueue() const { return mComputeQueue; }
-	vk::Queue getTransferQueue() const { return mTransferQueue; }
-	vk::Queue getPresentQueue() const { return mPresentQueue; }
+		vk::Queue getGraphicsQueue() const { return mGraphicsQueue; }
+		vk::Queue getComputeQueue() const { return mComputeQueue; }
+		vk::Queue getTransferQueue() const { return mTransferQueue; }
+		vk::Queue getPresentQueue() const { return mPresentQueue; }
 
-	uint32_t getGraphicsFamilyIdx() const { return mGraphicsFamilyIdx; }
-	uint32_t getComputeFamilyIdx() const { return mComputeFamilyIdx; }
-	uint32_t getTransferFamilyIdx() const { return mTransferFamilyIdx; }
-	uint32_t getPresentFamilyIdx() const { return mPresentFamilyIdx; }
+		uint32_t getGraphicsFamilyIdx() const { return mGraphicsFamilyIdx; }
+		uint32_t getComputeFamilyIdx() const { return mComputeFamilyIdx; }
+		uint32_t getTransferFamilyIdx() const { return mTransferFamilyIdx; }
+		uint32_t getPresentFamilyIdx() const { return mPresentFamilyIdx; }
 
-	bool isPresentQueueCreated() const { return mPresentQueueRequested; }
+		bool isPresentQueueCreated() const { return mPresentQueueRequested; }
 
-	vk::SampleCountFlags getMsaaSampleCount() const { return mMsaaSamples; }
+		vk::SampleCountFlags getMsaaSampleCount() const { return mMsaaSamples; }
 
-	vk::SampleCountFlagBits getMaxUsableSampleCount() const;
+		vk::SampleCountFlagBits getMaxUsableSampleCount() const;
 
-protected:
+	protected:
 
-	vk::PhysicalDevice mPhysicalDevice;
-	vk::Device mDevice;
+		vk::PhysicalDevice mPhysicalDevice;
+		vk::Device mDevice;
 
-	vk::Queue mGraphicsQueue;
-	vk::Queue mComputeQueue;
-	vk::Queue mTransferQueue;
-	vk::Queue mPresentQueue;
+		vk::Queue mGraphicsQueue;
+		vk::Queue mComputeQueue;
+		vk::Queue mTransferQueue;
+		vk::Queue mPresentQueue;
 
-	uint32_t mGraphicsFamilyIdx, mComputeFamilyIdx, mTransferFamilyIdx, mPresentFamilyIdx;
+		uint32_t mGraphicsFamilyIdx, mComputeFamilyIdx, mTransferFamilyIdx, mPresentFamilyIdx;
 
 
 
-	bool mAnisotropySamplerEnabled, mPresentQueueRequested;
-	vk::SampleCountFlags mMsaaSamples;
+		bool mAnisotropySamplerEnabled, mPresentQueueRequested;
+		vk::SampleCountFlags mMsaaSamples;
 
-	// Struct used to determine the queueIndices inside this device
-	typedef struct QueueIndices {
-		std::optional<uint32_t> graphicsFamily;
-		std::optional<uint32_t> computeFamily;
-		std::optional<uint32_t> transferFamily;
-		std::optional<uint32_t> presentFamily;
+		// Struct used to determine the queueIndices inside this device
+		typedef struct QueueIndices {
+			std::optional<uint32_t> graphicsFamily;
+			std::optional<uint32_t> computeFamily;
+			std::optional<uint32_t> transferFamily;
+			std::optional<uint32_t> presentFamily;
 
-		bool takePresentIntoAccount = false;
+			bool takePresentIntoAccount = false;
 
-		bool isComplete() {
-			return graphicsFamily.has_value() && computeFamily.has_value() && transferFamily.has_value()
-				&& (!takePresentIntoAccount || presentFamily.has_value());
-		}
+			bool isComplete() {
+				return graphicsFamily.has_value() && computeFamily.has_value() && transferFamily.has_value()
+					&& (!takePresentIntoAccount || presentFamily.has_value());
+			}
 
-		std::set<uint32_t> getUniqueIndices() const {
-			return (takePresentIntoAccount ? 
-				std::set<uint32_t>{graphicsFamily.value(), computeFamily.value(), transferFamily.value(), presentFamily.value()} :
-				std::set<uint32_t>{graphicsFamily.value(), computeFamily.value(), transferFamily.value()});
-		}
-	} QueueIndices;
+			std::set<uint32_t> getUniqueIndices() const {
+				return (takePresentIntoAccount ? 
+					std::set<uint32_t>{graphicsFamily.value(), computeFamily.value(), transferFamily.value(), presentFamily.value()} :
+					std::set<uint32_t>{graphicsFamily.value(), computeFamily.value(), transferFamily.value()});
+			}
+		} QueueIndices;
 
-	void pickAndCreatePysicalDevice(const AppInstance& instance,
-		const vk::SurfaceKHR* surfaceToRequestSwapChain);
+		void pickAndCreatePysicalDevice(const AppInstance& instance,
+			const vk::SurfaceKHR* surfaceToRequestSwapChain);
 
-	void createLogicalDevice(const vk::SurfaceKHR* surf = nullptr);
+		void createLogicalDevice(const vk::SurfaceKHR* surf = nullptr);
 
-	void createQueues();
+		void createQueues();
 
-	bool isDeviceSuitable(const vk::PhysicalDevice& device,
-		const std::vector<const char*>& deviceExtensions,
-		const vk::SurfaceKHR* surfaceToRequestSwapChain,
-		bool requestAnisotropySampler) const;
+		bool isDeviceSuitable(const vk::PhysicalDevice& device,
+			const std::vector<const char*>& deviceExtensions,
+			const vk::SurfaceKHR* surfaceToRequestSwapChain,
+			bool requestAnisotropySampler) const;
 
-	QueueIndices findQueueFamiliesIndices(const vk::PhysicalDevice& device,
-		const vk::SurfaceKHR* surf) const;
-};
+		QueueIndices findQueueFamiliesIndices(const vk::PhysicalDevice& device,
+			const vk::SurfaceKHR* surf) const;
+	};
+
+
+}; // namespace vkg
+}; // namespace gr
+
 

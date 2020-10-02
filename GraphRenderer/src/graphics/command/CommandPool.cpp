@@ -1,5 +1,10 @@
 #include "CommandPool.h"
 
+namespace gr
+{
+namespace vkg
+{
+
 CommandPool::CommandPool(uint32_t familyIdx, vk::CommandPoolCreateFlags flags, vk::Device device)
 {
 	vk::CommandPoolCreateInfo createInfo(flags, familyIdx);
@@ -11,3 +16,6 @@ void CommandPool::destroy(vk::Device device)
 {
 	device.destroyCommandPool(mPool);
 }
+
+}; // namespace vkg
+}; // namespace gr

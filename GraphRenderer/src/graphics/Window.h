@@ -4,34 +4,42 @@
 
 #include <vulkan/vulkan.hpp>
 
-class Window
+
+namespace gr
 {
-public:
-	Window() = delete;
-	Window(int width, int heigth, const std::string& windowTitle);
+namespace vkg
+{
 
-	int getWidth() const { return mWidth; }
-	int getHeigth() const {	return mHeight; }
+	class Window
+	{
+	public:
+		Window() = delete;
+		Window(int width, int heigth, const std::string& windowTitle);
 
-	void createVkSurface(
-		const vk::Instance& instance
-	);
+		int getWidth() const { return mWidth; }
+		int getHeigth() const {	return mHeight; }
 
-	bool windowShouldClose() const;
+		void createVkSurface(
+			const vk::Instance& instance
+		);
 
-	const vk::SurfaceKHR& getSurface() const { return mSurface; }
+		bool windowShouldClose() const;
 
-	void destroy(const vk::Instance& instance);
+		const vk::SurfaceKHR& getSurface() const { return mSurface; }
 
-	static void pollEvents();
+		void destroy(const vk::Instance& instance);
 
-	static std::vector<const char*> getWindowVkExtensions();
+		static void pollEvents();
 
-private:
+		static std::vector<const char*> getWindowVkExtensions();
 
-	const int mWidth, mHeight;
-	void* mWindow;
-	vk::SurfaceKHR mSurface;
+	private:
 
-};
+		const int mWidth, mHeight;
+		void* mWindow;
+		vk::SurfaceKHR mSurface;
 
+	};
+
+}; // namespace vkg
+}; // namespace gr

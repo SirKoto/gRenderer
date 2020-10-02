@@ -14,45 +14,53 @@
 #include "graphics/present/SwapChain.h"
 #include "graphics/Admin.h"
 
-void Engine::init()
+
+namespace gr
 {
-	glfwInit();
-}
 
-void Engine::terminate()
-{
-	glfwTerminate();
-}
-
-void Engine::run()
-{
-	Window window(800, 600, "Test");
-	AppInstance instance;
-	window.createVkSurface(instance);
-
-	DeviceComp device(instance, true, &window.getSurface());
-
-	MemoryManager memManager(instance.getInstance(), device, device);
-	
-	Admin admin(std::move(device), std::move(memManager));
-
-	SwapChain swapChain(device, window);
-
-	Image2D image = admin.createDeviceImage2D({ 800,600 },
-		1,
-		vk::SampleCountFlagBits::e1,
-		vk::Format::eR8G8B8A8Unorm,
-		vk::ImageTiling::eOptimal,
-		vk::ImageUsageFlagBits::eSampled);
-
-	while (!window.windowShouldClose()) {
-		Window::pollEvents();
+	void Engine::init()
+	{
+		glfwInit();
 	}
 
-	admin.destroyImage(image);
+	void Engine::terminate()
+	{
+		glfwTerminate();
+	}
 
-	swapChain.destroy(device);
-	admin.destroy();
-	window.destroy(instance);
-	instance.destroy();
-}
+	void Engine::run()
+	{
+		using namespace vkg;
+
+		Window window(800, 600, "Test");
+		AppInstance instance;
+		window.createVkSurface(instance);
+
+		DeviceComp device(instance, true, &window.getSurface());
+
+		MemoryManager memManager(instance.getInstance(), device, device);
+
+		Admin admin(std::move(device), std::move(memManager));
+
+		SwapChain swapChain(device, window);
+
+		Image2D image = admin.createDeviceImage2D({ 800,600 },
+			1,
+			vk::SampleCountFlagBits::e1,
+			vk::Format::eR8G8B8A8Unorm,
+			vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eSampled);
+
+		while (!window.windowShouldClose()) {
+			Window::pollEvents();
+		}
+
+		admin.destroyImage(image);
+
+		swapChain.destroy(device);
+		admin.destroy();
+		window.destroy(instance);
+		instance.destroy();
+	}
+
+}; // namespace gr

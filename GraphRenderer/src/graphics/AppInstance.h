@@ -2,28 +2,35 @@
 
 #include <vulkan/vulkan.hpp>
 
-class AppInstance
+namespace gr
 {
-public:
-	AppInstance(const std::vector<const char*>& extensionsToLoad = {}, bool loadGLFWextensions = true);
+namespace vkg
+{
 
-	~AppInstance();
+	class AppInstance
+	{
+	public:
+		AppInstance(const std::vector<const char*>& extensionsToLoad = {}, bool loadGLFWextensions = true);
 
-	// For the moment, do not allow copy of this
-	AppInstance& operator=(const AppInstance&) = delete;
+		~AppInstance();
 
-	// Cast to instance
-	operator vk::Instance() { return mInstance; }
-	operator const vk::Instance&() const { return mInstance; }
-	operator vk::Instance& () { return mInstance; }
+		// For the moment, do not allow copy of this
+		AppInstance& operator=(const AppInstance&) = delete;
+
+		// Cast to instance
+		operator vk::Instance() { return mInstance; }
+		operator const vk::Instance& () const { return mInstance; }
+		operator vk::Instance& () { return mInstance; }
 
 
-	void destroy();
+		void destroy();
 
-	const vk::Instance& getInstance() const { return mInstance; }
+		const vk::Instance& getInstance() const { return mInstance; }
 
-private:
-	vk::Instance mInstance;
-	vk::DebugUtilsMessengerEXT mDebugMessenger;
-};
+	private:
+		vk::Instance mInstance;
+		vk::DebugUtilsMessengerEXT mDebugMessenger;
+	};
+}; // namespace vkg
+}; // namespace gr
 

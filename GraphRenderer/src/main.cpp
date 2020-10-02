@@ -5,9 +5,9 @@
 
 int main() {
 
-	Engine::init();
+	gr::Engine::init();
 
-	Engine engine;
+	gr::Engine engine;
 	try {
 		engine.run();
 	}
@@ -16,6 +16,6 @@ int main() {
 		return 1;
 	}
 
-	Engine::terminate();
+	gr::Engine::terminate();
 	return 0;
 }

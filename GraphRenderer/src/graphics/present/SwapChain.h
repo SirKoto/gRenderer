@@ -3,21 +3,30 @@
 #include "../DeviceComp.h"
 #include "../Window.h"
 
-class SwapChain
+namespace gr
 {
-public:
-	SwapChain(const DeviceComp& device,
-		const Window& window);
+namespace vkg
+{
 
-	void destroy(const vk::Device& device);
+	class SwapChain
+	{
+	public:
+		SwapChain(const DeviceComp& device,
+			const Window& window);
 
-protected:
-	vk::SwapchainKHR mSwapChain;
+		void destroy(const vk::Device& device);
 
-	std::vector<vk::Image> mImages;
+	protected:
+		vk::SwapchainKHR mSwapChain;
 
-	vk::Extent2D mExtent;
-	vk::SurfaceFormatKHR mFormat;
+		std::vector<vk::Image> mImages;
 
-};
+		vk::Extent2D mExtent;
+		vk::SurfaceFormatKHR mFormat;
+
+	};
+
+}; // namespace vkg
+}; // namespace gr
+
 

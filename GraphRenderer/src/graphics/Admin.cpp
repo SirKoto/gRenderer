@@ -1,72 +1,81 @@
 #include "Admin.h"
 
-Admin::Admin(DeviceComp&& device, MemoryManager&& memManager) : mDevice(device), mMemManager(memManager)
-{
-}
 
-CommandPool Admin::createCommandPool(vk::QueueFlags queueType)
+namespace gr
 {
-	uint32_t queueIdx;
-	if (queueType == vk::QueueFlagBits::eGraphics) {
-		queueIdx = mDevice.getGraphicsFamilyIdx();
-	}
-	else if (queueType == vk::QueueFlagBits::eCompute) {
-		queueIdx = mDevice.getComputeFamilyIdx();
-	}
-	else if (queueType == vk::QueueFlagBits::eTransfer) {
-		queueIdx = mDevice.getTransferFamilyIdx();
-	}
-	else {
-		throw std::invalid_argument("Wrong queue Family type");
+namespace vkg
+{
+
+	Admin::Admin(DeviceComp&& device, MemoryManager&& memManager) : mDevice(device), mMemManager(memManager)
+	{
 	}
 
-	return CommandPool(queueIdx, {}, mDevice);
-}
+	CommandPool Admin::createCommandPool(vk::QueueFlags queueType)
+	{
+		uint32_t queueIdx;
+		if (queueType == vk::QueueFlagBits::eGraphics) {
+			queueIdx = mDevice.getGraphicsFamilyIdx();
+		}
+		else if (queueType == vk::QueueFlagBits::eCompute) {
+			queueIdx = mDevice.getComputeFamilyIdx();
+		}
+		else if (queueType == vk::QueueFlagBits::eTransfer) {
+			queueIdx = mDevice.getTransferFamilyIdx();
+		}
+		else {
+			throw std::invalid_argument("Wrong queue Family type");
+		}
 
-void Admin::destroyCommandPool(CommandPool& pool)
-{
-	pool.destroy(mDevice);
-}
+		return CommandPool(queueIdx, {}, mDevice);
+	}
 
-Image2D Admin::createDeviceImage2D(
-	const vk::Extent2D& extent,
-	uint32_t mipLevels,
-	vk::SampleCountFlagBits numSamples,
-	vk::Format format,
-	vk::ImageTiling tiling,
-	vk::ImageUsageFlags usage)
-{
-	Image2D image;
-	image.setExtent(extent);
+	void Admin::destroyCommandPool(CommandPool& pool)
+	{
+		pool.destroy(mDevice);
+	}
 
-	vk::ImageCreateInfo createInfo(
-		{},
-		vk::ImageType::e2D,
-		format,
-		vk::Extent3D(extent, 1),
-		mipLevels,
-		1,
-		numSamples,
-		tiling,
-		usage);
-	
-	mMemManager.createImageAllocation(createInfo,
-		vk::MemoryPropertyFlagBits::eDeviceLocal,
-		vk::MemoryPropertyFlagBits::eDeviceLocal,
-		&image.mImage,
-		&image.mAllocation);
+	Image2D Admin::createDeviceImage2D(
+		const vk::Extent2D& extent,
+		uint32_t mipLevels,
+		vk::SampleCountFlagBits numSamples,
+		vk::Format format,
+		vk::ImageTiling tiling,
+		vk::ImageUsageFlags usage)
+	{
+		Image2D image;
+		image.setExtent(extent);
 
-	return image;
-}
+		vk::ImageCreateInfo createInfo(
+			{},
+			vk::ImageType::e2D,
+			format,
+			vk::Extent3D(extent, 1),
+			mipLevels,
+			1,
+			numSamples,
+			tiling,
+			usage);
 
-void Admin::destroyImage(Image2D& image)
-{
-	mMemManager.freeAllocation(image.getAllocation());
-	mDevice.getVkDevice().destroyImage(image.getVkImage());
-}
+		mMemManager.createImageAllocation(createInfo,
+			vk::MemoryPropertyFlagBits::eDeviceLocal,
+			vk::MemoryPropertyFlagBits::eDeviceLocal,
+			&image.mImage,
+			&image.mAllocation);
 
-void Admin::destroy()
-{
-	mMemManager.destroy();
-	mDevice.destroy();
-}
+		return image;
+	}
+
+	void Admin::destroyImage(Image2D& image)
+	{
+		mMemManager.freeAllocation(image.getAllocation());
+		mDevice.getVkDevice().destroyImage(image.getVkImage());
+	}
+
+	void Admin::destroy()
+	{
+		mMemManager.destroy();
+		mDevice.destroy();
+	}
+
+}; // namespace vkg
+}; // namespace gr

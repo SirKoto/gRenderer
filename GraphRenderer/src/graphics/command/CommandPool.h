@@ -2,15 +2,23 @@
 
 #include <vulkan/vulkan.hpp>
 
-class CommandPool
+namespace gr
 {
-public:
+namespace vkg
+{
 
-	CommandPool(uint32_t familyIdx, vk::CommandPoolCreateFlags flags, vk::Device device);
+	class CommandPool
+	{
+	public:
 
-	void destroy(vk::Device device);
+		CommandPool(uint32_t familyIdx, vk::CommandPoolCreateFlags flags, vk::Device device);
 
-private:
-	vk::CommandPool mPool;
-};
+		void destroy(vk::Device device);
+
+	private:
+		vk::CommandPool mPool;
+	};
+
+}; // namespace vkg
+}; // namespace gr
 

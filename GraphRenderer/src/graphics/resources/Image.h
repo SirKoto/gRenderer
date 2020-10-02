@@ -1,20 +1,26 @@
 #pragma once
 
 #include "../memory/MemoryManager.h"
-
-class Image
+namespace gr
 {
-public:
-	void setImage(vk::Image image) { mImage = image; }
-	void setAllocation(VmaAllocation allocation) { mAllocation = allocation; }
+namespace vkg
+{
 
-	vk::Image getVkImage() const { return mImage; }
-	VmaAllocation getAllocation() const { return mAllocation; }
+	class Image
+	{
+	public:
+		void setImage(vk::Image image) { mImage = image; }
+		void setAllocation(VmaAllocation allocation) { mAllocation = allocation; }
 
-protected:
-	vk::Image mImage;
-	VmaAllocation mAllocation;
+		vk::Image getVkImage() const { return mImage; }
+		VmaAllocation getAllocation() const { return mAllocation; }
 
-	friend class Admin;
-};
+	protected:
+		vk::Image mImage;
+		VmaAllocation mAllocation;
 
+		friend class Admin;
+	};
+
+}; // namespace vkg
+}; // namespace gr

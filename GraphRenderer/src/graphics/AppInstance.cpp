@@ -3,6 +3,12 @@
 #include "DebugVk.h"
 #include "Window.h"
 
+
+namespace gr
+{
+namespace vkg
+{
+
 AppInstance::AppInstance(const std::vector<const char*>& extensionsToLoad, 
 	bool loadGLFWextensions)
 {
@@ -68,3 +74,6 @@ void AppInstance::destroy()
 	}
 	mInstance.destroy();
 }
+
+}; // namespace vkg
+}; // namespace gr

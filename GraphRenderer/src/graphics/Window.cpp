@@ -3,6 +3,10 @@
 
 #include "DebugVk.h"
 
+namespace gr
+{
+namespace vkg
+{
 
 Window::Window(int width, int heigth, const std::string& windowTitle) : 
 	mWidth(width), mHeight(heigth)
@@ -60,3 +64,6 @@ std::vector<const char*> Window::getWindowVkExtensions()
 
 	return extensions;
 }
+
+}; // namespace vkg
+}; // namespace gr

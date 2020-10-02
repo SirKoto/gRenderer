@@ -1,17 +1,21 @@
 #pragma once
 
 
-class Engine
+namespace gr
 {
-public:
-	static void init();
+
+	class Engine
+	{
+	public:
+		static void init();
 
 
-	static void terminate();
+		static void terminate();
 
-	void run();
-private:
+		void run();
+	private:
 
 
-};
+	};
 
+}; // namespace gr

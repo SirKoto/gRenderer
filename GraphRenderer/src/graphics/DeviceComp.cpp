@@ -2,6 +2,11 @@
 #include "DebugVk.h"
 #include <set>
 
+namespace gr
+{
+namespace vkg
+{
+
 DeviceComp::DeviceComp(
 	const AppInstance& instance, 
 	bool enableAnisotropySampler,
@@ -223,3 +228,6 @@ vk::SampleCountFlagBits DeviceComp::getMaxUsableSampleCount() const {
 
 	return vk::SampleCountFlagBits::e1;
 }
+
+}; // namespace vkg
+}; // namespace gr

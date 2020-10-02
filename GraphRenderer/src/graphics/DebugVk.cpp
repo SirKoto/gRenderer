@@ -2,6 +2,11 @@
 
 #include <iostream>
 
+namespace gr
+{
+namespace vkg
+{
+
 vk::DebugUtilsMessengerCreateInfoEXT DebugVk::createDebugMessengerCreateInfo()
 {
 	vk::DebugUtilsMessengerCreateInfoEXT createInfo;
@@ -92,3 +97,6 @@ void DebugVk::DestroyDebugUtilsMessengerEXT(vk::Instance instance, vk::DebugUtil
 	}
 }
 
+
+}; // namespace vkg
+}; // namespace gr

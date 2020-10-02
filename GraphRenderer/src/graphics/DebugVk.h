@@ -1,6 +1,11 @@
 #pragma once
 #include <vulkan/vulkan.hpp>
 
+namespace gr
+{
+namespace vkg
+{
+
 namespace DebugVk
 {
 #ifdef _DEBUG 
@@ -35,4 +40,6 @@ namespace DebugVk
 		const vk::AllocationCallbacks* pAllocator);
 
 }; // Namespace DebugVK
+}; // namespace vkg
+}; // namespace gr
 

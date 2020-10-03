@@ -25,8 +25,11 @@ namespace vkg
 		void destroy();
 	
 
-		operator vk::PhysicalDevice() const { return mPhysicalDevice; }
-		operator vk::Device() const { return mDevice; }
+		explicit operator vk::PhysicalDevice() const { return mPhysicalDevice; }
+		explicit operator vk::Device() const { return mDevice; }
+
+		vk::PhysicalDevice getPhysicalDevice() const { return mPhysicalDevice; }
+		vk::Device getDevice() const { return mDevice; }
 
 		vk::Device getVkDevice() const { return mDevice; }
 

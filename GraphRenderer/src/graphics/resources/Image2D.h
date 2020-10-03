@@ -7,7 +7,7 @@ namespace gr
 namespace vkg
 {
 
-	class Image2D : Image
+	class Image2D : public Image
 	{
 	public:
 		Image2D() = default;
@@ -18,8 +18,6 @@ namespace vkg
 
 	protected:
 		vk::Extent2D mExtent;
-
-		friend class Admin;
 	};
 
 }; // namespace vkg

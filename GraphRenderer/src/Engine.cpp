@@ -38,11 +38,14 @@ namespace gr
 
 		DeviceComp device(instance, true, &window.getSurface());
 
-		MemoryManager memManager(instance.getInstance(), device, device);
+		MemoryManager memManager(instance.getInstance(),
+			device.getPhysicalDevice(),
+			device.getDevice());
+
+		SwapChain swapChain(device, window);
 
 		Admin admin(std::move(device), std::move(memManager));
 
-		SwapChain swapChain(device, window);
 
 		Image2D image = admin.createDeviceImage2D({ 800,600 },
 			1,
@@ -55,9 +58,10 @@ namespace gr
 			Window::pollEvents();
 		}
 
-		admin.destroyImage(image);
+		admin.safeDestroyImage(image);
 
-		swapChain.destroy(device);
+
+		swapChain.destroy(static_cast<vk::Device>(device));
 		admin.destroy();
 		window.destroy(instance);
 		instance.destroy();

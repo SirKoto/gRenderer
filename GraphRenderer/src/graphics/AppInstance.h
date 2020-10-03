@@ -18,9 +18,7 @@ namespace vkg
 		AppInstance& operator=(const AppInstance&) = delete;
 
 		// Cast to instance
-		operator vk::Instance() { return mInstance; }
-		operator const vk::Instance& () const { return mInstance; }
-		operator vk::Instance& () { return mInstance; }
+		operator const vk::Instance () const { return mInstance; }
 
 
 		void destroy();

@@ -24,9 +24,10 @@ namespace vkg
 			vk::SampleCountFlagBits numSamples,
 			vk::Format format,
 			vk::ImageTiling tiling,
-			vk::ImageUsageFlags usage);
+			vk::ImageUsageFlags usage,
+			vk::ImageAspectFlags ImageAspect = vk::ImageAspectFlagBits::eColor);
 
-		void destroyImage(Image2D& image);
+		void safeDestroyImage(Image2D& image);
 
 
 		void destroy();

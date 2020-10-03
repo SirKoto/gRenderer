@@ -103,10 +103,35 @@ SwapChain::SwapChain(const DeviceComp& device, const Window& window)
 	mSwapChain = static_cast<vk::Device>(device).createSwapchainKHR(createInfo);
 
 	mImages = static_cast<vk::Device>(device).getSwapchainImagesKHR(mSwapChain);
+
+
+	// Create the image views
+	mImageViews.resize(numImages);
+	vk::ImageViewCreateInfo ivCreateInfo(
+		{},						// flags
+		nullptr,					// image
+		vk::ImageViewType::e2D, // image view type
+		mFormat.format,					// format
+		{},						// no component mapping
+		vk::ImageSubresourceRange(
+			vk::ImageAspectFlagBits::eColor,// aspect
+			0,						// base mip level
+			1,						// level count
+			0,						// base array layer
+			1						// layer count
+		)
+	);
+	for (uint32_t i = 0; i < numImages; ++i) {
+		ivCreateInfo.image = mImages[i];
+		mImageViews[i] = device.getDevice().createImageView(ivCreateInfo);
+	}
 }
 
 void SwapChain::destroy(const vk::Device& device)
 {
+	for (vk::ImageView iv : mImageViews) {
+		device.destroyImageView(iv);
+	}
 	device.destroySwapchainKHR(mSwapChain);
 }
 

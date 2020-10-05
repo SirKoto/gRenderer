@@ -159,6 +159,8 @@
     <ClCompile Include="src\graphics\DeviceComp.cpp" />
     <ClCompile Include="src\graphics\memory\MemoryManager.cpp" />
     <ClCompile Include="src\graphics\present\SwapChain.cpp" />
+    <ClCompile Include="src\graphics\render\RenderPass.cpp" />
+    <ClCompile Include="src\graphics\render\RenderPassBuilder.cpp" />
     <ClCompile Include="src\graphics\resources\Image.cpp" />
     <ClCompile Include="src\graphics\resources\Image2D.cpp" />
     <ClCompile Include="src\graphics\Window.cpp" />
@@ -174,6 +176,8 @@
     <ClInclude Include="src\graphics\DeviceComp.h" />
     <ClInclude Include="src\graphics\memory\MemoryManager.h" />
     <ClInclude Include="src\graphics\present\SwapChain.h" />
+    <ClInclude Include="src\graphics\render\RenderPass.h" />
+    <ClInclude Include="src\graphics\render\RenderPassBuilder.h" />
     <ClInclude Include="src\graphics\resources\Image.h" />
     <ClInclude Include="src\graphics\resources\Image2D.h" />
     <ClInclude Include="src\graphics\Window.h" />

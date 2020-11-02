@@ -53,37 +53,14 @@ namespace gr
 
 		createAndRecordPresentCommandBuffers();
 
-		vk::Semaphore imageAvailableSemaphore = mAdmin.createSemaphore();
-		vk::Semaphore renderingFinishedSemaphore = mAdmin.createSemaphore();
+		mImageAvailableSemaphore = mAdmin.createSemaphore();
+		mRenderingFinishedSemaphore = mAdmin.createSemaphore();
 
-		const vkg::CommandPool* cmdPool = mAdmin.getCommandPool(vkg::Admin::CommandPoolTypes::ePresent);
 
 
 		while (!mWindow.windowShouldClose()) {
 
-			uint32_t imageIdx;
-			bool outOfDateSwapChain = !mSwapChain.acquireNextImageBlock(imageAvailableSemaphore, &imageIdx);
-
-			if (outOfDateSwapChain) {
-				recreateSwapChain();
-				continue;
-			}
-
-			cmdPool->submitCommandBuffer(
-				mPresentCommandBuffers[imageIdx],
-				&imageAvailableSemaphore,
-				vk::PipelineStageFlagBits::eTransfer,
-				&renderingFinishedSemaphore);
-
-			bool swapChainNeedsRecreation = !cmdPool->submitPresentationImage(
-				mSwapChain.getVkSwapChain(),
-				imageIdx,
-				&renderingFinishedSemaphore
-			);
-
-			if (swapChainNeedsRecreation) {
-				recreateSwapChain();
-			}
+			draw();
 			Window::pollEvents();
 		}
 
@@ -93,14 +70,43 @@ namespace gr
 
 		mAdmin.safeDestroyImage(image);
 
-		mAdmin.destroySemaphore(imageAvailableSemaphore);
-		mAdmin.destroySemaphore(renderingFinishedSemaphore);
+		mAdmin.destroySemaphore(mImageAvailableSemaphore);
+		mAdmin.destroySemaphore(mRenderingFinishedSemaphore);
 
 		deletePresentCommandBuffers();
 		mSwapChain.destroy();
 		mAdmin.destroy();
 		mWindow.destroy(instance);
 		instance.destroy();
+	}
+
+	void Engine::draw()
+	{
+		const vkg::CommandPool* cmdPool = mAdmin.getCommandPool(vkg::Admin::CommandPoolTypes::ePresent);
+
+		uint32_t imageIdx;
+		bool outOfDateSwapChain = !mSwapChain.acquireNextImageBlock(mImageAvailableSemaphore, &imageIdx);
+
+		if (outOfDateSwapChain) {
+			recreateSwapChain();
+			return;
+		}
+
+		cmdPool->submitCommandBuffer(
+			mPresentCommandBuffers[imageIdx],
+			&mImageAvailableSemaphore,
+			vk::PipelineStageFlagBits::eTransfer,
+			&mRenderingFinishedSemaphore);
+
+		bool swapChainNeedsRecreation = !cmdPool->submitPresentationImage(
+			mSwapChain.getVkSwapChain(),
+			imageIdx,
+			&mRenderingFinishedSemaphore
+		);
+
+		if (swapChainNeedsRecreation) {
+			recreateSwapChain();
+		}
 	}
 
 	void Engine::createAndRecordPresentCommandBuffers()

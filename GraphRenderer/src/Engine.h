@@ -25,6 +25,11 @@ namespace gr
 
 		std::vector<vk::CommandBuffer> mPresentCommandBuffers;
 
+		vk::Semaphore mImageAvailableSemaphore;
+		vk::Semaphore mRenderingFinishedSemaphore;
+
+		void draw();
+
 		void createAndRecordPresentCommandBuffers();
 		void deletePresentCommandBuffers();
 		void recreateSwapChain();

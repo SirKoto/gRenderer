@@ -16,9 +16,6 @@ MemoryManager::MemoryManager(vk::Instance instance, vk::PhysicalDevice physicalD
 	vmaCreateAllocator(&createInfo, &mAllocator);
 }
 
-MemoryManager::~MemoryManager()
-{
-}
 
 void MemoryManager::createImageAllocation(const vk::ImageCreateInfo& imageInfo,
 	vk::MemoryPropertyFlags requiredProperties,

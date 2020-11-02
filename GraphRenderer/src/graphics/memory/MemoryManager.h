@@ -10,11 +10,13 @@ namespace vkg
 	class MemoryManager
 	{
 	public:
+
+		MemoryManager() = default;
+
 		MemoryManager(vk::Instance instance,
 			vk::PhysicalDevice physicalDevice,
 			vk::Device logicalDevice);
 
-		~MemoryManager();
 
 		void createImageAllocation(const vk::ImageCreateInfo& imageInfo,
 			vk::MemoryPropertyFlags requiredProperties,

@@ -1,5 +1,8 @@
 #pragma once
 
+#include "graphics/Admin.h"
+#include "graphics/present/SwapChain.h"
+#include "graphics/Window.h"
 
 namespace gr
 {
@@ -13,9 +16,18 @@ namespace gr
 		static void terminate();
 
 		void run();
-	private:
+
+	protected:
+		vkg::Admin mAdmin;
+		vkg::SwapChain mSwapChain;
+		vkg::Window mWindow = vkg::Window(800, 600, "Test");
 
 
+		std::vector<vk::CommandBuffer> mPresentCommandBuffers;
+
+		void createAndRecordPresentCommandBuffers();
+		void deletePresentCommandBuffers();
+		void recreateSwapChain();
 	};
 
 }; // namespace gr

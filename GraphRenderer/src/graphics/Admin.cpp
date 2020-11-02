@@ -8,31 +8,9 @@ namespace vkg
 
 	Admin::Admin(DeviceComp&& device, MemoryManager&& memManager) : mDevice(device), mMemManager(memManager)
 	{
+		createCommandPools();
 	}
 
-	CommandPool Admin::createCommandPool(vk::QueueFlags queueType)
-	{
-		uint32_t queueIdx;
-		if (queueType == vk::QueueFlagBits::eGraphics) {
-			queueIdx = mDevice.getGraphicsFamilyIdx();
-		}
-		else if (queueType == vk::QueueFlagBits::eCompute) {
-			queueIdx = mDevice.getComputeFamilyIdx();
-		}
-		else if (queueType == vk::QueueFlagBits::eTransfer) {
-			queueIdx = mDevice.getTransferFamilyIdx();
-		}
-		else {
-			throw std::invalid_argument("Wrong queue Family type");
-		}
-
-		return CommandPool(queueIdx, {}, mDevice.getDevice());
-	}
-
-	void Admin::destroyCommandPool(CommandPool& pool)
-	{
-		pool.destroy(mDevice.getDevice());
-	}
 
 	Image2D Admin::createDeviceImage2D(
 		const vk::Extent2D& extent,
@@ -80,7 +58,7 @@ namespace vkg
 			)
 		);
 		vk::ImageView imageView =
-			mDevice.getDevice().createImageView(ivCreateInfo);
+			mDevice.getVkDevice().createImageView(ivCreateInfo);
 
 
 		Image2D r_image;
@@ -108,10 +86,79 @@ namespace vkg
 		}
 	}
 
+	vk::Semaphore Admin::createSemaphore() const
+	{
+		vk::SemaphoreCreateInfo createInfo;
+		
+		return mDevice.getVkDevice().createSemaphore(createInfo);
+	}
+
+	void Admin::destroySemaphore(vk::Semaphore semaphore) const
+	{
+		mDevice.getVkDevice().destroySemaphore(semaphore);
+	}
+
+	void Admin::waitIdle() const
+	{
+		mDevice.getVkDevice().waitIdle();
+	}
+
+	const CommandPool* Admin::getCommandPool(const CommandPoolTypes type) const
+	{
+		assert(type != CommandPoolTypes::NUM);
+
+		return mCommandPools.data() + static_cast<size_t>(type);
+	}
+
+	uint32_t Admin::getQueueFamilyIndex(const CommandPoolTypes type) const
+	{
+		switch (type)
+		{
+		case CommandPoolTypes::eGraphic:
+			return mDevice.getGraphicsFamilyIdx();
+		case CommandPoolTypes::ePresent:
+			return mDevice.getPresentFamilyIdx();
+		default:
+			assert(false);
+		}
+
+		return -1;
+	}
+
 	void Admin::destroy()
 	{
+		destroyCommandPools();
+
 		mMemManager.destroy();
 		mDevice.destroy();
+	}
+
+	void Admin::createCommandPools()
+	{
+
+		mCommandPools.reserve(static_cast<size_t>(CommandPoolTypes::NUM));
+
+		mCommandPools.push_back(CommandPool(mDevice.getGraphicsFamilyIdx(), {}, mDevice.getVkDevice()));
+
+
+		if (mDevice.getPresentFamilyIdx() == mDevice.getGraphicsFamilyIdx())
+		{
+			mCommandPools.push_back(mCommandPools.back());
+		}
+		else {
+			mCommandPools.push_back(CommandPool(mDevice.getPresentFamilyIdx(), {}, mDevice.getVkDevice()));
+		}
+
+	}
+
+	void Admin::destroyCommandPools()
+	{
+
+		mCommandPools[static_cast<size_t>(CommandPoolTypes::eGraphic)].destroy();
+		if (mDevice.getPresentFamilyIdx() != mDevice.getGraphicsFamilyIdx()) {
+			mCommandPools[static_cast<size_t>(CommandPoolTypes::ePresent)].destroy();
+		}
+
 	}
 
 }; // namespace vkg

@@ -11,6 +11,9 @@ namespace vkg
 	class SwapChain
 	{
 	public:
+
+		SwapChain() = default;
+
 		SwapChain(const DeviceComp& device,
 			const Window& window);
 
@@ -23,16 +26,28 @@ namespace vkg
 
 		uint32_t getNumImages() const { return static_cast<uint32_t>(mImages.size()); }
 
-		void destroy(const vk::Device& device);
+		void recreateSwapChain(const DeviceComp& device,
+			const Window& window);
+
+		void destroy();
+
+		const vk::SwapchainKHR &getVkSwapChain() const { return mSwapChain; }
+
+		bool acquireNextImageBlock(const vk::Semaphore semaphore, uint32_t* imageIdx) const;
+
 
 	protected:
 		vk::SwapchainKHR mSwapChain;
+
+		vk::Device mDevice;
 
 		std::vector<vk::Image> mImages;
 		std::vector<vk::ImageView> mImageViews;
 
 		vk::Extent2D mExtent;
 		vk::SurfaceFormatKHR mFormat;
+
+		void createSwapChainAndImages(const DeviceComp& device, const Window& window);
 	};
 
 }; // namespace vkg

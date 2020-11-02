@@ -115,7 +115,7 @@ RenderPass RenderPassBuilder::buildRenderPass(const DeviceComp& device) const
 		static_cast<uint32_t>(mDependencies.size()),	
 		mDependencies.data());
 
-	pass.mRenderPass = device.getDevice().createRenderPass(info);
+	pass.mRenderPass = device.getVkDevice().createRenderPass(info);
 
 	return pass;
 }

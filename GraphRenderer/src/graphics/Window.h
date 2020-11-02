@@ -27,9 +27,13 @@ namespace vkg
 
 		const vk::SurfaceKHR& getSurface() const { return mSurface; }
 
+		bool isWindowMinimized() const;
+
 		void destroy(const vk::Instance& instance);
 
 		static void pollEvents();
+
+		static void waitEvents();
 
 		static std::vector<const char*> getWindowVkExtensions();
 

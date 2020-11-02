@@ -1,12 +1,18 @@
 #include "SwapChain.h"
 #include <algorithm>
+#include <iostream>
 
 namespace gr
 {
 namespace vkg
 {
 
-SwapChain::SwapChain(const DeviceComp& device, const Window& window)
+SwapChain::SwapChain(const DeviceComp& device, const Window& window) :  mDevice(device)
+{
+	createSwapChainAndImages(device, window);
+}
+
+void SwapChain::createSwapChainAndImages(const DeviceComp& device, const Window& window)
 {
 	vk::SurfaceKHR surface = window.getSurface();
 
@@ -73,6 +79,11 @@ SwapChain::SwapChain(const DeviceComp& device, const Window& window)
 			numImages > capabilities.maxImageCount) {
 			numImages = capabilities.maxImageCount;
 		}
+
+		// Check that the swapChain supports images with dst_transfer operations
+		if (!(capabilities.supportedUsageFlags & vk::ImageUsageFlagBits::eTransferDst)) {
+			throw std::runtime_error("Swap chain does not support transfer operations");
+		}
 	}
 
 	vk::SwapchainCreateInfoKHR createInfo;
@@ -87,6 +98,8 @@ SwapChain::SwapChain(const DeviceComp& device, const Window& window)
 	createInfo.preTransform = preTransform;
 	createInfo.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
 	createInfo.clipped = VK_TRUE;
+	createInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst;
+
 
 	// Check if the graphics family and the present family are different
 	if (device.getGraphicsFamilyIdx() != device.getPresentFamilyIdx()) {
@@ -123,17 +136,40 @@ SwapChain::SwapChain(const DeviceComp& device, const Window& window)
 	);
 	for (uint32_t i = 0; i < numImages; ++i) {
 		ivCreateInfo.image = mImages[i];
-		mImageViews[i] = device.getDevice().createImageView(ivCreateInfo);
+		mImageViews[i] = device.getVkDevice().createImageView(ivCreateInfo);
 	}
 }
 
-void SwapChain::destroy(const vk::Device& device)
+void SwapChain::recreateSwapChain(const DeviceComp& device, const Window& window)
+{
+	destroy();
+	createSwapChainAndImages(device, window);
+}
+
+void SwapChain::destroy()
 {
 	for (vk::ImageView iv : mImageViews) {
-		device.destroyImageView(iv);
+		mDevice.destroyImageView(iv);
 	}
-	device.destroySwapchainKHR(mSwapChain);
+	mDevice.destroySwapchainKHR(mSwapChain);
 }
+
+bool SwapChain::acquireNextImageBlock(const vk::Semaphore semaphore, uint32_t* imageIdx) const
+{
+	assert(imageIdx);
+
+	vk::ResultValue<uint32_t> result = mDevice.acquireNextImageKHR(mSwapChain, UINT64_MAX, semaphore, nullptr);
+
+	if (result.result != vk::Result::eSuccess) {
+		if (result.result == vk::Result::eSuboptimalKHR) {
+			std::cerr << ("Suboptimal SwapChain!! Needs to be recreated") << std::endl;
+		}
+	}
+
+	*imageIdx = result.value;
+	return result.result != vk::Result::eErrorOutOfDateKHR;
+}
+
 
 }; // namespace vkg
 }; // namespace gr

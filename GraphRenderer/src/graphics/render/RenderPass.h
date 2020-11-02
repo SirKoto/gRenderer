@@ -14,6 +14,7 @@ public:
 
 	vk::RenderPass getVkRenderPass() const { return mRenderPass; }
 
+	operator vk::RenderPass() const { return mRenderPass; }
 
 private:
 	vk::RenderPass mRenderPass;

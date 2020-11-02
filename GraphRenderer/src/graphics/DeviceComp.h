@@ -14,7 +14,7 @@ namespace vkg
 	{
 	public:
 
-		DeviceComp() = delete;
+		DeviceComp() = default;
 
 		// If a surface is provided, a present queue will be created
 		DeviceComp(
@@ -29,8 +29,6 @@ namespace vkg
 		explicit operator vk::Device() const { return mDevice; }
 
 		vk::PhysicalDevice getPhysicalDevice() const { return mPhysicalDevice; }
-		vk::Device getDevice() const { return mDevice; }
-
 		vk::Device getVkDevice() const { return mDevice; }
 
 		vk::Queue getGraphicsQueue() const { return mGraphicsQueue; }

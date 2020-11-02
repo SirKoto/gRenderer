@@ -36,6 +36,14 @@ bool Window::windowShouldClose() const
 }
 
 
+bool Window::isWindowMinimized() const
+{
+	int w, h;
+	glfwGetFramebufferSize(reinterpret_cast<GLFWwindow*>(mWindow), &w, &h);
+
+	return w == 0 || h == 0;
+}
+
 void Window::destroy(const vk::Instance& instance)
 {
 	if (mSurface != VK_NULL_HANDLE) {
@@ -47,6 +55,11 @@ void Window::destroy(const vk::Instance& instance)
 void Window::pollEvents()
 {
 	glfwPollEvents();
+}
+
+void Window::waitEvents()
+{
+	glfwWaitEvents();
 }
 
 std::vector<const char*> Window::getWindowVkExtensions()

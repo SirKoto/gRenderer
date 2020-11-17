@@ -15,21 +15,22 @@ private:
 	typedef std::aligned_storage<sizeof(void*)* SIZE> Stack;
 	Stack mBuffer;
 
+
 	struct HolderBase
 	{
-		virtual ~HolderBase() = 0;
+		virtual ~HolderBase() = default;
 		virtual void operator()() = 0;
 	};
 
-	template<typename Functor, typename ...Args>
+	template<typename Callable, typename ...Args>
 	struct Holder : HolderBase
 	{
-		Functor mF;
+		Callable mF;
 		std::tuple<Args...> mArgs;
 
-		Holder(const Functor& f, Args... args)
+		Holder(Callable f, Args... args)
 		{
-			new (std::addressof(mF)) Functor(f);
+			new (std::addressof(mF)) Callable(f);
 			new (std::addressof(mArgs)) std::tuple<Args...>(args...);
 		}
 
@@ -60,13 +61,14 @@ private:
 			std::apply(std::mem_fn(mFun), std::tuple_cat(std::make_tuple(mClass), mArgs));
 		}
 
-		virtual ~Holder() = default;
+		virtual ~HolderMember() = default;
 
 	};
 
 public:
 
-	inline void run() {
+	void run() {
+
 		reinterpret_cast<HolderBase&>(mBuffer)();
 	}
 
@@ -74,23 +76,30 @@ public:
 
 	template<typename Callable, typename ...Args>
 	Job(Callable f, Args... args) {
-		static_assert(sizeof(HolderBase<Callable, Args...>) <= sizeof(Stack), "Type does not fit the stack!!");
+		//static_assert(sizeof(HolderBase<Callable, Args...>) <= sizeof(Stack), "Type does not fit the stack!!");
 
-		new(std::addressof(mBuffer)) HolderBase(f, args...);
+		new(std::addressof(mBuffer)) Holder(f, args...);
+	}
+
+	template<typename ...Args>
+	Job(void(* f)(Args...), Args... args) {
+		static_assert(sizeof(Holder<void(*)(Args...), Args...>) <= sizeof(Stack::type), "Type does not fit the stack!!");
+
+		new(std::addressof(mBuffer)) Holder(f, args...);
 	}
 
 	template<typename Callable, typename ...Args>
 	Job(Callable* f, Args... args) {
-		static_assert(sizeof(HolderBase<Callable::operator(), Args...>) <= sizeof(Stack), "Type does not fit the stack!!");
+		//static_assert(sizeof(HolderBase<Callable::operator(), Args...>) <= sizeof(Stack), "Type does not fit the stack!!");
 
-		new(std::addressof(mBuffer)) HolderBase(Callable::operator(), args...);
+		new(std::addressof(mBuffer)) Holder(Callable::operator(), args...);
 	}
 
 	template<typename Class, typename ...Args>
 	Job(void(Class::* callable)(Args...), Class* c, Args... args) {
 		static_assert(sizeof(HolderMember<callable, c, Args...>) <= sizeof(Stack), "Type does not fit the stack!!");
 
-		new(std::addressof(mBuffer)) HolderBase(callable, c, args...);
+		new(std::addressof(mBuffer)) HolderMember(callable, c, args...);
 	}
 
 

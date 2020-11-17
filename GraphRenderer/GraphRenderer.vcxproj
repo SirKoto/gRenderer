@@ -165,6 +165,8 @@
     <ClCompile Include="src\graphics\resources\Image2D.cpp" />
     <ClCompile Include="src\graphics\Window.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\utils\Fibers\Fiber.cpp" />
+    <ClCompile Include="src\utils\Fibers\FScheduler.cpp" />
     <ClCompile Include="src\utils\FsTools.cpp" />
     <ClCompile Include="src\utils\vk_mem_alloc.cpp" />
   </ItemGroup>
@@ -182,6 +184,10 @@
     <ClInclude Include="src\graphics\resources\Image.h" />
     <ClInclude Include="src\graphics\resources\Image2D.h" />
     <ClInclude Include="src\graphics\Window.h" />
+    <ClInclude Include="src\utils\ConstExprHelp.h" />
+    <ClInclude Include="src\utils\Fibers\Fiber.h" />
+    <ClInclude Include="src\utils\Fibers\FScheduler.h" />
+    <ClInclude Include="src\utils\Fibers\Job.h" />
     <ClInclude Include="src\utils\FsTools.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -13,6 +13,15 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\vkg">
+      <UniqueIdentifier>{7d6c4984-b9f9-4be0-b07e-acba7809a550}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\tools">
+      <UniqueIdentifier>{824bc77b-f628-4cf7-8f87-0283f1b22322}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Fibers">
+      <UniqueIdentifier>{fe2f6f12-e1c4-4849-9fa5-ccd188d6f4a1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -63,49 +72,67 @@
     <ClCompile Include="src\graphics\Context.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\utils\Fibers\FScheduler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utils\Fibers\Fiber.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\Window.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\DebugVk.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\graphics\Context.h">
+      <Filter>Header Files\vkg</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\AppInstance.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\DeviceComp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\memory\MemoryManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\present\SwapChain.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\vkg</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\command\CommandPool.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\vkg</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\resources\Image2D.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\graphics\DebugVk.h">
+      <Filter>Header Files\vkg</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\DeviceComp.h">
+      <Filter>Header Files\vkg</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\Window.h">
+      <Filter>Header Files\vkg</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\resources\Image.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\vkg</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\resources\Image2D.h">
+      <Filter>Header Files\vkg</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\memory\MemoryManager.h">
+      <Filter>Header Files\vkg</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\render\RenderPass.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\vkg</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\render\RenderPassBuilder.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\vkg</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\present\SwapChain.h">
+      <Filter>Header Files\vkg</Filter>
     </ClInclude>
     <ClInclude Include="src\utils\FsTools.h">
+      <Filter>Header Files\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\Fibers\FScheduler.h">
+      <Filter>Header Files\Fibers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\ConstExprHelp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\Context.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\utils\Fibers\Fiber.h">
+      <Filter>Header Files\Fibers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\Fibers\Job.h">
+      <Filter>Header Files\Fibers</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

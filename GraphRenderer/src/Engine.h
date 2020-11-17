@@ -1,6 +1,6 @@
 #pragma once
 
-#include "graphics/Admin.h"
+#include "graphics/Context.h"
 #include "graphics/present/SwapChain.h"
 #include "graphics/Window.h"
 #include "graphics/render/RenderPass.h"
@@ -19,7 +19,7 @@ namespace gr
 		void run();
 
 	protected:
-		vkg::Admin mAdmin;
+		vkg::Context mContext;
 		vkg::SwapChain mSwapChain;
 		vkg::Window mWindow = vkg::Window(800, 600, "Test");
 

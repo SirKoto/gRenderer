@@ -40,10 +40,10 @@ namespace gr
 
 		mSwapChain = SwapChain(device, mWindow);
 
-		mAdmin = Admin(std::move(device), std::move(memManager));
+		mContext = Context(std::move(device), std::move(memManager));
 
 
-		Image2D image = mAdmin.createDeviceImage2D({ 800,600 },
+		Image2D image = mContext.createDeviceImage2D({ 800,600 },
 			1,
 			vk::SampleCountFlagBits::e1,
 			vk::Format::eR8G8B8A8Unorm,
@@ -55,8 +55,8 @@ namespace gr
 		createRenderPass();
 		mPresentFramebuffers = mSwapChain.createFramebuffersOfSwapImages(mRenderPass);
 
-		mImageAvailableSemaphore = mAdmin.createSemaphore();
-		mRenderingFinishedSemaphore = mAdmin.createSemaphore();
+		mImageAvailableSemaphore = mContext.createSemaphore();
+		mRenderingFinishedSemaphore = mContext.createSemaphore();
 
 
 
@@ -68,28 +68,28 @@ namespace gr
 
 		// Destroy everything
 
-		mAdmin.waitIdle();
+		mContext.waitIdle();
 
-		mAdmin.safeDestroyImage(image);
+		mContext.safeDestroyImage(image);
 
-		mAdmin.destroySemaphore(mImageAvailableSemaphore);
-		mAdmin.destroySemaphore(mRenderingFinishedSemaphore);
+		mContext.destroySemaphore(mImageAvailableSemaphore);
+		mContext.destroySemaphore(mRenderingFinishedSemaphore);
 
 		deletePresentCommandBuffers();
 		for (vk::Framebuffer frambuffer : mPresentFramebuffers) {
-			mAdmin.destroyFramebuffer(frambuffer);
+			mContext.destroyFramebuffer(frambuffer);
 		}
 
-		mAdmin.destroyRenderPass(mRenderPass);
+		mContext.destroyRenderPass(mRenderPass);
 		mSwapChain.destroy();
-		mAdmin.destroy();
+		mContext.destroy();
 		mWindow.destroy(instance);
 		instance.destroy();
 	}
 
 	void Engine::draw()
 	{
-		const vkg::CommandPool* cmdPool = mAdmin.getCommandPool(vkg::Admin::CommandPoolTypes::ePresent);
+		const vkg::CommandPool* cmdPool = mContext.getCommandPool(vkg::Context::CommandPoolTypes::ePresent);
 
 		uint32_t imageIdx;
 		bool outOfDateSwapChain = !mSwapChain.acquireNextImageBlock(mImageAvailableSemaphore, &imageIdx);
@@ -136,18 +136,18 @@ namespace gr
 			&presentRef
 		);
 
-		mRenderPass =  builder.buildRenderPass(mAdmin.getDeviceComp());
+		mRenderPass =  builder.buildRenderPass(mContext.getDeviceComp());
 	}
 
 	void Engine::createAndRecordPresentCommandBuffers()
 	{
 
-		const vkg::CommandPool* cmdPool = mAdmin.getCommandPool(vkg::Admin::CommandPoolTypes::ePresent);
+		const vkg::CommandPool* cmdPool = mContext.getCommandPool(vkg::Context::CommandPoolTypes::ePresent);
 
 		mPresentCommandBuffers = cmdPool->createCommandBuffers(mSwapChain.getNumImages());
 
 
-		const uint32_t presentQueueFamilyIdx = mAdmin.getQueueFamilyIndex(vkg::Admin::CommandPoolTypes::ePresent);
+		const uint32_t presentQueueFamilyIdx = mContext.getQueueFamilyIndex(vkg::Context::CommandPoolTypes::ePresent);
 
 		vk::CommandBufferBeginInfo beginInfo(vk::CommandBufferUsageFlagBits::eSimultaneousUse);
 
@@ -227,7 +227,7 @@ namespace gr
 
 	void Engine::deletePresentCommandBuffers()
 	{
-		const vkg::CommandPool* cmdPool = mAdmin.getCommandPool(vkg::Admin::CommandPoolTypes::ePresent);
+		const vkg::CommandPool* cmdPool = mContext.getCommandPool(vkg::Context::CommandPoolTypes::ePresent);
 		cmdPool->free(mPresentCommandBuffers.data(), static_cast<uint32_t>(mPresentCommandBuffers.size()));
 	}
 
@@ -237,15 +237,15 @@ namespace gr
 			mWindow.waitEvents();
 		}
 
-		mAdmin.waitIdle();
+		mContext.waitIdle();
 		deletePresentCommandBuffers();
 
-		mSwapChain.recreateSwapChain(mAdmin.getDeviceComp(), mWindow);
+		mSwapChain.recreateSwapChain(mContext.getDeviceComp(), mWindow);
 
 		createAndRecordPresentCommandBuffers();
 
 		for (vk::Framebuffer frambuffer : mPresentFramebuffers) {
-			mAdmin.destroyFramebuffer(frambuffer);
+			mContext.destroyFramebuffer(frambuffer);
 		}
 
 		mPresentFramebuffers = mSwapChain.createFramebuffersOfSwapImages(mRenderPass);

@@ -152,7 +152,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Engine.cpp" />
-    <ClCompile Include="src\graphics\Admin.cpp" />
+    <ClCompile Include="src\graphics\Context.cpp" />
     <ClCompile Include="src\graphics\AppInstance.cpp" />
     <ClCompile Include="src\graphics\command\CommandPool.cpp" />
     <ClCompile Include="src\graphics\DebugVk.cpp" />
@@ -170,7 +170,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engine.h" />
-    <ClInclude Include="src\graphics\Admin.h" />
+    <ClInclude Include="src\graphics\Context.h" />
     <ClInclude Include="src\graphics\AppInstance.h" />
     <ClInclude Include="src\graphics\command\CommandPool.h" />
     <ClInclude Include="src\graphics\DebugVk.h" />

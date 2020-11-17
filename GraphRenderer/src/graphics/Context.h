@@ -11,13 +11,13 @@ namespace gr
 {
 namespace vkg
 {
-	class Admin
+	class Context
 	{
 	public:
 
-		Admin() = default;
+		Context() = default;
 
-		Admin(DeviceComp&& device, MemoryManager&& memManager);
+		Context(const DeviceComp& device, const MemoryManager& memManager);
 
 		const DeviceComp& getDeviceComp() const { return mDevice; }
 

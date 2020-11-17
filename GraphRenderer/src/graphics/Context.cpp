@@ -1,4 +1,4 @@
-#include "Admin.h"
+#include "Context.h"
 
 
 namespace gr
@@ -6,13 +6,13 @@ namespace gr
 namespace vkg
 {
 
-	Admin::Admin(DeviceComp&& device, MemoryManager&& memManager) : mDevice(device), mMemManager(memManager)
+	Context::Context(const DeviceComp& device, const MemoryManager& memManager) : mDevice(device), mMemManager(memManager)
 	{
 		createCommandPools();
 	}
 
 
-	Image2D Admin::createDeviceImage2D(
+	Image2D Context::createDeviceImage2D(
 		const vk::Extent2D& extent,
 		uint32_t mipLevels,
 		vk::SampleCountFlagBits numSamples,
@@ -70,7 +70,7 @@ namespace vkg
 		return r_image;
 	}
 
-	void Admin::safeDestroyImage(Image2D& image)
+	void Context::safeDestroyImage(Image2D& image)
 	{
 		if (image.getAllocation() != nullptr) {
 			mMemManager.freeAllocation(image.getAllocation());
@@ -86,31 +86,31 @@ namespace vkg
 		}
 	}
 
-	vk::Semaphore Admin::createSemaphore() const
+	vk::Semaphore Context::createSemaphore() const
 	{
 		vk::SemaphoreCreateInfo createInfo;
 		
 		return mDevice.getVkDevice().createSemaphore(createInfo);
 	}
 
-	void Admin::destroySemaphore(vk::Semaphore semaphore) const
+	void Context::destroySemaphore(vk::Semaphore semaphore) const
 	{
 		mDevice.getVkDevice().destroySemaphore(semaphore);
 	}
 
-	void Admin::waitIdle() const
+	void Context::waitIdle() const
 	{
 		mDevice.getVkDevice().waitIdle();
 	}
 
-	const CommandPool* Admin::getCommandPool(const CommandPoolTypes type) const
+	const CommandPool* Context::getCommandPool(const CommandPoolTypes type) const
 	{
 		assert(type != CommandPoolTypes::NUM);
 
 		return mCommandPools.data() + static_cast<size_t>(type);
 	}
 
-	uint32_t Admin::getQueueFamilyIndex(const CommandPoolTypes type) const
+	uint32_t Context::getQueueFamilyIndex(const CommandPoolTypes type) const
 	{
 		switch (type)
 		{
@@ -125,17 +125,17 @@ namespace vkg
 		return -1;
 	}
 
-	void Admin::destroyRenderPass(const vk::RenderPass renderPass) const
+	void Context::destroyRenderPass(const vk::RenderPass renderPass) const
 	{
 		mDevice.getVkDevice().destroyRenderPass(renderPass);
 	}
 
-	void Admin::destroyFramebuffer(const vk::Framebuffer framebuffer) const
+	void Context::destroyFramebuffer(const vk::Framebuffer framebuffer) const
 	{
 		mDevice.getVkDevice().destroyFramebuffer(framebuffer);
 	}
 
-	void Admin::destroy()
+	void Context::destroy()
 	{
 		destroyCommandPools();
 
@@ -143,7 +143,7 @@ namespace vkg
 		mDevice.destroy();
 	}
 
-	void Admin::createCommandPools()
+	void Context::createCommandPools()
 	{
 
 		mCommandPools.reserve(static_cast<size_t>(CommandPoolTypes::NUM));
@@ -161,7 +161,7 @@ namespace vkg
 
 	}
 
-	void Admin::destroyCommandPools()
+	void Context::destroyCommandPools()
 	{
 
 		mCommandPools[static_cast<size_t>(CommandPoolTypes::eGraphic)].destroy();

@@ -6,7 +6,7 @@ namespace gr
 {
 namespace vkg
 {
-	class Admin;
+	class Context;
 	class CommandPool
 	{
 	public:

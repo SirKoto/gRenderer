@@ -5,21 +5,6 @@ namespace gr
 namespace vkg
 {
 
-void RenderPassBuilder::reserveNumAttachmentDescriptions(uint32_t tn)
-{
-	mAttachmentDescriptions.reserve(tn);
-}
-
-void RenderPassBuilder::reserveNumSubpassDescriptions(uint32_t tn)
-{
-		mSubpassDescriptions.reserve(tn);
-}
-
-void RenderPassBuilder::reserveNumDependencies(uint32_t tn)
-{
-	mDependencies.reserve(tn);
-}
-
 vk::AttachmentReference RenderPassBuilder::pushColorAttachmentDescription(
 	vk::Format tFormat, 
 	vk::SampleCountFlagBits tSamples,
@@ -80,7 +65,10 @@ vk::AttachmentReference RenderPassBuilder::pushDepthAttachmentDescription(
 	return ref;
 }
 
-uint32_t RenderPassBuilder::pushGraphicsSubpassDescriptionSimple(const vk::AttachmentReference* pColorAttachment, const vk::AttachmentReference* pDepthStencilAttachment, const vk::AttachmentReference* pResolveAttachment)
+uint32_t RenderPassBuilder::pushGraphicsSubpassDescriptionSimple(
+	const vk::AttachmentReference* pColorAttachment,
+	const vk::AttachmentReference* pDepthStencilAttachment,
+	const vk::AttachmentReference* pResolveAttachment)
 {
 	mSubpassDescriptions.emplace_back(
 		vk::SubpassDescription(

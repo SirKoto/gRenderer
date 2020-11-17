@@ -35,6 +35,8 @@ namespace vkg
 
 		bool acquireNextImageBlock(const vk::Semaphore semaphore, uint32_t* imageIdx) const;
 
+		std::vector<vk::Framebuffer> createFramebuffersOfSwapImages(const vk::RenderPass renderPass) const;
+
 
 	protected:
 		vk::SwapchainKHR mSwapChain;

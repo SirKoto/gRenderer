@@ -170,6 +170,30 @@ bool SwapChain::acquireNextImageBlock(const vk::Semaphore semaphore, uint32_t* i
 	return result.result != vk::Result::eErrorOutOfDateKHR;
 }
 
+std::vector<vk::Framebuffer> SwapChain::createFramebuffersOfSwapImages(const vk::RenderPass renderPass) const
+{
+	vk::FramebufferCreateInfo createInfo = vk::FramebufferCreateInfo(
+		{},			// flags
+		renderPass,
+		1, nullptr,
+		mExtent.width,
+		mExtent.height,
+		1
+	);
+
+	const uint32_t size = static_cast<uint32_t>(mImages.size());
+	
+	std::vector<vk::Framebuffer> framebuffers(size);
+
+	for (uint32_t i = 0; i < size; ++i) {
+		createInfo.setPAttachments(mImageViews.data() + i);
+
+		framebuffers[i] = mDevice.createFramebuffer(createInfo);
+	}
+
+	return framebuffers;
+}
+
 
 }; // namespace vkg
 }; // namespace gr

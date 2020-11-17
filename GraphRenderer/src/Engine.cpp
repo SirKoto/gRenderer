@@ -10,7 +10,7 @@
 #include "graphics/AppInstance.h"
 #include "graphics/DeviceComp.h"
 #include "graphics/memory/MemoryManager.h"
-
+#include "graphics/render/RenderPassBuilder.h"
 
 namespace gr
 {
@@ -52,6 +52,8 @@ namespace gr
 
 
 		createAndRecordPresentCommandBuffers();
+		createRenderPass();
+		mPresentFramebuffers = mSwapChain.createFramebuffersOfSwapImages(mRenderPass);
 
 		mImageAvailableSemaphore = mAdmin.createSemaphore();
 		mRenderingFinishedSemaphore = mAdmin.createSemaphore();
@@ -74,6 +76,11 @@ namespace gr
 		mAdmin.destroySemaphore(mRenderingFinishedSemaphore);
 
 		deletePresentCommandBuffers();
+		for (vk::Framebuffer frambuffer : mPresentFramebuffers) {
+			mAdmin.destroyFramebuffer(frambuffer);
+		}
+
+		mAdmin.destroyRenderPass(mRenderPass);
 		mSwapChain.destroy();
 		mAdmin.destroy();
 		mWindow.destroy(instance);
@@ -107,6 +114,29 @@ namespace gr
 		if (swapChainNeedsRecreation) {
 			recreateSwapChain();
 		}
+	}
+
+	void Engine::createRenderPass()
+	{
+		vkg::RenderPassBuilder builder;
+		builder.reserveNumAttachmentDescriptions(1);
+		builder.reserveNumDependencies(0);
+		builder.reserveNumSubpassDescriptions(1);
+
+		vk::AttachmentReference presentRef = builder.pushColorAttachmentDescription(
+			mSwapChain.getFormat(),			// Format
+			vk::SampleCountFlagBits::e1,	// Sample Count per pixel
+			vk::AttachmentLoadOp::eClear,	// Load operation 
+			vk::AttachmentStoreOp::eStore,	// Store operaton
+			vk::ImageLayout::ePresentSrcKHR,// Initial layout
+			vk::ImageLayout::ePresentSrcKHR // Final layout
+		);
+
+		uint32_t presentSubPass = builder.pushGraphicsSubpassDescriptionSimple(
+			&presentRef
+		);
+
+		mRenderPass =  builder.buildRenderPass(mAdmin.getDeviceComp());
 	}
 
 	void Engine::createAndRecordPresentCommandBuffers()
@@ -210,9 +240,15 @@ namespace gr
 		mAdmin.waitIdle();
 		deletePresentCommandBuffers();
 
-		mSwapChain.recreateSwapChain(*mAdmin.getDeviceComp(), mWindow);
+		mSwapChain.recreateSwapChain(mAdmin.getDeviceComp(), mWindow);
 
 		createAndRecordPresentCommandBuffers();
+
+		for (vk::Framebuffer frambuffer : mPresentFramebuffers) {
+			mAdmin.destroyFramebuffer(frambuffer);
+		}
+
+		mPresentFramebuffers = mSwapChain.createFramebuffersOfSwapImages(mRenderPass);
 	}
 
 }; // namespace gr

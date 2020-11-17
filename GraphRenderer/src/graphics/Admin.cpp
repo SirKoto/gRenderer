@@ -125,6 +125,16 @@ namespace vkg
 		return -1;
 	}
 
+	void Admin::destroyRenderPass(const vk::RenderPass renderPass) const
+	{
+		mDevice.getVkDevice().destroyRenderPass(renderPass);
+	}
+
+	void Admin::destroyFramebuffer(const vk::Framebuffer framebuffer) const
+	{
+		mDevice.getVkDevice().destroyFramebuffer(framebuffer);
+	}
+
 	void Admin::destroy()
 	{
 		destroyCommandPools();

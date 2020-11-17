@@ -3,6 +3,7 @@
 #include "graphics/Admin.h"
 #include "graphics/present/SwapChain.h"
 #include "graphics/Window.h"
+#include "graphics/render/RenderPass.h"
 
 namespace gr
 {
@@ -24,12 +25,15 @@ namespace gr
 
 
 		std::vector<vk::CommandBuffer> mPresentCommandBuffers;
+		std::vector<vk::Framebuffer> mPresentFramebuffers;
+		vkg::RenderPass mRenderPass;
 
 		vk::Semaphore mImageAvailableSemaphore;
 		vk::Semaphore mRenderingFinishedSemaphore;
 
 		void draw();
 
+		void createRenderPass();
 		void createAndRecordPresentCommandBuffers();
 		void deletePresentCommandBuffers();
 		void recreateSwapChain();

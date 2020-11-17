@@ -49,5 +49,22 @@ private:
 	std::vector<vk::SubpassDependency> mDependencies;
 };
 
+// Implementations to try inline....
+
+void RenderPassBuilder::reserveNumAttachmentDescriptions(uint32_t tn)
+{
+	mAttachmentDescriptions.reserve(tn);
+}
+
+void RenderPassBuilder::reserveNumSubpassDescriptions(uint32_t tn)
+{
+	mSubpassDescriptions.reserve(tn);
+}
+
+void RenderPassBuilder::reserveNumDependencies(uint32_t tn)
+{
+	mDependencies.reserve(tn);
+}
+
 }; // namespace vkg
 }; // namespace gr

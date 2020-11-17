@@ -19,7 +19,7 @@ namespace vkg
 
 		Admin(DeviceComp&& device, MemoryManager&& memManager);
 
-		const DeviceComp* getDeviceComp() const { return &mDevice; }
+		const DeviceComp& getDeviceComp() const { return mDevice; }
 
 		Image2D createDeviceImage2D(const vk::Extent2D& extent,
 			uint32_t mipLevels,
@@ -45,7 +45,9 @@ namespace vkg
 		const CommandPool* getCommandPool(const CommandPoolTypes type) const;
 		uint32_t getQueueFamilyIndex(const CommandPoolTypes type) const;
 
+		void destroyRenderPass(const vk::RenderPass renderPass) const;
 
+		void destroyFramebuffer(const vk::Framebuffer framebuffer) const;
 
 		void destroy();
 

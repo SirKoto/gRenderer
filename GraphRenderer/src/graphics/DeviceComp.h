@@ -43,7 +43,7 @@ namespace vkg
 
 		bool isPresentQueueCreated() const { return mPresentQueueRequested; }
 
-		vk::SampleCountFlags getMsaaSampleCount() const { return mMsaaSamples; }
+		vk::SampleCountFlagBits getMsaaSampleCount() const { return mMsaaSamples; }
 
 		vk::SampleCountFlagBits getMaxUsableSampleCount() const;
 
@@ -62,7 +62,7 @@ namespace vkg
 
 
 		bool mAnisotropySamplerEnabled, mPresentQueueRequested;
-		vk::SampleCountFlags mMsaaSamples;
+		vk::SampleCountFlagBits mMsaaSamples = vk::SampleCountFlagBits::e1;
 
 		// Struct used to determine the queueIndices inside this device
 		typedef struct QueueIndices {

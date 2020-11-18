@@ -12,7 +12,7 @@ class Job
 {
 private:
 	static const size_t SIZE = 10;
-	typedef std::aligned_storage<sizeof(void*)* SIZE> Stack;
+	typedef std::aligned_storage<sizeof(void*)* SIZE>::type Stack;
 	Stack mBuffer;
 
 
@@ -76,21 +76,21 @@ public:
 
 	template<typename Callable, typename ...Args>
 	Job(Callable f, Args... args) {
-		//static_assert(sizeof(HolderBase<Callable, Args...>) <= sizeof(Stack), "Type does not fit the stack!!");
+		static_assert(sizeof(Holder<Callable, Args...>) <= sizeof(Stack), "Type does not fit the stack!!");
 
 		new(std::addressof(mBuffer)) Holder(f, args...);
 	}
 
 	template<typename ...Args>
 	Job(void(* f)(Args...), Args... args) {
-		static_assert(sizeof(Holder<void(*)(Args...), Args...>) <= sizeof(Stack::type), "Type does not fit the stack!!");
+		static_assert(sizeof(Holder<void(*)(Args...), Args...>) <= sizeof(Stack), "Type does not fit the stack!!");
 
 		new(std::addressof(mBuffer)) Holder(f, args...);
 	}
 
 	template<typename Callable, typename ...Args>
 	Job(Callable* f, Args... args) {
-		//static_assert(sizeof(HolderBase<Callable::operator(), Args...>) <= sizeof(Stack), "Type does not fit the stack!!");
+		static_assert(sizeof(Holder<Callable::operator(), Args...>) <= sizeof(Stack), "Type does not fit the stack!!");
 
 		new(std::addressof(mBuffer)) Holder(Callable::operator(), args...);
 	}

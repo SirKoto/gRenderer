@@ -28,7 +28,7 @@ private:
 		Callable mF;
 		std::tuple<Args...> mArgs;
 
-		Holder(Callable f, Args... args) : mF(f)
+		Holder(Callable&& f, Args... args) : mF(std::forward<Callable>(f))
 		{
 			new (std::addressof(mArgs)) std::tuple<Args...>(args...);
 		}
@@ -55,6 +55,12 @@ private:
 			new (std::addressof(mArgs)) std::tuple<Args...>(args...);
 		}
 
+		HolderMember(void(TClass::* fun)(Args...), TClass* c, Args&&... args) : mFun(fun)
+		{
+			mClass = c;
+			new (std::addressof(mArgs)) std::tuple<Args...>(std::forward<Args>(args)...);
+		}
+
 		virtual void operator()() override {
 			std::apply(std::mem_fn(mFun), std::tuple_cat(std::make_tuple(mClass), mArgs));
 		}
@@ -77,15 +83,15 @@ public:
 	}
 
 	// WARNING:
-	// only functions without return value supported
+	// only functions without return value supported, and no arguments by reference!!!!
 
 
-	// Functors
+	// Functors (rvalues)
 	template<typename Callable, typename ...Args>
-	Job(Callable f, Args... args) {
+	Job(Callable&& f, Args... args) {
 		static_assert(sizeof(Holder<Callable, Args...>) <= sizeof(Stack), "Type does not fit the stack!!");
 
-		new(std::addressof(mBuffer)) Holder(f, args...);
+		new(std::addressof(mBuffer)) Holder(std::forward<Callable>(f), args...);
 	}
 
 	// Function pointers
@@ -98,10 +104,10 @@ public:
 
 	// Member functions
 	template<class TClass, typename ...Args>
-	Job(void(TClass::* callable)(Args...), TClass* c, Args... args) {
+	Job(void(TClass::* callable)(Args...), TClass* c, Args&&... args) {
 		static_assert(sizeof(HolderMember<TClass, Args...>) <= sizeof(Stack), "Type does not fit the stack!!");
 
-		new(std::addressof(mBuffer)) HolderMember(callable, c, args...);
+		new(std::addressof(mBuffer)) HolderMember(callable, c, std::forward<Args>(args)...);
 	}
 
 };

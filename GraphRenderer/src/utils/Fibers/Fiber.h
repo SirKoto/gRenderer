@@ -12,7 +12,10 @@ public:
 	
 	void createFromCurrentThread();
 
-	void create();
+	void switchTo(const Fiber& fib) const;
+
+	typedef void(*FiberInitFun)(void*);
+	void create(FiberInitFun fun, void* userData, size_t reservedStack = 0);
 
 	void destroy();
 

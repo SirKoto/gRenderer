@@ -36,6 +36,37 @@ void FScheduler::joinAllThreads() const
 	}
 }
 
+void FScheduler::startJobSystem()
+{
+	// create all fibers
+	uint32_t i = 0;
+	for (Fiber& fiber : mFibers) {
+		size_t reservedStack = 0;
+		if (i++ < LEAF_FIBERS)
+		{
+			reservedStack = 1ull << 16; // 64Kb
+		}
+		else {
+			reservedStack = 1ull << 19; //512Kb
+		}
+
+
+		fiber.create(reinterpret_cast<Fiber::FiberInitFun>(&s_funWorkerFiber), this, reservedStack);
+	}
+
+	for (uint32_t i = 0; i < mNumThreads; ++i) {
+		mThreads[i] = std::thread(&s_funThread, this);
+	}
+
+	s_funThread(this);
+
+	joinAllThreads();
+
+	for (Fiber& fiber : mFibers) {
+		fiber.destroy();;
+	}
+}
+
 void FScheduler::setThreadsAffinityToCore()
 {
 #ifdef _WIN32
@@ -54,6 +85,27 @@ void FScheduler::setThreadsAffinityToCore()
 		}
 	}
 #endif
+}
+
+void FScheduler::s_funWorkerFiber(const FScheduler* scheduler)
+{
+	while (!scheduler->mStopExecution) {
+
+	}
+
+	FiberIdx idx = FScheduler::sTls.actualFiber;
+	if (idx != NULL_FIBER)
+	{
+		scheduler->mFibers[idx].switchTo(FScheduler::sTls.threadFiber);
+	}
+}
+
+void FScheduler::s_funThread(const FScheduler* scheduler)
+{
+	FScheduler::sTls.threadFiber.createFromCurrentThread();
+
+
+
 }
 
 } // namespace gr

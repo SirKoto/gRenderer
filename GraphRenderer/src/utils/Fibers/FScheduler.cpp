@@ -11,7 +11,8 @@
 namespace gr
 {
 FScheduler::FScheduler(uint32_t maxThreads) : 
-	mNumThreads(std::min(maxThreads, std::thread::hardware_concurrency()) - 1)
+	mNumThreads(std::min(maxThreads, std::thread::hardware_concurrency()) - 1),
+	mHighPriorityQueue(100), mMidPriorityQueue(100), mLowPriorityQueue(100)
 {
 #ifdef _WIN32
 	mMainThreadHandle = GetCurrentThread();
@@ -42,7 +43,7 @@ void FScheduler::startJobSystem()
 	uint32_t i = 0;
 	for (Fiber& fiber : mFibers) {
 		size_t reservedStack = 0;
-		if (i++ < LEAF_FIBERS)
+		if (i++ < NUM_LEAF_FIBERS)
 		{
 			reservedStack = 1ull << 16; // 64Kb
 		}
@@ -50,20 +51,26 @@ void FScheduler::startJobSystem()
 			reservedStack = 1ull << 19; //512Kb
 		}
 
+		FiberContext* context = new FiberContext(this, i);
 
-		fiber.create(reinterpret_cast<Fiber::FiberInitFun>(&s_funWorkerFiber), this, reservedStack);
+		fiber.create(reinterpret_cast<Fiber::FiberInitFun>(&s_funWorkerFiber), context, reservedStack);
+	}
+
+	for (std::atomic_flag& flag : mIsFiberUsedFlag)
+	{
+		flag.clear(std::memory_order_relaxed);
 	}
 
 	for (uint32_t i = 0; i < mNumThreads; ++i) {
 
 		std::unique_ptr<QueueTokens> threadTokens = std::make_unique<QueueTokens>(
-			std::array< moodycamel::ConcurrentQueue<Job>*, 3>{&mHighPriorityQueue, &mMidPriorityQueue, &mLowPriorityQueue}
+			std::array< moodycamel::ConcurrentQueue<Task>*, 3>{&mHighPriorityQueue, &mMidPriorityQueue, &mLowPriorityQueue}
 		);
 
 		mThreads[i] = std::thread(&s_funThread, this, std::move(threadTokens));
 	}
 
-	FScheduler::sTls.tokens = std::make_unique<QueueTokens>(std::array< moodycamel::ConcurrentQueue<Job>*, 3>{&mHighPriorityQueue, & mMidPriorityQueue, & mLowPriorityQueue});
+	FScheduler::sTls.tokens = std::make_unique<QueueTokens>(std::array< moodycamel::ConcurrentQueue<Task>*, 3>{&mHighPriorityQueue, & mMidPriorityQueue, & mLowPriorityQueue});
 
 
 	s_funThread(this, nullptr);
@@ -73,6 +80,60 @@ void FScheduler::startJobSystem()
 	for (Fiber& fiber : mFibers) {
 		fiber.destroy();;
 	}
+}
+
+void FScheduler::scheduleJob(
+	Priority priority,
+	const Job& job)
+{
+	switch (priority)
+	{
+	case Priority::eHigh:
+		mHighPriorityQueue.enqueue(sTls.tokens->pHToken, job);
+		break;
+	case Priority::eMid:
+		mMidPriorityQueue.enqueue(sTls.tokens->pMToken, job);
+		break;
+	case Priority::eLow:
+		mLowPriorityQueue.enqueue(sTls.tokens->pLToken, job);
+		break;
+	default:
+		assert(false);
+	}
+}
+
+bool FScheduler::tryGetNextTask(Task* task)
+{
+
+	if (mHighPriorityQueue.try_dequeue(sTls.tokens->cHToken, *task))
+	{
+		return true;
+	}
+
+	if (mMidPriorityQueue.try_dequeue(sTls.tokens->cMToken, *task))
+	{
+		return true;
+	}
+
+	if (mLowPriorityQueue.try_dequeue(sTls.tokens->cLToken, *task))
+	{
+		return true;
+	}
+
+
+	return false;
+}
+
+FScheduler::FiberIdx FScheduler::acquireFiber(bool needsBigStack)
+{
+	for (FiberIdx i = (needsBigStack ? NUM_LEAF_FIBERS : 0); i < NUM_FIBERS; ++i)
+	{
+		if (!mIsFiberUsedFlag[i].test_and_set(std::memory_order_relaxed /*std::memory_order_acquire*/)) {
+			return i;
+		}
+	}
+
+	return NULL_FIBER;
 }
 
 void FScheduler::setThreadsAffinityToCore()
@@ -95,26 +156,54 @@ void FScheduler::setThreadsAffinityToCore()
 #endif
 }
 
-void FScheduler::s_funWorkerFiber(const FScheduler* scheduler)
+void FScheduler::s_funWorkerFiber(const FiberContext* context)
 {
-	while (!scheduler->mStopExecution) {
-
-	}
-
-	FiberIdx idx = FScheduler::sTls.actualFiber;
-	if (idx != NULL_FIBER)
+	const FiberIdx idx = context->fiberIdx;
+	const FScheduler* scheduler = context->scheduler;
+	delete context;
+	while (true)
 	{
+		Job job = FScheduler::sTls.currentTask;
+
+		job.run();
+
 		scheduler->mFibers[idx].switchTo(FScheduler::sTls.threadFiber);
 	}
 }
 
-void FScheduler::s_funThread(const FScheduler* scheduler, std::unique_ptr<QueueTokens>&& tokens)
+void FScheduler::s_funThread(FScheduler* scheduler, std::unique_ptr<QueueTokens>&& tokens)
 {
-	FScheduler::sTls.tokens = std::forward<std::unique_ptr<QueueTokens>>(tokens);
+	if (tokens) {
+		FScheduler::sTls.tokens = std::forward<std::unique_ptr<QueueTokens>>(tokens);
+	}
 
 	FScheduler::sTls.threadFiber.createFromCurrentThread();
 
+	bool recievedTask = false;
+	FiberIdx actualFiber = NULL_FIBER;
+	while (!scheduler->mStopExecution) {
+		if (!recievedTask) {
+			recievedTask = scheduler->tryGetNextTask(&sTls.currentTask);
+		}
 
+		if (recievedTask) {
+			actualFiber = scheduler->acquireFiber();
+		}
+
+		// If no task was recieved, or no fiber is available wait and try again
+		if (!recievedTask || actualFiber != NULL_FIBER) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			continue;
+		}
+
+		// Switch to selected fiber to complete the job
+		FScheduler::sTls.threadFiber.switchTo(scheduler->mFibers[actualFiber]);
+
+
+		recievedTask = false;
+		scheduler->mIsFiberUsedFlag[actualFiber].clear(std::memory_order_relaxed /*std::memory_order_release*/);
+		actualFiber = NULL_FIBER;
+	}
 
 }
 

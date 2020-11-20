@@ -72,22 +72,28 @@ private:
 
 public:
 
+	Job() {
+		std::memset(&mBuffer, 0, sizeof(mBuffer));
+	}
+
 	~Job()
 	{
-		reinterpret_cast<HolderBase&>(mBuffer).~HolderBase();
+		if (&reinterpret_cast<HolderBase&>(mBuffer) != nullptr) {
+			reinterpret_cast<HolderBase&>(mBuffer).~HolderBase();
+		}
 	}
 
 	void run() {
+		assert((&reinterpret_cast<HolderBase&>(mBuffer) != nullptr));
 
 		reinterpret_cast<HolderBase&>(mBuffer)();
 	}
 
 	// WARNING:
 	// only functions without return value supported, and no arguments by reference!!!!
-
-
 	// Functors (rvalues)
-	template<typename Callable, typename ...Args>
+	
+	template<typename Callable, typename ...Args> explicit
 	Job(Callable&& f, Args... args) {
 		static_assert(sizeof(Holder<Callable, Args...>) <= sizeof(Stack), "Type does not fit the stack!!");
 
@@ -95,7 +101,7 @@ public:
 	}
 
 	// Function pointers
-	template<typename ...Args>
+	template<typename ...Args> explicit
 	Job(void(* f)(Args...), Args... args) {
 		static_assert(sizeof(Holder<void(*)(Args...), Args...>) <= sizeof(Stack), "Type does not fit the stack!!");
 
@@ -103,7 +109,7 @@ public:
 	}
 
 	// Member functions
-	template<class TClass, typename ...Args>
+	template<class TClass, typename ...Args> explicit
 	Job(void(TClass::* callable)(Args...), TClass* c, Args&&... args) {
 		static_assert(sizeof(HolderMember<TClass, Args...>) <= sizeof(Stack), "Type does not fit the stack!!");
 

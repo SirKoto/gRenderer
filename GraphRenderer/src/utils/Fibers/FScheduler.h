@@ -11,6 +11,11 @@
 
 #include "Job.h"
 
+// Because of Windows....
+#ifdef max
+#undef max
+#endif
+
 namespace gr
 {
 
@@ -29,6 +34,8 @@ public:
 
 	void startJobSystem();
 
+	void stopSystem();
+
 
 	enum class Priority {
 		eHigh,
@@ -38,9 +45,7 @@ public:
 
 
 	void scheduleJob(Priority priority, const Job& job);
-
-
-
+	void scheduleJob(Priority priority, bool needsBigStack, const Job& job);
 
 
 protected:
@@ -57,7 +62,12 @@ protected:
 	std::array<Fiber, NUM_FIBERS> mFibers;
 	std::array<std::atomic_flag, NUM_FIBERS> mIsFiberUsedFlag;
 
-	typedef Job Task;
+	typedef struct Task { 
+		Job job;
+		bool needsBigStack;
+
+		Task() = default;
+	} Task;
 
 
 	// Allocated with 100 jobs at the begining each

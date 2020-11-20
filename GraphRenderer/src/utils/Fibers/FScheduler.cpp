@@ -17,7 +17,14 @@ FScheduler::FScheduler(uint32_t maxThreads) :
 #ifdef _WIN32
 	mMainThreadHandle = GetCurrentThread();
 #endif
-	mThreads = new std::thread[mNumThreads];
+	if (mNumThreads)
+	{
+		mThreads = new std::thread[mNumThreads];
+	}
+
+	// Create main thread tokens
+	FScheduler::sTls.tokens = std::make_unique<QueueTokens>(std::array< moodycamel::ConcurrentQueue<Task>*, 3>{&mHighPriorityQueue, & mMidPriorityQueue, & mLowPriorityQueue});
+
 }
 
 
@@ -25,7 +32,7 @@ FScheduler::~FScheduler()
 {
 	if (mThreads)
 	{
-		delete mThreads;
+		delete[] mThreads;
 	}
 }
 
@@ -70,9 +77,6 @@ void FScheduler::startJobSystem()
 		mThreads[i] = std::thread(&s_funThread, this, std::move(threadTokens));
 	}
 
-	FScheduler::sTls.tokens = std::make_unique<QueueTokens>(std::array< moodycamel::ConcurrentQueue<Task>*, 3>{&mHighPriorityQueue, & mMidPriorityQueue, & mLowPriorityQueue});
-
-
 	s_funThread(this, nullptr);
 
 	joinAllThreads();
@@ -82,20 +86,31 @@ void FScheduler::startJobSystem()
 	}
 }
 
+void FScheduler::stopSystem()
+{
+	mStopExecution = true;
+}
+
 void FScheduler::scheduleJob(
 	Priority priority,
 	const Job& job)
 {
+	scheduleJob(priority, false, job);
+}
+
+void FScheduler::scheduleJob(Priority priority, bool needsBigStack, const Job& job)
+{
+	Task task{ job, needsBigStack };
 	switch (priority)
 	{
 	case Priority::eHigh:
-		mHighPriorityQueue.enqueue(sTls.tokens->pHToken, job);
+		mHighPriorityQueue.enqueue(sTls.tokens->pHToken, task);
 		break;
 	case Priority::eMid:
-		mMidPriorityQueue.enqueue(sTls.tokens->pMToken, job);
+		mMidPriorityQueue.enqueue(sTls.tokens->pMToken, task);
 		break;
 	case Priority::eLow:
-		mLowPriorityQueue.enqueue(sTls.tokens->pLToken, job);
+		mLowPriorityQueue.enqueue(sTls.tokens->pLToken, task);
 		break;
 	default:
 		assert(false);
@@ -163,7 +178,7 @@ void FScheduler::s_funWorkerFiber(const FiberContext* context)
 	delete context;
 	while (true)
 	{
-		Job job = FScheduler::sTls.currentTask;
+		Job& job = FScheduler::sTls.currentTask.job;
 
 		job.run();
 
@@ -187,11 +202,11 @@ void FScheduler::s_funThread(FScheduler* scheduler, std::unique_ptr<QueueTokens>
 		}
 
 		if (recievedTask) {
-			actualFiber = scheduler->acquireFiber();
+			actualFiber = scheduler->acquireFiber(FScheduler::sTls.currentTask.needsBigStack);
 		}
 
 		// If no task was recieved, or no fiber is available wait and try again
-		if (!recievedTask || actualFiber != NULL_FIBER) {
+		if (!recievedTask || actualFiber == NULL_FIBER) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(1));
 			continue;
 		}

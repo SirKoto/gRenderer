@@ -136,4 +136,6 @@ protected:
 
 };
 
+typedef FScheduler grjob;
+
 } // namespace gr

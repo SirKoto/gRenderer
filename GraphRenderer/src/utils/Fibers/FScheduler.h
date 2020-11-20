@@ -47,6 +47,9 @@ public:
 	void scheduleJob(Priority priority, const Job& job);
 	void scheduleJob(Priority priority, bool needsBigStack, const Job& job);
 
+	void scheduleJobForMainThread(bool needsBigStack, const Job& job);
+
+
 
 protected:
 
@@ -75,6 +78,8 @@ protected:
 	moodycamel::ConcurrentQueue<Task> mMidPriorityQueue;
 	moodycamel::ConcurrentQueue<Task> mLowPriorityQueue;
 
+	moodycamel::ConcurrentQueue<Task> mMainThreadQueue;
+
 
 	bool mStopExecution = false;
 
@@ -98,17 +103,19 @@ protected:
 
 	static thread_local struct 
 	{
-		 Fiber threadFiber;
-		 std::unique_ptr<QueueTokens> tokens;
+		FScheduler* scheduler;
+		Fiber threadFiber;
+		std::unique_ptr<QueueTokens> tokens;
 
-		 Task currentTask;
+		Task currentTask;
 
-		 std::list<Task> tasksOnWait;
+		std::list<Task> tasksOnWait;
+
+		bool isMainThread = false;
 
 	} sTls;
 
 	void setThreadsAffinityToCore();
-
 
 	bool tryGetNextTask(Task* task);
 
@@ -116,10 +123,9 @@ protected:
 
 	struct FiberContext
 	{
-		const FScheduler* scheduler;
 		const FiberIdx fiberIdx;
 
-		FiberContext(const FScheduler* scheduler, const FiberIdx fiberIdx) : scheduler(scheduler), fiberIdx(fiberIdx) {}
+		FiberContext(const FiberIdx fiberIdx) : fiberIdx(fiberIdx) {}
 	};
 
 	static void s_funWorkerFiber(const FiberContext* context);

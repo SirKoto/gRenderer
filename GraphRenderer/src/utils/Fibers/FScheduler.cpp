@@ -12,7 +12,7 @@ namespace gr
 {
 FScheduler::FScheduler(uint32_t maxThreads) : 
 	mNumThreads(std::min(maxThreads, std::thread::hardware_concurrency()) - 1),
-	mHighPriorityQueue(100), mMidPriorityQueue(100), mLowPriorityQueue(100)
+	mHighPriorityQueue(100), mMidPriorityQueue(100), mLowPriorityQueue(100), mMainThreadQueue(10)
 {
 #ifdef _WIN32
 	mMainThreadHandle = GetCurrentThread();
@@ -24,7 +24,8 @@ FScheduler::FScheduler(uint32_t maxThreads) :
 
 	// Create main thread tokens
 	FScheduler::sTls.tokens = std::make_unique<QueueTokens>(std::array< moodycamel::ConcurrentQueue<Task>*, 3>{&mHighPriorityQueue, & mMidPriorityQueue, & mLowPriorityQueue});
-
+	FScheduler::sTls.scheduler = this;
+	FScheduler::sTls.isMainThread = true;
 }
 
 
@@ -58,7 +59,7 @@ void FScheduler::startJobSystem()
 			reservedStack = 1ull << 19; //512Kb
 		}
 
-		FiberContext* context = new FiberContext(this, i);
+		FiberContext* context = new FiberContext(i);
 
 		fiber.create(reinterpret_cast<Fiber::FiberInitFun>(&s_funWorkerFiber), context, reservedStack);
 	}
@@ -117,8 +118,20 @@ void FScheduler::scheduleJob(Priority priority, bool needsBigStack, const Job& j
 	}
 }
 
+void FScheduler::scheduleJobForMainThread(bool needsBigStack, const Job& job)
+{
+	Task task{ job, needsBigStack };
+
+	mMainThreadQueue.enqueue(task);
+}
+
 bool FScheduler::tryGetNextTask(Task* task)
 {
+
+	if (FScheduler::sTls.isMainThread && mMainThreadQueue.try_dequeue(*task))
+	{
+		return true;
+	}
 
 	if (mHighPriorityQueue.try_dequeue(sTls.tokens->cHToken, *task))
 	{
@@ -174,7 +187,7 @@ void FScheduler::setThreadsAffinityToCore()
 void FScheduler::s_funWorkerFiber(const FiberContext* context)
 {
 	const FiberIdx idx = context->fiberIdx;
-	const FScheduler* scheduler = context->scheduler;
+	const FScheduler* scheduler = FScheduler::sTls.scheduler;
 	delete context;
 	while (true)
 	{
@@ -192,6 +205,7 @@ void FScheduler::s_funThread(FScheduler* scheduler, std::unique_ptr<QueueTokens>
 		FScheduler::sTls.tokens = std::forward<std::unique_ptr<QueueTokens>>(tokens);
 	}
 
+	FScheduler::sTls.scheduler = scheduler;
 	FScheduler::sTls.threadFiber.createFromCurrentThread();
 
 	bool recievedTask = false;

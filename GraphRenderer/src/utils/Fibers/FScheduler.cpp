@@ -105,13 +105,13 @@ void FScheduler::scheduleJob(Priority priority, bool needsBigStack, const Job& j
 	switch (priority)
 	{
 	case Priority::eHigh:
-		mHighPriorityQueue.enqueue(sTls.tokens->pHToken, task);
+		FScheduler::sTls.scheduler->mHighPriorityQueue.enqueue(sTls.tokens->pHToken, task);
 		break;
 	case Priority::eMid:
-		mMidPriorityQueue.enqueue(sTls.tokens->pMToken, task);
+		FScheduler::sTls.scheduler->mMidPriorityQueue.enqueue(sTls.tokens->pMToken, task);
 		break;
 	case Priority::eLow:
-		mLowPriorityQueue.enqueue(sTls.tokens->pLToken, task);
+		FScheduler::sTls.scheduler->mLowPriorityQueue.enqueue(sTls.tokens->pLToken, task);
 		break;
 	default:
 		assert(false);
@@ -122,7 +122,7 @@ void FScheduler::scheduleJobForMainThread(bool needsBigStack, const Job& job)
 {
 	Task task{ job, needsBigStack };
 
-	mMainThreadQueue.enqueue(task);
+	FScheduler::sTls.scheduler->mMainThreadQueue.enqueue(task);
 }
 
 bool FScheduler::tryGetNextTask(Task* task)

@@ -30,8 +30,6 @@ public:
 	FScheduler& operator=(const FScheduler&) = delete;
 
 
-	void joinAllThreads() const;
-
 	void startJobSystem();
 
 	void stopSystem();
@@ -44,10 +42,11 @@ public:
 	};
 
 
-	void scheduleJob(Priority priority, const Job& job);
-	void scheduleJob(Priority priority, bool needsBigStack, const Job& job);
+	// An object of this type needs to exist in order to use this functions
+	static void scheduleJob(Priority priority, const Job& job);
+	static void scheduleJob(Priority priority, bool needsBigStack, const Job& job);
 
-	void scheduleJobForMainThread(bool needsBigStack, const Job& job);
+	static void scheduleJobForMainThread(bool needsBigStack, const Job& job);
 
 
 
@@ -118,6 +117,8 @@ protected:
 	void setThreadsAffinityToCore();
 
 	bool tryGetNextTask(Task* task);
+
+	void joinAllThreads() const;
 
 	FiberIdx acquireFiber(bool needsBigStack = false);
 

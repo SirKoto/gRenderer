@@ -10,6 +10,7 @@
 #include <concurrentqueue/concurrentqueue.h>
 
 #include "Job.h"
+#include "Counter.h"
 
 // Because of Windows....
 #ifdef max
@@ -18,6 +19,15 @@
 
 namespace gr
 {
+
+namespace grjob
+{
+
+enum class Priority {
+	eHigh,
+	eMid,
+	eLow
+};
 
 class FScheduler
 {
@@ -35,19 +45,14 @@ public:
 	void stopSystem();
 
 
-	enum class Priority {
-		eHigh,
-		eMid,
-		eLow
-	};
-
-
 	// An object of this type needs to exist in order to use this functions
-	static void scheduleJob(Priority priority, const Job& job);
-	static void scheduleJob(Priority priority, bool needsBigStack, const Job& job);
+	static void scheduleJob(Priority priority, const Job& job, Counter** pCounter = nullptr);
+	static void scheduleJob(Priority priority, bool needsBigStack, const Job& job, Counter** pCounter = nullptr);
 
-	static void scheduleJobForMainThread(bool needsBigStack, const Job& job);
+	static void scheduleJobForMainThread(bool needsBigStack, const Job& job, Counter** pCounter = nullptr);
 
+	static void waitForCounterAndFree(const Counter* counter, uint32_t value);
+	static void waitForCounter(const Counter* counter, uint32_t value);
 
 
 protected:
@@ -64,12 +69,19 @@ protected:
 	std::array<Fiber, NUM_FIBERS> mFibers;
 	std::array<std::atomic_flag, NUM_FIBERS> mIsFiberUsedFlag;
 
-	typedef struct Task { 
+	typedef struct Task {
 		Job job;
-		bool needsBigStack;
+		Counter* counter = nullptr;
+		bool needsBigStack = false;;
 
 		Task() = default;
 	} Task;
+
+	typedef struct WaitFiber {
+		const Counter* counter;
+		const uint32_t value2resume;
+		const FiberIdx fiber;
+	} WaitFiber;
 
 
 	// Allocated with 100 jobs at the begining each
@@ -93,28 +105,37 @@ protected:
 
 		QueueTokens(const std::array< moodycamel::ConcurrentQueue<Task>*, 3>& queues)
 			: pHToken(*queues[0]), pMToken(*queues[1]), pLToken(*queues[2]),
-			  cHToken(*queues[0]), cMToken(*queues[1]), cLToken(*queues[2])
+			cHToken(*queues[0]), cMToken(*queues[1]), cLToken(*queues[2])
 		{}
 
 	};
 
 
-
-	static thread_local struct 
+	struct TLS
 	{
-		FScheduler* scheduler;
+		FScheduler* scheduler = nullptr;
 		Fiber threadFiber;
+
 		std::unique_ptr<QueueTokens> tokens;
 
-		Task currentTask;
+		Job currentJob;
+		Counter* counterToDecrement = nullptr;
 
-		std::list<Task> tasksOnWait;
+		std::list<WaitFiber> tasksOnWait;
 
+		FiberIdx currentFiber = NULL_FIBER;
+		bool fiberFinished = false;
 		bool isMainThread = false;
 
-	} sTls;
+		TLS() = default;
+
+	};
+
+	static thread_local TLS sTls;
 
 	void setThreadsAffinityToCore();
+
+	bool tryGetHighPriorityNextTask(Task* task);
 
 	bool tryGetNextTask(Task* task);
 
@@ -129,13 +150,35 @@ protected:
 		FiberContext(const FiberIdx fiberIdx) : fiberIdx(fiberIdx) {}
 	};
 
+	static bool tryGetWaitingFiber(FiberIdx* fiber);
+
 	static void s_funWorkerFiber(const FiberContext* context);
 
 
 	static void s_funThread(FScheduler* scheduler, std::unique_ptr<QueueTokens>&& tokens);
 
+
 };
 
-typedef FScheduler grjob;
 
+	inline void scheduleJob(Priority priority, const Job& job, Counter** pCounter = nullptr) {
+		FScheduler::scheduleJob(priority, job, pCounter);
+	}
+	inline void scheduleJob(Priority priority, bool needsBigStack, const Job& job, Counter** pCounter = nullptr) {
+		FScheduler::scheduleJob(priority, needsBigStack, job, pCounter);
+	}
+
+	inline void scheduleJobForMainThread(bool needsBigStack, const Job& job, Counter** pCounter = nullptr) {
+		FScheduler::scheduleJobForMainThread(needsBigStack, job, pCounter);
+	}
+
+	inline void waitForCounterAndFree(const Counter* counter, uint32_t value) {
+		FScheduler::waitForCounterAndFree(counter, value);
+	}
+
+	inline void waitForCounter(const Counter* counter, uint32_t value) {
+		FScheduler::waitForCounter(counter, value);
+	}
+
+} // namespace grjob
 } // namespace gr

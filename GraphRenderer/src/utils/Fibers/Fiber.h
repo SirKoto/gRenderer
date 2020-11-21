@@ -3,13 +3,14 @@
 namespace gr
 {
 
-
+namespace grjob
+{
 class Fiber
 {
 public:
 	Fiber() = default;
 
-	
+
 	void createFromCurrentThread();
 
 	void switchTo(const Fiber& fib) const;
@@ -26,5 +27,5 @@ protected:
 
 };
 
-
+} // namespace grjob
 } // namespace gr

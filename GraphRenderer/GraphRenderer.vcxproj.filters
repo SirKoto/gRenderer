@@ -78,6 +78,9 @@
     <ClCompile Include="src\utils\Fibers\Fiber.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\utils\Fibers\Counter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engine.h">
@@ -125,14 +128,17 @@
     <ClInclude Include="src\utils\Fibers\FScheduler.h">
       <Filter>Header Files\Fibers</Filter>
     </ClInclude>
-    <ClInclude Include="src\utils\ConstExprHelp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\utils\Fibers\Fiber.h">
       <Filter>Header Files\Fibers</Filter>
     </ClInclude>
     <ClInclude Include="src\utils\Fibers\Job.h">
       <Filter>Header Files\Fibers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\Fibers\Counter.h">
+      <Filter>Header Files\Fibers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\ConstExprHelp.h">
+      <Filter>Header Files\tools</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

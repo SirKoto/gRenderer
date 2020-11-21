@@ -18,6 +18,17 @@ namespace cexprUtils
 		return a * pow(a, e - 1);
 	}
 
+	inline bool memEq(void* mem, unsigned char val, size_t size) {
+		unsigned char* m = reinterpret_cast<unsigned char*>(mem);
+		unsigned char* fin = m + size;
+		for (; m != fin; m += 1) {
+			if (*m != val) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 } // namespace cexprUtils
 
 } // namespace gr

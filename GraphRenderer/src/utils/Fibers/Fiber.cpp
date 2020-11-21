@@ -10,7 +10,8 @@ static_assert(false, "Fibers not supported in this OS");
 
 namespace gr
 {
-
+namespace grjob
+{
 void Fiber::createFromCurrentThread()
 {
 	assert(mHandle == nullptr);
@@ -49,4 +50,5 @@ void Fiber::destroy()
 	mHandle = nullptr;
 }
 
+} // namespace grjob
 } // namespace gr

@@ -10,7 +10,11 @@
 
 namespace gr
 {
-FScheduler::FScheduler(uint32_t maxThreads) : 
+
+namespace grjob
+{
+
+FScheduler::FScheduler(uint32_t maxThreads) :
 	mNumThreads(std::min(maxThreads, std::thread::hardware_concurrency()) - 1),
 	mHighPriorityQueue(100), mMidPriorityQueue(100), mLowPriorityQueue(100), mMainThreadQueue(10)
 {
@@ -72,7 +76,7 @@ void FScheduler::startJobSystem()
 	for (uint32_t i = 0; i < mNumThreads; ++i) {
 
 		std::unique_ptr<QueueTokens> threadTokens = std::make_unique<QueueTokens>(
-			std::array< moodycamel::ConcurrentQueue<Task>*, 3>{&mHighPriorityQueue, &mMidPriorityQueue, &mLowPriorityQueue}
+			std::array< moodycamel::ConcurrentQueue<Task>*, 3>{&mHighPriorityQueue, & mMidPriorityQueue, & mLowPriorityQueue}
 		);
 
 		mThreads[i] = std::thread(&s_funThread, this, std::move(threadTokens));
@@ -94,14 +98,26 @@ void FScheduler::stopSystem()
 
 void FScheduler::scheduleJob(
 	Priority priority,
-	const Job& job)
+	const Job& job,
+	Counter** pCounter)
 {
-	scheduleJob(priority, false, job);
+	scheduleJob(priority, false, job, pCounter);
 }
 
-void FScheduler::scheduleJob(Priority priority, bool needsBigStack, const Job& job)
+void FScheduler::scheduleJob(Priority priority, bool needsBigStack, const Job& job, Counter** pCounter)
 {
-	Task task{ job, needsBigStack };
+	// create/modify counter
+	if (pCounter != nullptr)
+	{
+		if (*pCounter == nullptr) {
+			*pCounter = new Counter(1);
+		}
+		else {
+			(*pCounter)->increment(1);
+		}
+	}
+
+	Task task{ job, (pCounter ? *pCounter : nullptr), needsBigStack };
 	switch (priority)
 	{
 	case Priority::eHigh:
@@ -118,14 +134,42 @@ void FScheduler::scheduleJob(Priority priority, bool needsBigStack, const Job& j
 	}
 }
 
-void FScheduler::scheduleJobForMainThread(bool needsBigStack, const Job& job)
+void FScheduler::scheduleJobForMainThread(bool needsBigStack, const Job& job, Counter** pCounter)
 {
-	Task task{ job, needsBigStack };
+	// create/modify counter
+	if (pCounter != nullptr)
+	{
+		if (*pCounter == nullptr) {
+			*pCounter = new Counter(1);
+		}
+		else {
+			(*pCounter)->increment(1);
+		}
+	}
+
+	Task task{ job, (pCounter ? *pCounter : nullptr), needsBigStack };
 
 	FScheduler::sTls.scheduler->mMainThreadQueue.enqueue(task);
 }
 
-bool FScheduler::tryGetNextTask(Task* task)
+void FScheduler::waitForCounterAndFree(const Counter* counter, uint32_t value)
+{
+	waitForCounter(counter, value);
+
+	delete counter;
+}
+
+void FScheduler::waitForCounter(const Counter* counter, uint32_t value)
+{
+	assert(counter != nullptr);
+	FScheduler::sTls.tasksOnWait.push_back({ counter, value, FScheduler::sTls.currentFiber });
+
+	// switch to main thread without setting the job finished flag
+	FScheduler::sTls.scheduler->mFibers[FScheduler::sTls.currentFiber].switchTo(FScheduler::sTls.threadFiber);
+}
+
+
+bool FScheduler::tryGetHighPriorityNextTask(Task* task)
 {
 
 	if (FScheduler::sTls.isMainThread && mMainThreadQueue.try_dequeue(*task))
@@ -137,6 +181,12 @@ bool FScheduler::tryGetNextTask(Task* task)
 	{
 		return true;
 	}
+
+	return false;
+}
+
+bool FScheduler::tryGetNextTask(Task* task)
+{
 
 	if (mMidPriorityQueue.try_dequeue(sTls.tokens->cMToken, *task))
 	{
@@ -184,20 +234,48 @@ void FScheduler::setThreadsAffinityToCore()
 #endif
 }
 
+bool FScheduler::tryGetWaitingFiber(FiberIdx* fiber)
+{
+	for (std::list<WaitFiber>::const_iterator it = FScheduler::sTls.tasksOnWait.begin();
+		it != FScheduler::sTls.tasksOnWait.end();
+		++it) {
+		if (it->value2resume == it->counter->getValue())
+		{
+			*fiber = it->fiber;
+			FScheduler::sTls.tasksOnWait.erase(it);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
 void FScheduler::s_funWorkerFiber(const FiberContext* context)
 {
 	const FiberIdx idx = context->fiberIdx;
 	const FScheduler* scheduler = FScheduler::sTls.scheduler;
 	delete context;
+	Job job;
+	Counter* counterToDecrement = nullptr;
 	while (true)
 	{
-		Job& job = FScheduler::sTls.currentTask.job;
+		// copy job to avoid problems in change of fibers
+		job = FScheduler::sTls.currentJob;
+		counterToDecrement = FScheduler::sTls.counterToDecrement;
 
 		job.run();
+
+		FScheduler::sTls.fiberFinished = true;
+		if (counterToDecrement != nullptr) {
+			counterToDecrement->decrement(1);
+		}
 
 		scheduler->mFibers[idx].switchTo(FScheduler::sTls.threadFiber);
 	}
 }
+
+thread_local FScheduler::TLS FScheduler::sTls;
 
 void FScheduler::s_funThread(FScheduler* scheduler, std::unique_ptr<QueueTokens>&& tokens)
 {
@@ -210,30 +288,49 @@ void FScheduler::s_funThread(FScheduler* scheduler, std::unique_ptr<QueueTokens>
 
 	bool recievedTask = false;
 	FiberIdx actualFiber = NULL_FIBER;
+	Task actualTask;
 	while (!scheduler->mStopExecution) {
+
 		if (!recievedTask) {
-			recievedTask = scheduler->tryGetNextTask(&sTls.currentTask);
+			recievedTask = scheduler->tryGetHighPriorityNextTask(&actualTask);
 		}
 
-		if (recievedTask) {
-			actualFiber = scheduler->acquireFiber(FScheduler::sTls.currentTask.needsBigStack);
+		if (!recievedTask) {
+			recievedTask = tryGetWaitingFiber(&actualFiber);
+		}
+
+		if (!recievedTask) {
+			recievedTask = scheduler->tryGetNextTask(&actualTask);
+		}
+
+		if (recievedTask && actualFiber == NULL_FIBER) {
+			actualFiber = scheduler->acquireFiber(actualTask.needsBigStack);
 		}
 
 		// If no task was recieved, or no fiber is available wait and try again
 		if (!recievedTask || actualFiber == NULL_FIBER) {
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			std::this_thread::sleep_for(std::chrono::microseconds(10));
 			continue;
 		}
+
+		FScheduler::sTls.currentJob = actualTask.job;
+		FScheduler::sTls.counterToDecrement = actualTask.counter;
+		FScheduler::sTls.currentFiber = actualFiber;
+
 
 		// Switch to selected fiber to complete the job
 		FScheduler::sTls.threadFiber.switchTo(scheduler->mFibers[actualFiber]);
 
-
+		if (FScheduler::sTls.fiberFinished) {
+			scheduler->mIsFiberUsedFlag[actualFiber].clear(std::memory_order_relaxed /*std::memory_order_release*/);
+			FScheduler::sTls.fiberFinished = false;
+		}
 		recievedTask = false;
-		scheduler->mIsFiberUsedFlag[actualFiber].clear(std::memory_order_relaxed /*std::memory_order_release*/);
 		actualFiber = NULL_FIBER;
+		actualTask = Task();
 	}
 
 }
 
+} // namespace grjob
 } // namespace gr

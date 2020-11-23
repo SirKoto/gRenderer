@@ -51,6 +51,11 @@ void waitForCounter(const Counter* counter, uint32_t value)
 	FScheduler::waitForCounter(counter, value);
 }
 
+void setExceptionCatch(void(*function)(const std::exception&))
+{
+	reinterpret_cast<FScheduler&>(scheduler).setExceptionCatch(function);
+}
+
 } // namespace grjob
 
 } // namespace gr

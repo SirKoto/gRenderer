@@ -30,6 +30,9 @@ void waitForCounterAndFree(const Counter* counter, uint32_t value);
 
 void waitForCounter(const Counter* counter, uint32_t value);
 
+void setExceptionCatch(void(*function)(const std::exception&));
+
+
 } // namespace grjob
 
 } // namespace gr

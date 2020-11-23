@@ -16,7 +16,8 @@ namespace grjob
 
 FScheduler::FScheduler(uint32_t maxThreads) :
 	mNumThreads(std::min(maxThreads, std::thread::hardware_concurrency()) - 1),
-	mHighPriorityQueue(100), mMidPriorityQueue(100), mLowPriorityQueue(100), mMainThreadQueue(10)
+	mHighPriorityQueue(100), mMidPriorityQueue(100), mLowPriorityQueue(100), mMainThreadQueue(10),
+	mExceptionFun(&s_defaultExceptionHande)
 {
 #ifdef _WIN32
 	mMainThreadHandle = GetCurrentThread();
@@ -94,6 +95,11 @@ void FScheduler::startJobSystem()
 void FScheduler::stopSystem()
 {
 	mStopExecution = true;
+}
+
+void FScheduler::setExceptionCatch(void(*function)(const std::exception&))
+{
+	mExceptionFun = function;
 }
 
 void FScheduler::scheduleJob(
@@ -258,20 +264,28 @@ void FScheduler::s_funWorkerFiber(const FiberContext* context)
 	delete context;
 	Job job;
 	Counter* counterToDecrement = nullptr;
-	while (true)
-	{
-		// copy job to avoid problems in change of fibers
-		job = FScheduler::sTls.currentJob;
-		counterToDecrement = FScheduler::sTls.counterToDecrement;
+	// Double while loop to avoid recreating the try catch frame
+	while (true) {
+		try {
+			while (true)
+			{
+				// copy job to avoid problems in change of fibers
+				job = FScheduler::sTls.currentJob;
+				counterToDecrement = FScheduler::sTls.counterToDecrement;
 
-		job.run();
+				job.run();
 
-		FScheduler::sTls.fiberFinished = true;
-		if (counterToDecrement != nullptr) {
-			counterToDecrement->decrement(1);
+				FScheduler::sTls.fiberFinished = true;
+				if (counterToDecrement != nullptr) {
+					counterToDecrement->decrement(1);
+				}
+
+				scheduler->mFibers[idx].switchTo(FScheduler::sTls.threadFiber);
+			}
 		}
-
-		scheduler->mFibers[idx].switchTo(FScheduler::sTls.threadFiber);
+		catch (const std::exception& exc) {
+			scheduler->mExceptionFun(exc);
+		}
 	}
 }
 
@@ -330,6 +344,16 @@ void FScheduler::s_funThread(FScheduler* scheduler, std::unique_ptr<QueueTokens>
 		actualTask = Task();
 	}
 
+}
+
+void FScheduler::s_defaultExceptionHande(const std::exception& exc)
+{
+	FScheduler::sTls.scheduler->stopSystem();
+	std::this_thread::sleep_for(std::chrono::milliseconds(5));
+
+	std::cerr << "Exception triggered:\n\t" << exc.what() << std::endl;
+
+	exit(1);
 }
 
 } // namespace grjob

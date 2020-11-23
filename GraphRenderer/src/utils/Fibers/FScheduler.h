@@ -41,6 +41,8 @@ public:
 
 	void stopSystem();
 
+	void setExceptionCatch(void(*function)(const std::exception&));
+
 
 	// An object of this type needs to exist in order to use this functions
 	static void scheduleJob(Priority priority, const Job& job, Counter** pCounter = nullptr);
@@ -90,6 +92,8 @@ protected:
 
 
 	bool mStopExecution = false;
+
+	void(* mExceptionFun )(const std::exception&);
 
 	struct QueueTokens {
 		moodycamel::ProducerToken pHToken;
@@ -153,6 +157,8 @@ protected:
 
 
 	static void s_funThread(FScheduler* scheduler, std::unique_ptr<QueueTokens>&& tokens);
+
+	static void s_defaultExceptionHande(const std::exception& exception);
 
 
 };

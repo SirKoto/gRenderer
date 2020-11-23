@@ -5,6 +5,7 @@
 #include <memory>
 #include <functional>
 #include <iostream>
+#include <cassert>
 
 #include "../ConstExprHelp.h"
 

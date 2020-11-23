@@ -101,10 +101,10 @@ void FScheduler::scheduleJob(
 	const Job& job,
 	Counter** pCounter)
 {
-	scheduleJob(priority, false, job, pCounter);
+	scheduleJob(priority, job, pCounter, false);
 }
 
-void FScheduler::scheduleJob(Priority priority, bool needsBigStack, const Job& job, Counter** pCounter)
+void FScheduler::scheduleJob(Priority priority, const Job& job, Counter** pCounter, bool needsBigStack)
 {
 	// create/modify counter
 	if (pCounter != nullptr)
@@ -134,7 +134,7 @@ void FScheduler::scheduleJob(Priority priority, bool needsBigStack, const Job& j
 	}
 }
 
-void FScheduler::scheduleJobForMainThread(bool needsBigStack, const Job& job, Counter** pCounter)
+void FScheduler::scheduleJobForMainThread(const Job& job, Counter** pCounter, bool needsBigStack)
 {
 	// create/modify counter
 	if (pCounter != nullptr)

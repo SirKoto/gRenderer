@@ -9,6 +9,7 @@
 #include <atomic>
 #include <concurrentqueue/concurrentqueue.h>
 
+#include "../grjob.h"
 #include "Job.h"
 #include "Counter.h"
 
@@ -17,17 +18,13 @@
 #undef max
 #endif
 
+
+
 namespace gr
 {
 
 namespace grjob
 {
-
-enum class Priority {
-	eHigh,
-	eMid,
-	eLow
-};
 
 class FScheduler
 {
@@ -47,9 +44,9 @@ public:
 
 	// An object of this type needs to exist in order to use this functions
 	static void scheduleJob(Priority priority, const Job& job, Counter** pCounter = nullptr);
-	static void scheduleJob(Priority priority, bool needsBigStack, const Job& job, Counter** pCounter = nullptr);
+	static void scheduleJob(Priority priority, const Job& job, Counter** pCounter = nullptr, bool needsBigStack = false);
 
-	static void scheduleJobForMainThread(bool needsBigStack, const Job& job, Counter** pCounter = nullptr);
+	static void scheduleJobForMainThread(const Job& job, Counter** pCounter = nullptr, bool needsBigStack = false);
 
 	static void waitForCounterAndFree(const Counter* counter, uint32_t value);
 	static void waitForCounter(const Counter* counter, uint32_t value);
@@ -159,26 +156,6 @@ protected:
 
 
 };
-
-
-	inline void scheduleJob(Priority priority, const Job& job, Counter** pCounter = nullptr) {
-		FScheduler::scheduleJob(priority, job, pCounter);
-	}
-	inline void scheduleJob(Priority priority, bool needsBigStack, const Job& job, Counter** pCounter = nullptr) {
-		FScheduler::scheduleJob(priority, needsBigStack, job, pCounter);
-	}
-
-	inline void scheduleJobForMainThread(bool needsBigStack, const Job& job, Counter** pCounter = nullptr) {
-		FScheduler::scheduleJobForMainThread(needsBigStack, job, pCounter);
-	}
-
-	inline void waitForCounterAndFree(const Counter* counter, uint32_t value) {
-		FScheduler::waitForCounterAndFree(counter, value);
-	}
-
-	inline void waitForCounter(const Counter* counter, uint32_t value) {
-		FScheduler::waitForCounter(counter, value);
-	}
 
 } // namespace grjob
 } // namespace gr

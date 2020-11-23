@@ -169,6 +169,7 @@
     <ClCompile Include="src\utils\Fibers\Fiber.cpp" />
     <ClCompile Include="src\utils\Fibers\FScheduler.cpp" />
     <ClCompile Include="src\utils\FsTools.cpp" />
+    <ClCompile Include="src\utils\grjob.cpp" />
     <ClCompile Include="src\utils\vk_mem_alloc.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -191,6 +192,7 @@
     <ClInclude Include="src\utils\Fibers\FScheduler.h" />
     <ClInclude Include="src\utils\Fibers\Job.h" />
     <ClInclude Include="src\utils\FsTools.h" />
+    <ClInclude Include="src\utils\grjob.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

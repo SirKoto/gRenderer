@@ -32,7 +32,7 @@ AppInstance::AppInstance(const std::vector<const char*>& extensionsToLoad,
 	appInfo.applicationVersion = VK_MAKE_VERSION(0, 0, 0);
 	appInfo.pEngineName = "GraphRendererEngine";
 	appInfo.engineVersion = VK_MAKE_VERSION(0, 0, 0);
-	appInfo.apiVersion = VK_MAKE_VERSION(1, 2, 148);
+	appInfo.apiVersion = VK_MAKE_VERSION(1, 2, 154);
 
 	vk::InstanceCreateInfo createInfo = {};
 	createInfo.pApplicationInfo = &appInfo;

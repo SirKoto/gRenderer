@@ -1,5 +1,6 @@
 #include "Context.h"
 
+#include "../utils/FsTools.h"
 
 namespace gr
 {
@@ -93,7 +94,7 @@ namespace vkg
 		return mDevice.getVkDevice().createSemaphore(createInfo);
 	}
 
-	void Context::destroySemaphore(vk::Semaphore semaphore) const
+	void Context::destroy(vk::Semaphore semaphore) const
 	{
 		mDevice.getVkDevice().destroySemaphore(semaphore);
 	}
@@ -125,15 +126,41 @@ namespace vkg
 		return -1;
 	}
 
-	void Context::destroyRenderPass(const vk::RenderPass renderPass) const
+	void Context::destroy(const vk::RenderPass renderPass) const
 	{
 		mDevice.getVkDevice().destroyRenderPass(renderPass);
 	}
 
-	void Context::destroyFramebuffer(const vk::Framebuffer framebuffer) const
+	void Context::destroy(const vk::Framebuffer framebuffer) const
 	{
 		mDevice.getVkDevice().destroyFramebuffer(framebuffer);
 	}
+
+	void Context::createShaderModule(const std::string& fileName, vk::ShaderModule* module) const
+	{
+		assert(module != nullptr);
+
+		std::vector<char> file;
+		tools::loadBinaryFile(fileName, &file);
+
+		if (file.empty()) {
+			throw std::domain_error("Trying to run empty shader SPIR-V");
+		}
+
+		vk::ShaderModuleCreateInfo createInfo(
+			{},			// flags
+			file.size(),
+			reinterpret_cast<uint32_t*>(file.data())
+		);
+
+		(*module) =  mDevice.getVkDevice().createShaderModule(createInfo);
+	}
+
+	void Context::destroy(const vk::ShaderModule module) const
+	{
+		mDevice.getVkDevice().destroyShaderModule(module);
+	}
+
 
 	void Context::destroy()
 	{

@@ -32,7 +32,7 @@ namespace vkg
 		void safeDestroyImage(Image2D& image);
 
 		vk::Semaphore createSemaphore() const;
-		void destroySemaphore(vk::Semaphore semaphore) const;
+		void destroy(vk::Semaphore semaphore) const;
 
 		void waitIdle() const;
 
@@ -45,9 +45,13 @@ namespace vkg
 		const CommandPool* getCommandPool(const CommandPoolTypes type) const;
 		uint32_t getQueueFamilyIndex(const CommandPoolTypes type) const;
 
-		void destroyRenderPass(const vk::RenderPass renderPass) const;
+		void destroy(const vk::RenderPass renderPass) const;
 
-		void destroyFramebuffer(const vk::Framebuffer framebuffer) const;
+		void destroy(const vk::Framebuffer framebuffer) const;
+
+		void createShaderModule(const std::string& fileName, vk::ShaderModule* module) const;
+
+		void destroy(const vk::ShaderModule module) const;
 
 		void destroy();
 

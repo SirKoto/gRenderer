@@ -72,15 +72,15 @@ namespace gr
 
 		mContext.safeDestroyImage(image);
 
-		mContext.destroySemaphore(mImageAvailableSemaphore);
-		mContext.destroySemaphore(mRenderingFinishedSemaphore);
+		mContext.destroy(mImageAvailableSemaphore);
+		mContext.destroy(mRenderingFinishedSemaphore);
 
 		deletePresentCommandBuffers();
 		for (vk::Framebuffer frambuffer : mPresentFramebuffers) {
-			mContext.destroyFramebuffer(frambuffer);
+			mContext.destroy(frambuffer);
 		}
 
-		mContext.destroyRenderPass(mRenderPass);
+		mContext.destroy(mRenderPass);
 		mSwapChain.destroy();
 		mContext.destroy();
 		mWindow.destroy(instance);
@@ -245,7 +245,7 @@ namespace gr
 		createAndRecordPresentCommandBuffers();
 
 		for (vk::Framebuffer frambuffer : mPresentFramebuffers) {
-			mContext.destroyFramebuffer(frambuffer);
+			mContext.destroy(frambuffer);
 		}
 
 		mPresentFramebuffers = mSwapChain.createFramebuffersOfSwapImages(mRenderPass);

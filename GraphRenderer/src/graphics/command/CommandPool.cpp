@@ -48,7 +48,7 @@ void CommandPool::submitCommandBuffer(
 		signalSemaphore					// signal semaphores
 	);
 
-	mQueue.submit(1, &submitInfo, nullptr);
+	mQueue.submit({ submitInfo }, nullptr);
 }
 
 bool CommandPool::submitPresentationImage(

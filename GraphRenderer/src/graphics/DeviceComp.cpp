@@ -162,9 +162,14 @@ bool DeviceComp::isDeviceSuitable(
 		uint32_t numFormats;
 		uint32_t numPresentModes;
 
-		device.getSurfaceFormatsKHR(*surfaceToRequestSwapChain, &numFormats, nullptr,vk::DispatchLoaderStatic());
+		vk::Result res = device.getSurfaceFormatsKHR(*surfaceToRequestSwapChain, &numFormats, nullptr,vk::DispatchLoaderStatic());
 
-		device.getSurfacePresentModesKHR(*surfaceToRequestSwapChain, &numPresentModes, nullptr, vk::DispatchLoaderStatic());
+		numFormats = (res == vk::Result::eSuccess) ? numFormats : 0;
+
+		res = device.getSurfacePresentModesKHR(*surfaceToRequestSwapChain, &numPresentModes, nullptr, vk::DispatchLoaderStatic());
+
+		numPresentModes = (res == vk::Result::eSuccess) ? numPresentModes : 0;
+
 		swapChainAvailable = numFormats > 0 && numPresentModes > 0;
 	}
 

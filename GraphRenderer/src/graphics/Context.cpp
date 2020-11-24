@@ -136,7 +136,7 @@ namespace vkg
 		mDevice.getVkDevice().destroyFramebuffer(framebuffer);
 	}
 
-	void Context::createShaderModule(const std::string& fileName, vk::ShaderModule* module) const
+	void Context::createShaderModule(const char* fileName, vk::ShaderModule* module) const
 	{
 		assert(module != nullptr);
 

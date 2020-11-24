@@ -8,7 +8,7 @@ namespace tools
 {
 
 void loadBinaryFile(
-	const std::string& fileName,
+	const char* fileName,
 	std::vector<char>* outFileBytes
 );
 

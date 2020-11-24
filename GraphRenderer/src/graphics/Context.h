@@ -49,7 +49,7 @@ namespace vkg
 
 		void destroy(const vk::Framebuffer framebuffer) const;
 
-		void createShaderModule(const std::string& fileName, vk::ShaderModule* module) const;
+		void createShaderModule(const char* fileName, vk::ShaderModule* module) const;
 
 		void destroy(const vk::ShaderModule module) const;
 

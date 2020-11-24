@@ -7,7 +7,7 @@ namespace gr
 {
 
 void tools::loadBinaryFile(
-	const std::string& fileName,
+	const char* fileName,
 	std::vector<char>* outFileBytes)
 {
 	std::ifstream file(fileName, std::ios::ate | std::ios::binary);

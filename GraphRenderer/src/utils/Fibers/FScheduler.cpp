@@ -146,10 +146,10 @@ void FScheduler::scheduleBatch(Priority priority, const Job* jobs, uint32_t numJ
 	if (pCounter != nullptr)
 	{
 		if (*pCounter == nullptr) {
-			*pCounter = new Counter(1);
+			*pCounter = new Counter(numJobs);
 		}
 		else {
-			(*pCounter)->increment(1);
+			(*pCounter)->increment(numJobs);
 		}
 	}
 

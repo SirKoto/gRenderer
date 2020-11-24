@@ -36,6 +36,11 @@ void runJob(Priority priority, const Job& job, Counter** pCounter, bool needsBig
 	FScheduler::scheduleJob(priority, job, pCounter, needsBigStack);
 }
 
+void runJobBatch(Priority priority, const Job* jobs, uint32_t numJobs, Counter** pCounter)
+{
+	FScheduler::scheduleBatch(priority, jobs, numJobs, pCounter);
+}
+
 void runJobOnMainThread(const Job& job, Counter** pCounter, bool needsBigStack)
 {
 	FScheduler::scheduleJobForMainThread(job, pCounter, needsBigStack);

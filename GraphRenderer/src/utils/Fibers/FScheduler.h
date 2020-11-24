@@ -48,6 +48,8 @@ public:
 	static void scheduleJob(Priority priority, const Job& job, Counter** pCounter = nullptr);
 	static void scheduleJob(Priority priority, const Job& job, Counter** pCounter = nullptr, bool needsBigStack = false);
 
+	static void scheduleBatch(Priority priority, const Job* jobs, uint32_t numJobs, Counter** pCounter = nullptr);
+
 	static void scheduleJobForMainThread(const Job& job, Counter** pCounter = nullptr, bool needsBigStack = false);
 
 	static void waitForCounterAndFree(const Counter* counter, uint32_t value);

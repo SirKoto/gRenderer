@@ -24,6 +24,8 @@ void stopRunningJobSystem();
 
 void runJob(Priority priority, const Job& job, Counter** pCounter = nullptr, bool needsBigStack = false);
 
+void runJobBatch(Priority priority, const Job* jobs, uint32_t numJobs, Counter** pCounter = nullptr);
+
 void runJobOnMainThread(const Job& job, Counter** pCounter = nullptr, bool needsBigStack = false);
 
 void waitForCounterAndFree(const Counter* counter, uint32_t value);

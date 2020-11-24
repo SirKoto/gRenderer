@@ -140,6 +140,44 @@ void FScheduler::scheduleJob(Priority priority, const Job& job, Counter** pCount
 	}
 }
 
+void FScheduler::scheduleBatch(Priority priority, const Job* jobs, uint32_t numJobs, Counter** pCounter)
+{
+	// create/modify counter
+	if (pCounter != nullptr)
+	{
+		if (*pCounter == nullptr) {
+			*pCounter = new Counter(1);
+		}
+		else {
+			(*pCounter)->increment(1);
+		}
+	}
+
+	Counter* const c = (pCounter ? *pCounter : nullptr);
+	Task* tasks = new Task[numJobs];
+	for (uint32_t i = 0; i < numJobs; ++i)
+	{
+		new (tasks + i) Task{jobs[i], c , false};
+	}
+
+	switch (priority)
+	{
+	case Priority::eHigh:
+		FScheduler::sTls.scheduler->mHighPriorityQueue.enqueue_bulk(sTls.tokens->pHToken, tasks, numJobs);
+		break;
+	case Priority::eMid:
+		FScheduler::sTls.scheduler->mMidPriorityQueue.enqueue_bulk(sTls.tokens->pHToken, tasks, numJobs);
+		break;
+	case Priority::eLow:
+		FScheduler::sTls.scheduler->mLowPriorityQueue.enqueue_bulk(sTls.tokens->pHToken, tasks, numJobs);
+		break;
+	default:
+		assert(false);
+	}
+
+	delete[] tasks;
+}
+
 void FScheduler::scheduleJobForMainThread(const Job& job, Counter** pCounter, bool needsBigStack)
 {
 	// create/modify counter

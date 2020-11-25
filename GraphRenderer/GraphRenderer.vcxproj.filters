@@ -25,6 +25,9 @@
     <Filter Include="Header Files\grjob\Fibers">
       <UniqueIdentifier>{fe2f6f12-e1c4-4849-9fa5-ccd188d6f4a1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\vkg\resources">
+      <UniqueIdentifier>{1cffad98-eb65-4771-9770-cca8a7eff121}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -87,6 +90,12 @@
     <ClCompile Include="src\utils\grjob.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\graphics\render\PipelineBuilder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\render\GraphicsPipelineBuilder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engine.h">
@@ -108,12 +117,6 @@
       <Filter>Header Files\vkg</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\Window.h">
-      <Filter>Header Files\vkg</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\resources\Image.h">
-      <Filter>Header Files\vkg</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\resources\Image2D.h">
       <Filter>Header Files\vkg</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\memory\MemoryManager.h">
@@ -148,6 +151,18 @@
     </ClInclude>
     <ClInclude Include="src\utils\grjob.h">
       <Filter>Header Files\grjob</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\resources\Image.h">
+      <Filter>Header Files\vkg\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\resources\Image2D.h">
+      <Filter>Header Files\vkg\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\render\PipelineBuilder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\render\GraphicsPipelineBuilder.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

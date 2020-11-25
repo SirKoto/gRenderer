@@ -159,6 +159,8 @@
     <ClCompile Include="src\graphics\DeviceComp.cpp" />
     <ClCompile Include="src\graphics\memory\MemoryManager.cpp" />
     <ClCompile Include="src\graphics\present\SwapChain.cpp" />
+    <ClCompile Include="src\graphics\render\GraphicsPipelineBuilder.cpp" />
+    <ClCompile Include="src\graphics\render\PipelineBuilder.cpp" />
     <ClCompile Include="src\graphics\render\RenderPass.cpp" />
     <ClCompile Include="src\graphics\render\RenderPassBuilder.cpp" />
     <ClCompile Include="src\graphics\resources\Image.cpp" />
@@ -181,6 +183,8 @@
     <ClInclude Include="src\graphics\DeviceComp.h" />
     <ClInclude Include="src\graphics\memory\MemoryManager.h" />
     <ClInclude Include="src\graphics\present\SwapChain.h" />
+    <ClInclude Include="src\graphics\render\GraphicsPipelineBuilder.h" />
+    <ClInclude Include="src\graphics\render\PipelineBuilder.h" />
     <ClInclude Include="src\graphics\render\RenderPass.h" />
     <ClInclude Include="src\graphics\render\RenderPassBuilder.h" />
     <ClInclude Include="src\graphics\resources\Image.h" />

@@ -2,6 +2,11 @@
 
 #include "PipelineBuilder.h"
 
+namespace gr
+{
+namespace vkg
+{
+
 class GraphicsPipelineBuilder : public PipelineBuilder
 {
 public:
@@ -20,6 +25,15 @@ public:
 	// ViewportStateCreateInfo
 	void setViewportSize(const vk::Extent2D& extent);
 
+	// RasterizationState
+
+	// Multisampling
+	void setMultisampleCount(vk::SampleCountFlagBits sampleCount);
+
+	// ColorBlendState (only can have one attachment)
+	// RGBA, no blending
+	void setColorBlendAttachmentStd();
+
 	vk::Pipeline createPipeline() const;
 
 protected:
@@ -35,6 +49,16 @@ protected:
 	vk::Viewport mViewport;
 	vk::Rect2D mScissor;
 
-	vk::PipelineViewportStateCreateInfo buildPipelineViewportState() const;
+	// RasterizationState
+	vk::PipelineRasterizationStateCreateInfo mRasterizationState;
+
+	// Multisampling
+	vk::SampleCountFlagBits mMultisampleCount = vk::SampleCountFlagBits::e1;
+
+	// ColorBlendState
+	vk::PipelineColorBlendAttachmentState mColorBlendAttachment;
 };
 
+
+} // namespace vkg
+} // namespace gr

@@ -1,6 +1,18 @@
 #include "GraphicsPipelineBuilder.h"
 
-GraphicsPipelineBuilder::GraphicsPipelineBuilder() : mViewport(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f)
+namespace gr
+{
+namespace vkg
+{
+
+GraphicsPipelineBuilder::GraphicsPipelineBuilder() : PipelineBuilder(),
+	mViewport(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), // init viewport with everything zeroes
+	mRasterizationState( // Init rasterization state
+		{}, false, false,// flags, depthClamp, rasterizerDiscard
+		vk::PolygonMode::eFill, // pollygon mode
+		vk::CullModeFlagBits::eBack, // cull back faces
+		vk::FrontFace::eCounterClockwise // front face
+	)
 {
 
 }
@@ -37,6 +49,28 @@ void GraphicsPipelineBuilder::setViewportSize(const vk::Extent2D& extent)
 	mScissor.extent = extent;
 }
 
+void GraphicsPipelineBuilder::setMultisampleCount(vk::SampleCountFlagBits sampleCount)
+{
+	mMultisampleCount = sampleCount;
+}
+
+void GraphicsPipelineBuilder::setColorBlendAttachmentStd()
+{
+	 mColorBlendAttachment = 
+		vk::PipelineColorBlendAttachmentState(
+			false,									// active blend
+			vk::BlendFactor::eZero,					// srcColorBlendFactor
+			vk::BlendFactor::eZero,					// dstColorBlendFactor
+			vk::BlendOp::eAdd,						// colorBlendOp
+			vk::BlendFactor::eZero,					// srcAlphaBlendFactor
+			vk::BlendFactor::eZero,					// dstAlphaBlendFactor
+			vk::BlendOp::eAdd,						// alphaBlendOp
+				vk::ColorComponentFlagBits::eR |	// colorWriteMask
+				vk::ColorComponentFlagBits::eG |
+				vk::ColorComponentFlagBits::eB |
+				vk::ColorComponentFlagBits::eA);
+}
+
 vk::Pipeline GraphicsPipelineBuilder::createPipeline() const
 {
 	vk::PipelineVertexInputStateCreateInfo vertexInputState(
@@ -51,16 +85,27 @@ vk::Pipeline GraphicsPipelineBuilder::createPipeline() const
 		false		// primitive restart enable
 	);
 
-	return vk::Pipeline();
-}
-
-vk::PipelineViewportStateCreateInfo GraphicsPipelineBuilder::buildPipelineViewportState() const
-{
-	vk::PipelineViewportStateCreateInfo info(
+	vk::PipelineViewportStateCreateInfo viewportState(
 		{},				// flags
 		1, &mViewport,
 		1, &mScissor
 	);
 
-	return info;
+	vk::PipelineMultisampleStateCreateInfo multisampleState(
+		{},
+		mMultisampleCount
+	);
+
+	vk::PipelineColorBlendStateCreateInfo colorBlendState(
+		{},			// flags
+		false,		// logicOpEnable
+		vk::LogicOp::eClear, // logicOp
+		1, &mColorBlendAttachment,	// color attachment
+		{}			// blendConstants
+	);
+
+	return vk::Pipeline();
 }
+
+} // namespace vkg
+} // namespace gr

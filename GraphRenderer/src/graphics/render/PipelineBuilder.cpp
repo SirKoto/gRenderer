@@ -1,5 +1,11 @@
 #include "PipelineBuilder.h"
 
+namespace gr
+{
+namespace vkg
+{
+
+
 void PipelineBuilder::reserveNumShaderStages(uint32_t num)
 {
 	mShaderStages.reserve(num);
@@ -26,3 +32,5 @@ vk::Pipeline PipelineBuilder::createPipeline() const
 	assert(false);
 	return vk::Pipeline();
 }
+} // namespace vkg
+} // namespace gr

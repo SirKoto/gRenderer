@@ -3,6 +3,11 @@
 #include <vulkan/vulkan.hpp>
 #include <vector>
 
+namespace gr
+{
+namespace vkg 
+{
+
 class PipelineBuilder
 {
 public:
@@ -19,3 +24,5 @@ protected:
 
 };
 
+} // namespace vkg
+} // namespace gr

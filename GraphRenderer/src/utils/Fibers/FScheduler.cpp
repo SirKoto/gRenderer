@@ -206,6 +206,12 @@ void FScheduler::waitForCounterAndFree(const Counter* counter, uint32_t value)
 void FScheduler::waitForCounter(const Counter* counter, uint32_t value)
 {
 	assert(counter != nullptr);
+
+	// do not wait if counter is already value!
+	if (counter->getValue() == value) {
+		return;
+	}
+
 	FScheduler::sTls.tasksOnWait.push_back({ counter, value, FScheduler::sTls.currentFiber });
 
 	// switch to main thread without setting the job finished flag

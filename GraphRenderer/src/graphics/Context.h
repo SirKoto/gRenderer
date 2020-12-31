@@ -21,6 +21,8 @@ namespace vkg
 
 		const DeviceComp& getDeviceComp() const { return mDevice; }
 
+		const vk::Device& getVkDevice() const { return mDevice.getVkDevice(); }
+
 		Image2D createDeviceImage2D(const vk::Extent2D& extent,
 			uint32_t mipLevels,
 			vk::SampleCountFlagBits numSamples,
@@ -32,7 +34,8 @@ namespace vkg
 		void safeDestroyImage(Image2D& image);
 
 		vk::Semaphore createSemaphore() const;
-		void destroy(vk::Semaphore semaphore) const;
+
+		void createShaderModule(const char* fileName, vk::ShaderModule* module) const;
 
 		void waitIdle() const;
 
@@ -49,9 +52,10 @@ namespace vkg
 
 		void destroy(const vk::Framebuffer framebuffer) const;
 
-		void createShaderModule(const char* fileName, vk::ShaderModule* module) const;
-
 		void destroy(const vk::ShaderModule module) const;
+
+		void destroy(vk::Semaphore semaphore) const;
+
 
 		void destroy();
 

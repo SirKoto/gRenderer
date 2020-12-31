@@ -175,6 +175,7 @@
     <ClCompile Include="src\utils\vk_mem_alloc.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DescriptorSetLayoutBuilder.h" />
     <ClInclude Include="src\Engine.h" />
     <ClInclude Include="src\graphics\Context.h" />
     <ClInclude Include="src\graphics\AppInstance.h" />

@@ -12,6 +12,8 @@
 #include "graphics/memory/MemoryManager.h"
 #include "graphics/render/RenderPassBuilder.h"
 
+#include "utils/grjob.h"
+
 namespace gr
 {
 
@@ -32,16 +34,33 @@ namespace gr
 		AppInstance instance;
 		mWindow.createVkSurface(instance);
 
-		DeviceComp device(instance, true, &mWindow.getSurface());
+		{
+			DeviceComp device(instance, true, &mWindow.getSurface());
 
-		MemoryManager memManager(instance.getInstance(),
-			device.getPhysicalDevice(),
-			device.getVkDevice());
+			MemoryManager memManager(instance.getInstance(),
+				device.getPhysicalDevice(),
+				device.getVkDevice());
 
-		mSwapChain = SwapChain(device, mWindow);
 
-		mContext = Context(std::move(device), std::move(memManager));
+			mContext = Context(std::move(device), std::move(memManager));
+		}
 
+		mSwapChain = SwapChain(mContext.getDeviceComp(), mWindow);
+
+		vk::ShaderModule mod[2];
+		{
+			grjob::Job jobs[2];
+			jobs[0] = grjob::Job(&Context::createShaderModule, &mContext, "resources/shaders/SPIR-V/test.frag.spv", mod + 0);
+			jobs[1] = grjob::Job(&Context::createShaderModule, &mContext, "resources/shaders/SPIR-V/test.vert.spv", mod + 1);
+			grjob::Counter* c = nullptr;
+
+			grjob::runJobBatch(gr::grjob::Priority::eMid, jobs, 2, &c);
+
+			grjob::waitForCounterAndFree(c, 0);
+		}
+
+		mContext.destroy(mod[0]);
+		mContext.destroy(mod[1]);
 
 		Image2D image = mContext.createDeviceImage2D({ 800,600 },
 			1,

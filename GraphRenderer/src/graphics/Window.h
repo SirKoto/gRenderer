@@ -31,6 +31,8 @@ namespace vkg
 
 		void destroy(const vk::Instance& instance);
 
+		void* getWindow() const { return mWindow; }
+
 		static void pollEvents();
 
 		static void waitEvents();

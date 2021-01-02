@@ -19,6 +19,10 @@ namespace vkg
 
 		vk::Format getFormat() const { return mFormat.format; }
 		vk::ColorSpaceKHR getColorSpace() const { return mFormat.colorSpace; }
+		vk::PresentModeKHR getPresentMode() const { return mPresentMode; }
+
+		vk::SurfaceFormatKHR getSurfaceFormat() const { return mFormat; }
+
 		const vk::Extent2D& getExtent() const { return mExtent; }
 
 		const std::vector<vk::Image>& getImagesVector() const { return mImages; }
@@ -48,6 +52,7 @@ namespace vkg
 
 		vk::Extent2D mExtent;
 		vk::SurfaceFormatKHR mFormat;
+		vk::PresentModeKHR mPresentMode;
 
 		void createSwapChainAndImages(const DeviceComp& device, const Window& window);
 	};

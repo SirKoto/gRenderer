@@ -35,15 +35,15 @@ void SwapChain::createSwapChainAndImages(const DeviceComp& device, const Window&
 
 	}
 	// Choose present mode
-	vk::PresentModeKHR presentMode;
+	
 	{
 		std::vector<vk::PresentModeKHR> presentModes =
 			static_cast<vk::PhysicalDevice>(device).getSurfacePresentModesKHR(surface);
 		if (std::find(presentModes.begin(), presentModes.end(), vk::PresentModeKHR::eMailbox) != presentModes.end()) {
-			presentMode = vk::PresentModeKHR::eMailbox;
+			mPresentMode = vk::PresentModeKHR::eMailbox;
 		}
 		else {
-			presentMode = vk::PresentModeKHR::eFifo;
+			mPresentMode = vk::PresentModeKHR::eFifo;
 		}
 	}
 
@@ -91,7 +91,7 @@ void SwapChain::createSwapChainAndImages(const DeviceComp& device, const Window&
 	createInfo.minImageCount = numImages;
 	createInfo.imageFormat = mFormat.format;
 	createInfo.imageColorSpace = mFormat.colorSpace;
-	createInfo.presentMode = presentMode;
+	createInfo.presentMode = mPresentMode;
 	createInfo.imageExtent = mExtent;
 	createInfo.imageArrayLayers = 1;
 	createInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;

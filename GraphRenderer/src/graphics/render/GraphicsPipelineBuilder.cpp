@@ -11,10 +11,18 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder() : PipelineBuilder(),
 		{}, false, false,// flags, depthClamp, rasterizerDiscard
 		vk::PolygonMode::eFill, // pollygon mode
 		vk::CullModeFlagBits::eBack, // cull back faces
-		vk::FrontFace::eCounterClockwise // front face
+		vk::FrontFace::eCounterClockwise, // front face
+		false, 0.0f, 0.0f, 0.0f, // depth bias
+		1.0f // line width
 	)
 {
 
+}
+
+void GraphicsPipelineBuilder::setShaderStages(vk::ShaderModule vertex, vk::ShaderModule fragment)
+{
+	mVertexModule = vertex;
+	mFragmentModule = fragment;
 }
 
 void GraphicsPipelineBuilder::addVertexBindingDescription(const vk::VertexInputBindingDescription& binding)
@@ -71,8 +79,34 @@ void GraphicsPipelineBuilder::setColorBlendAttachmentStd()
 				vk::ColorComponentFlagBits::eA);
 }
 
-vk::Pipeline GraphicsPipelineBuilder::createPipeline() const
+void GraphicsPipelineBuilder::setPipelineLayout(vk::PipelineLayout layout)
 {
+	mPipLayout = layout;
+}
+
+vk::Pipeline GraphicsPipelineBuilder::createPipeline(
+	vk::Device device,
+	vk::RenderPass renderPass,
+	uint32_t subpass) const
+{
+
+	std::array<vk::PipelineShaderStageCreateInfo, 2> shaderStages = {
+		vk::PipelineShaderStageCreateInfo(
+			{}, // flags
+			vk::ShaderStageFlagBits::eVertex,
+			mVertexModule,
+			"main",
+			nullptr
+		),
+		vk::PipelineShaderStageCreateInfo(
+			{}, // flags
+			vk::ShaderStageFlagBits::eFragment,
+			mFragmentModule,
+			"main",
+			nullptr
+		) 
+	};
+
 	vk::PipelineVertexInputStateCreateInfo vertexInputState(
 		{}, // flags
 		mVertInBindings,
@@ -104,7 +138,29 @@ vk::Pipeline GraphicsPipelineBuilder::createPipeline() const
 		{}			// blendConstants
 	);
 
-	return vk::Pipeline();
+	vk::GraphicsPipelineCreateInfo createInfo(
+		{}, // flags
+		shaderStages, // shader stages
+		&vertexInputState,
+		&inputAssemblyState,
+		nullptr, // tessellation
+		&viewportState,
+		&mRasterizationState,
+		&multisampleState,
+		nullptr, // depth stencil
+		&colorBlendState,
+		nullptr, // dynamic state
+		mPipLayout,
+		renderPass,
+		subpass
+	);
+
+	vk::ResultValue<vk::Pipeline> res = device.createGraphicsPipeline(nullptr, createInfo);
+	if (res.result != vk::Result::eSuccess) {
+		throw std::runtime_error("Error creating graphics pipeline!!!");
+	}
+
+	return res.value;
 }
 
 } // namespace vkg

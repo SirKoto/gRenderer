@@ -21,7 +21,8 @@ namespace vkg
 		void submitCommandBuffer(const vk::CommandBuffer commandBuffer,
 			const vk::Semaphore* waitSemaphore,
 			const vk::PipelineStageFlags waitPipelineStage,
-			const vk::Semaphore* signalSemaphore) const;
+			const vk::Semaphore* signalSemaphore,
+			vk::Fence fenceToSignal = nullptr) const;
 
 		bool submitPresentationImage(
 			const vk::SwapchainKHR swapChain,
@@ -31,6 +32,8 @@ namespace vkg
 		void destroy();
 
 		explicit operator vk::CommandPool() const { return mPool; }
+
+		vk::CommandPool get() const { return mPool;  }
 
 		bool operator<(CommandPool const& o) const
 		{

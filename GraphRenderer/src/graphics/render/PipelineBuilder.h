@@ -16,7 +16,7 @@ public:
 	uint32_t addShaderStage(vk::ShaderModule module, vk::ShaderStageFlagBits stage);
 
 	// This should not be called
-	vk::Pipeline createPipeline() const;
+	vk::Pipeline createPipeline(vk::Device device) const;
 
 protected:
 

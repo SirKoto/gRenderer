@@ -36,7 +36,8 @@ void CommandPool::submitCommandBuffer(
 	const vk::CommandBuffer commandBuffer,
 	const vk::Semaphore* waitSemaphore,
 	const vk::PipelineStageFlags waitPipelineStage,
-	const vk::Semaphore* signalSemaphore) const
+	const vk::Semaphore* signalSemaphore,
+	vk::Fence fenceToSignal) const
 {
 	vk::SubmitInfo submitInfo = vk::SubmitInfo(
 		waitSemaphore != nullptr,		// Number of semaphores to wait on
@@ -48,7 +49,7 @@ void CommandPool::submitCommandBuffer(
 		signalSemaphore					// signal semaphores
 	);
 
-	mQueue.submit({ submitInfo }, nullptr);
+	mQueue.submit({ submitInfo }, fenceToSignal);
 }
 
 bool CommandPool::submitPresentationImage(

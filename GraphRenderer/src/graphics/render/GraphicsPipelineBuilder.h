@@ -13,6 +13,9 @@ public:
 
 	GraphicsPipelineBuilder();
 
+	// Pipeline shader stages
+	void setShaderStages(vk::ShaderModule vertex, vk::ShaderModule fragment);
+
 	// Pipeline Vertex Input State
 	void addVertexBindingDescription(const vk::VertexInputBindingDescription& binding);
 	void addVertexAttributDescription(const vk::VertexInputAttributeDescription& attrib);
@@ -26,6 +29,11 @@ public:
 	void setViewportSize(const vk::Extent2D& extent);
 
 	// RasterizationState
+	// by default
+	// {}, false, false,// flags, depthClamp, rasterizerDiscard
+	// vk::PolygonMode::eFill, // pollygon mode
+	//	vk::CullModeFlagBits::eBack, // cull back faces
+	//	vk::FrontFace::eCounterClockwise // front face
 
 	// Multisampling
 	void setMultisampleCount(vk::SampleCountFlagBits sampleCount);
@@ -34,9 +42,15 @@ public:
 	// RGBA, no blending
 	void setColorBlendAttachmentStd();
 
-	vk::Pipeline createPipeline() const;
+	// Pipeline Layout
+	void setPipelineLayout(vk::PipelineLayout layout);
+
+	vk::Pipeline createPipeline(vk::Device device, vk::RenderPass renderPass, uint32_t subpass) const;
 
 protected:
+
+	// Shader modules for stages
+	vk::ShaderModule mVertexModule, mFragmentModule;
 
 	// Pipeline Vertex Input State
 	std::vector<vk::VertexInputBindingDescription> mVertInBindings;
@@ -57,6 +71,9 @@ protected:
 
 	// ColorBlendState
 	vk::PipelineColorBlendAttachmentState mColorBlendAttachment;
+
+	// Pipeline Layout
+	vk::PipelineLayout mPipLayout;
 };
 
 

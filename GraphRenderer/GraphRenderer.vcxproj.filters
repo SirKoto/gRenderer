@@ -34,6 +34,9 @@
     <Filter Include="Header Files\imgui">
       <UniqueIdentifier>{e061afc5-914f-47c1-97c3-51472da3ce4d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\gui">
+      <UniqueIdentifier>{8e6a83e9-9d7b-4eef-bd48-02d9c24b062d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -123,6 +126,9 @@
     <ClCompile Include="imgui\imgui_impl_glfw.cpp">
       <Filter>Header Files\imgui</Filter>
     </ClCompile>
+    <ClCompile Include="src\gui\Gui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engine.h">
@@ -194,9 +200,6 @@
     <ClInclude Include="src\graphics\render\GraphicsPipelineBuilder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DescriptorSetLayoutBuilder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="imgui\imgui_impl_vulkan.h">
       <Filter>Header Files\imgui</Filter>
     </ClInclude>
@@ -220,6 +223,9 @@
     </ClInclude>
     <ClInclude Include="imgui\imgui_impl_glfw.h">
       <Filter>Header Files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gui\Gui.h">
+      <Filter>Header Files\gui</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

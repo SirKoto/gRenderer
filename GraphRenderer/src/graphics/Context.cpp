@@ -94,9 +94,23 @@ namespace vkg
 		return mDevice.getVkDevice().createSemaphore(createInfo);
 	}
 
+	vk::Fence Context::createFence(bool signaled) const
+	{
+		vk::FenceCreateInfo createInfo(
+			signaled ? vk::FenceCreateFlagBits::eSignaled : vk::FenceCreateFlagBits{}
+		);
+
+		return mDevice.getVkDevice().createFence(createInfo);
+	}
+
 	void Context::destroy(vk::Semaphore semaphore) const
 	{
 		mDevice.getVkDevice().destroySemaphore(semaphore);
+	}
+
+	void Context::destroy(vk::Fence fence) const
+	{
+		mDevice.getVkDevice().destroyFence(fence);
 	}
 
 	void Context::waitIdle() const

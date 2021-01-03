@@ -1,7 +1,7 @@
 #pragma once
 #define NOMINMAX
-#include "../DeviceComp.h"
 #include "../Window.h"
+#include "../Context.h"
 
 namespace gr
 {
@@ -14,7 +14,7 @@ namespace vkg
 
 		SwapChain() = default;
 
-		SwapChain(const DeviceComp& device,
+		SwapChain(const Context& device,
 			const Window& window);
 
 		vk::Format getFormat() const { return mFormat.format; }
@@ -30,7 +30,7 @@ namespace vkg
 
 		uint32_t getNumImages() const { return static_cast<uint32_t>(mImages.size()); }
 
-		void recreateSwapChain(const DeviceComp& device,
+		void recreateSwapChain(const Context& device,
 			const Window& window);
 
 		void destroy();
@@ -54,7 +54,7 @@ namespace vkg
 		vk::SurfaceFormatKHR mFormat;
 		vk::PresentModeKHR mPresentMode;
 
-		void createSwapChainAndImages(const DeviceComp& device, const Window& window);
+		void createSwapChainAndImages(const Context& device, const Window& window);
 	};
 
 }; // namespace vkg

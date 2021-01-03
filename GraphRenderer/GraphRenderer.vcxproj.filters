@@ -54,9 +54,6 @@
     <ClCompile Include="src\graphics\AppInstance.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\DeviceComp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\utils\vk_mem_alloc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -144,9 +141,6 @@
       <Filter>Header Files\vkg</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\DebugVk.h">
-      <Filter>Header Files\vkg</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\DeviceComp.h">
       <Filter>Header Files\vkg</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\Window.h">

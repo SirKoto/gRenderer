@@ -1,7 +1,7 @@
 #pragma once
 #include <vulkan/vulkan.hpp>
 
-#include "../DeviceComp.h"
+#include "../Context.h"
 
 namespace gr
 {

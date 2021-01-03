@@ -42,7 +42,7 @@ namespace vkg
 		void destroy();
 
 	private:
-		VmaAllocator mAllocator;
+		VmaAllocator mAllocator = {};
 	};
 }; // namespace vkg
 }; // namespace gr

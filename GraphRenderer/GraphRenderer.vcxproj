@@ -163,7 +163,6 @@
     <ClCompile Include="src\graphics\AppInstance.cpp" />
     <ClCompile Include="src\graphics\command\CommandPool.cpp" />
     <ClCompile Include="src\graphics\DebugVk.cpp" />
-    <ClCompile Include="src\graphics\DeviceComp.cpp" />
     <ClCompile Include="src\graphics\memory\MemoryManager.cpp" />
     <ClCompile Include="src\graphics\present\SwapChain.cpp" />
     <ClCompile Include="src\graphics\render\GraphicsPipelineBuilder.cpp" />
@@ -196,7 +195,6 @@
     <ClInclude Include="src\graphics\AppInstance.h" />
     <ClInclude Include="src\graphics\command\CommandPool.h" />
     <ClInclude Include="src\graphics\DebugVk.h" />
-    <ClInclude Include="src\graphics\DeviceComp.h" />
     <ClInclude Include="src\graphics\memory\MemoryManager.h" />
     <ClInclude Include="src\graphics\present\SwapChain.h" />
     <ClInclude Include="src\graphics\render\GraphicsPipelineBuilder.h" />

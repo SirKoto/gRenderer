@@ -90,7 +90,7 @@ void RenderPassBuilder::pushSubpassDependency(const vk::SubpassDependency& depen
 	mDependencies.push_back(dependency);
 }
 
-RenderPass RenderPassBuilder::buildRenderPass(const DeviceComp& device) const
+RenderPass RenderPassBuilder::buildRenderPass(const Context& context) const
 {
 	RenderPass pass;
 
@@ -103,7 +103,7 @@ RenderPass RenderPassBuilder::buildRenderPass(const DeviceComp& device) const
 		static_cast<uint32_t>(mDependencies.size()),	
 		mDependencies.data());
 
-	pass.mRenderPass = device.getVkDevice().createRenderPass(info);
+	pass.mRenderPass = context.getDevice().createRenderPass(info);
 
 	return pass;
 }

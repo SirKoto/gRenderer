@@ -1,16 +1,30 @@
 #include "Context.h"
 
 #include "../utils/FsTools.h"
+#include "DebugVk.h"
 
 namespace gr
 {
 namespace vkg
 {
 
-	Context::Context(const DeviceComp& device, const MemoryManager& memManager) : mDevice(device), mMemManager(memManager)
-	{
-		createCommandPools();
-	}
+Context::Context(std::vector<const char*> extensions, bool loadGLFWextensions)
+	: mInstance(extensions, loadGLFWextensions), mMemManager()
+{ }
+
+void Context::createDevice(bool enableAnisotropySampler,
+	const vk::SurfaceKHR* surfaceToRequestSwapChain)
+{
+	mAnisotropySamplerEnabled = enableAnisotropySampler;
+	mPresentQueueRequested = surfaceToRequestSwapChain != nullptr;
+	pickAndCreatePysicalDevice(surfaceToRequestSwapChain);
+	createLogicalDevice(surfaceToRequestSwapChain);
+	createQueues();
+
+	mMemManager = MemoryManager(mInstance, mPhysicalDevice, mDevice);
+
+	createCommandPools();
+}
 
 
 	Image2D Context::createDeviceImage2D(
@@ -59,7 +73,7 @@ namespace vkg
 			)
 		);
 		vk::ImageView imageView =
-			mDevice.getVkDevice().createImageView(ivCreateInfo);
+			getDevice().createImageView(ivCreateInfo);
 
 
 		Image2D r_image;
@@ -78,11 +92,11 @@ namespace vkg
 			image.setAllocation(nullptr);
 		}
 		if (static_cast<bool>(image.getVkImage())) {
-			mDevice.getVkDevice().destroyImage(image.getVkImage());
+			getDevice().destroyImage(image.getVkImage());
 			image.setImage(nullptr);
 		}
 		if (static_cast<bool>(image.getVkImageview())) {
-			mDevice.getVkDevice().destroyImageView(image.getVkImageview());
+			getDevice().destroyImageView(image.getVkImageview());
 			image.setImageView(nullptr);
 		}
 	}
@@ -91,7 +105,7 @@ namespace vkg
 	{
 		vk::SemaphoreCreateInfo createInfo;
 		
-		return mDevice.getVkDevice().createSemaphore(createInfo);
+		return getDevice().createSemaphore(createInfo);
 	}
 
 	vk::Fence Context::createFence(bool signaled) const
@@ -100,22 +114,22 @@ namespace vkg
 			signaled ? vk::FenceCreateFlagBits::eSignaled : vk::FenceCreateFlagBits{}
 		);
 
-		return mDevice.getVkDevice().createFence(createInfo);
+		return getDevice().createFence(createInfo);
 	}
 
 	void Context::destroy(vk::Semaphore semaphore) const
 	{
-		mDevice.getVkDevice().destroySemaphore(semaphore);
+		getDevice().destroySemaphore(semaphore);
 	}
 
 	void Context::destroy(vk::Fence fence) const
 	{
-		mDevice.getVkDevice().destroyFence(fence);
+		getDevice().destroyFence(fence);
 	}
 
 	void Context::waitIdle() const
 	{
-		mDevice.getVkDevice().waitIdle();
+		getDevice().waitIdle();
 	}
 
 	const CommandPool* Context::getCommandPool(const CommandPoolTypes type) const
@@ -125,29 +139,14 @@ namespace vkg
 		return mCommandPools.data() + static_cast<size_t>(type);
 	}
 
-	uint32_t Context::getQueueFamilyIndex(const CommandPoolTypes type) const
-	{
-		switch (type)
-		{
-		case CommandPoolTypes::eGraphic:
-			return mDevice.getGraphicsFamilyIdx();
-		case CommandPoolTypes::ePresent:
-			return mDevice.getPresentFamilyIdx();
-		default:
-			assert(false);
-		}
-
-		return -1;
-	}
-
 	void Context::destroy(const vk::RenderPass renderPass) const
 	{
-		mDevice.getVkDevice().destroyRenderPass(renderPass);
+		getDevice().destroyRenderPass(renderPass);
 	}
 
 	void Context::destroy(const vk::Framebuffer framebuffer) const
 	{
-		mDevice.getVkDevice().destroyFramebuffer(framebuffer);
+		getDevice().destroyFramebuffer(framebuffer);
 	}
 
 	void Context::createShaderModule(const char* fileName, vk::ShaderModule* module) const
@@ -167,12 +166,12 @@ namespace vkg
 			reinterpret_cast<uint32_t*>(file.data())
 		);
 
-		(*module) =  mDevice.getVkDevice().createShaderModule(createInfo);
+		(*module) = getDevice().createShaderModule(createInfo);
 	}
 
 	void Context::destroy(const vk::ShaderModule module) const
 	{
-		mDevice.getVkDevice().destroyShaderModule(module);
+		getDevice().destroyShaderModule(module);
 	}
 
 
@@ -182,6 +181,7 @@ namespace vkg
 
 		mMemManager.destroy();
 		mDevice.destroy();
+		mInstance.destroy();
 	}
 
 	void Context::createCommandPools()
@@ -189,15 +189,15 @@ namespace vkg
 
 		mCommandPools.reserve(static_cast<size_t>(CommandPoolTypes::NUM));
 
-		mCommandPools.push_back(CommandPool(mDevice.getGraphicsFamilyIdx(), {}, mDevice.getVkDevice()));
+		mCommandPools.push_back(CommandPool(getGraphicsFamilyIdx(), {}, getDevice()));
 
 
-		if (mDevice.getPresentFamilyIdx() == mDevice.getGraphicsFamilyIdx())
+		if (getPresentFamilyIdx() == getGraphicsFamilyIdx())
 		{
 			mCommandPools.push_back(mCommandPools.back());
 		}
 		else {
-			mCommandPools.push_back(CommandPool(mDevice.getPresentFamilyIdx(), {}, mDevice.getVkDevice()));
+			mCommandPools.push_back(CommandPool(getPresentFamilyIdx(), {}, getDevice()));
 		}
 
 	}
@@ -206,10 +206,221 @@ namespace vkg
 	{
 
 		mCommandPools[static_cast<size_t>(CommandPoolTypes::eGraphic)].destroy();
-		if (mDevice.getPresentFamilyIdx() != mDevice.getGraphicsFamilyIdx()) {
+		if (getPresentFamilyIdx() != getGraphicsFamilyIdx()) {
 			mCommandPools[static_cast<size_t>(CommandPoolTypes::ePresent)].destroy();
 		}
 
+	}
+
+	void Context::pickAndCreatePysicalDevice(const vk::SurfaceKHR* surf)
+	{
+		const vk::Instance instance = getInstance();
+		std::vector<vk::PhysicalDevice> devices = instance.enumeratePhysicalDevices();
+		if (devices.empty()) {
+			throw std::runtime_error("No Vulkan devices avaliable!!");
+		}
+
+		std::vector<const char*> deviceExtensions;
+		if (mPresentQueueRequested) {
+			deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+		}
+
+		// Test first with the devices that are dedicated GPUs
+		bool deviceChoosen = false;
+		for (vk::PhysicalDevice device : devices) {
+			vk::PhysicalDeviceProperties prop = device.getProperties();
+			if (prop.deviceType != vk::PhysicalDeviceType::eDiscreteGpu) {
+				continue;
+			}
+
+			if (isDeviceSuitable(device, deviceExtensions,
+				surf, mAnisotropySamplerEnabled)) 
+			{
+				mPhysicalDevice = device;
+				deviceChoosen = true;
+			}
+
+		}
+
+		if (!deviceChoosen) {
+			throw std::runtime_error("Cannot pick physical device!!!");
+		}
+
+		// if anisotropy, query max samples
+		if (mAnisotropySamplerEnabled) {
+			mMsaaSamples = getMaxUsableSampleCount();
+		}
+	}
+
+	void Context::createLogicalDevice(const vk::SurfaceKHR* surf)
+	{
+		QueueIndices indices = findQueueFamiliesIndices(mPhysicalDevice, surf);
+		std::set<uint32_t> familyIndices = indices.getUniqueIndices();
+		// Preamptively store results if true
+		mGraphicsFamilyIdx = indices.graphicsFamily.value();
+		mComputeFamilyIdx = indices.computeFamily.value();
+		mTransferFamilyIdx = indices.transferFamily.value();
+		if (indices.presentFamily.has_value()) {
+			mPresentFamilyIdx = indices.presentFamily.value();
+		}
+
+		std::vector<vk::DeviceQueueCreateInfo> queuesCreateInfos(familyIndices.size());
+
+		float priority = 1.0f;
+		int i = 0;
+		for (uint32_t familyidx : familyIndices) {
+			vk::DeviceQueueCreateInfo& info = queuesCreateInfos[i];
+			info.queueFamilyIndex = familyidx;
+			info.queueCount = 1;
+			info.pQueuePriorities = &priority;
+			++i;
+		}
+
+		vk::PhysicalDeviceFeatures features;
+		features.samplerAnisotropy = mAnisotropySamplerEnabled;
+
+		std::vector<const char*> deviceExtensions;
+		if (mPresentQueueRequested) {
+			deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+		}
+
+		vk::DeviceCreateInfo createInfo;
+		createInfo.queueCreateInfoCount = static_cast<uint32_t>(queuesCreateInfos.size());
+		createInfo.pQueueCreateInfos = queuesCreateInfos.data();
+		createInfo.pEnabledFeatures = &features;
+		createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
+		createInfo.ppEnabledExtensionNames = deviceExtensions.data();
+
+		if (DebugVk::validationLayersVkEnabled) {
+			createInfo.enabledLayerCount = static_cast<uint32_t>(DebugVk::validationLayersArray.size());
+			createInfo.ppEnabledLayerNames = DebugVk::validationLayersArray.data();
+		}
+
+		mDevice = mPhysicalDevice.createDevice(createInfo);
+	}
+
+	void Context::createQueues()
+	{
+		mGraphicsQueue = mDevice.getQueue(mGraphicsFamilyIdx, 0);
+		mComputeQueue = mDevice.getQueue(mComputeFamilyIdx, 0);
+		mTransferQueue = mDevice.getQueue(mTransferFamilyIdx, 0);
+		if (mPresentQueueRequested) {
+			mPresentQueue = mDevice.getQueue(mPresentFamilyIdx, 0);
+		}
+	}
+
+	bool Context::isDeviceSuitable(vk::PhysicalDevice physicalDevice,
+		const std::vector<const char*>& deviceExtensions,
+		const vk::SurfaceKHR* surfaceToRequestSwapChain,
+		bool requestAnisotropySampler)
+	{
+		// Check extension support
+		bool extensionSupport = false;
+		{
+			std::vector<vk::ExtensionProperties> prop = physicalDevice.enumerateDeviceExtensionProperties();
+			std::set<std::string> extSet(deviceExtensions.begin(), deviceExtensions.end());
+			for (const char* ext : deviceExtensions) {
+				extSet.erase(ext);
+			}
+			if (extSet.empty()) {
+				extensionSupport = true;
+			}
+		}
+		// Check for family indices
+		bool familySupport = false;
+		{
+			QueueIndices indices = findQueueFamiliesIndices(
+				physicalDevice,
+				surfaceToRequestSwapChain);
+			familySupport = indices.isComplete();
+		}
+
+		// Check feature support
+		bool featureSupport = true;
+		{
+			const vk::PhysicalDeviceFeatures features = physicalDevice.getFeatures();
+			if (requestAnisotropySampler && !features.samplerAnisotropy)
+				featureSupport = false;
+		}
+
+		// Test for swap chain support
+		bool swapChainAvailable = surfaceToRequestSwapChain == nullptr;
+		if (!swapChainAvailable) {
+			uint32_t numFormats;
+			uint32_t numPresentModes;
+
+			vk::Result res = physicalDevice.getSurfaceFormatsKHR(*surfaceToRequestSwapChain, &numFormats, nullptr, vk::DispatchLoaderStatic());
+
+			numFormats = (res == vk::Result::eSuccess) ? numFormats : 0;
+
+			res = physicalDevice.getSurfacePresentModesKHR(*surfaceToRequestSwapChain, &numPresentModes, nullptr, vk::DispatchLoaderStatic());
+
+			numPresentModes = (res == vk::Result::eSuccess) ? numPresentModes : 0;
+
+			swapChainAvailable = numFormats > 0 && numPresentModes > 0;
+		}
+
+		return extensionSupport && familySupport && featureSupport && swapChainAvailable;
+	}
+
+	Context::QueueIndices Context::findQueueFamiliesIndices(
+		vk::PhysicalDevice physicalDevice,
+		const vk::SurfaceKHR* surf)
+	{
+		QueueIndices indices;
+		indices.takePresentIntoAccount = surf != nullptr;
+
+		std::vector<vk::QueueFamilyProperties> families =
+			physicalDevice.getQueueFamilyProperties();
+		for (uint32_t i = 0; i < static_cast<uint32_t>(families.size() && !indices.isComplete()); ++i) {
+			vk::QueueFamilyProperties& family = families[i];
+
+			if (family.queueFlags & vk::QueueFlagBits::eGraphics) {
+				indices.graphicsFamily = i;
+			}
+
+			if (family.queueFlags & vk::QueueFlagBits::eCompute) {
+				indices.computeFamily = i;
+			}
+
+			if (family.queueFlags & vk::QueueFlagBits::eTransfer) {
+				indices.transferFamily = i;
+			}
+
+			// Request also surface support if surface provided
+			if (surf != nullptr) {
+				vk::Bool32 res = physicalDevice.getSurfaceSupportKHR(i, *surf);
+				if (res) {
+					indices.presentFamily = i;
+				}
+			}
+		}
+
+		// Try to assign a unique transfer queue
+		for (uint32_t i = 0; i < static_cast<uint32_t>(families.size()); ++i) {
+			vk::QueueFamilyProperties& family = families[i];
+
+			if (family.queueFlags == vk::QueueFlagBits::eTransfer) {
+				indices.transferFamily = i;
+			}
+		}
+
+		return indices;
+	}
+
+	vk::SampleCountFlagBits Context::getMaxUsableSampleCount() const
+	{
+		vk::PhysicalDeviceProperties properties = mPhysicalDevice.getProperties();
+
+		vk::SampleCountFlags counts = properties.limits.framebufferColorSampleCounts & properties.limits.framebufferDepthSampleCounts;
+		if (counts & vk::SampleCountFlagBits::e64) { return vk::SampleCountFlagBits::e64; }
+		if (counts & vk::SampleCountFlagBits::e32) { return vk::SampleCountFlagBits::e32; }
+		if (counts & vk::SampleCountFlagBits::e16) { return vk::SampleCountFlagBits::e16; }
+		if (counts & vk::SampleCountFlagBits::e8) { return vk::SampleCountFlagBits::e8; }
+		if (counts & vk::SampleCountFlagBits::e4) { return vk::SampleCountFlagBits::e4; }
+		if (counts & vk::SampleCountFlagBits::e2) { return vk::SampleCountFlagBits::e2; }
+
+		return vk::SampleCountFlagBits::e1;
 	}
 
 }; // namespace vkg

@@ -63,9 +63,6 @@ AppInstance::AppInstance(const std::vector<const char*>& extensionsToLoad,
 	}
 }
 
-AppInstance::~AppInstance()
-{
-}
 
 void AppInstance::destroy()
 {

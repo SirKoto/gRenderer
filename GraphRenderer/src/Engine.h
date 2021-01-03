@@ -43,8 +43,6 @@ namespace gr
 		void draw();
 
 		void createRenderPass();
-		void createAndRecordPresentCommandBuffers();
-		void deletePresentCommandBuffers();
 		void recreateSwapChain();
 
 		void createAndRecordGraphicCommandBuffers();

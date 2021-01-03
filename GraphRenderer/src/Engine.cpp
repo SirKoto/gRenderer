@@ -8,7 +8,6 @@
 #include <GLFW/glfw3.h>
 
 #include "graphics/AppInstance.h"
-#include "graphics/DeviceComp.h"
 #include "graphics/memory/MemoryManager.h"
 #include "graphics/render/RenderPassBuilder.h"
 #include "graphics/render/GraphicsPipelineBuilder.h"
@@ -32,21 +31,11 @@ namespace gr
 	{
 		using namespace vkg;
 
-		AppInstance instance;
-		mWindow.createVkSurface(instance);
+		mWindow.createVkSurface(mContext.getInstance());
 
-		{
-			DeviceComp device(instance, true, &mWindow.getSurface());
+		mContext.createDevice(true, &mWindow.getSurface());
 
-			MemoryManager memManager(instance.getInstance(),
-				device.getPhysicalDevice(),
-				device.getVkDevice());
-
-
-			mContext = Context(std::move(device), std::move(memManager));
-		}
-
-		mSwapChain = SwapChain(mContext.getDeviceComp(), mWindow);
+		mSwapChain = SwapChain(mContext, mWindow);
 
 		createSyncObjects();
 
@@ -66,7 +55,6 @@ namespace gr
 		createGraphicsPipeline();
 
 		createAndRecordGraphicCommandBuffers();
-		//createAndRecordPresentCommandBuffers();
 
 		while (!mWindow.windowShouldClose()) {
 
@@ -80,14 +68,11 @@ namespace gr
 
 		mContext.safeDestroyImage(image);
 
-		//deletePresentCommandBuffers();
-
 		cleanup();
 
 		mSwapChain.destroy();
+		mWindow.destroy(mContext.getInstance());
 		mContext.destroy();
-		mWindow.destroy(instance);
-		instance.destroy();
 	}
 
 	void Engine::draw()
@@ -97,7 +82,7 @@ namespace gr
 		mCurrentFrame = (mCurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
 		// Wait for current frame, if it was still being executed
-		res = mContext.getVkDevice().waitForFences(1, mInFlightFences.data() + mCurrentFrame, true, UINT32_MAX);
+		res = mContext.getDevice().waitForFences(1, mInFlightFences.data() + mCurrentFrame, true, UINT32_MAX);
 		assert(res == vk::Result::eSuccess);
 
 		const vkg::CommandPool* cmdPool = mContext.getCommandPool(vkg::Context::CommandPoolTypes::eGraphic);
@@ -113,13 +98,13 @@ namespace gr
 
 		// maybe out of order next image, thus wait also for next image
 		if (mImagesInFlightFences[imageIdx]) {
-			res = mContext.getVkDevice().waitForFences(1, mImagesInFlightFences.data() + imageIdx, true, UINT32_MAX);
+			res = mContext.getDevice().waitForFences(1, mImagesInFlightFences.data() + imageIdx, true, UINT32_MAX);
 			assert(res == vk::Result::eSuccess);
 		}
 		// update in flight image
 		mImagesInFlightFences[imageIdx] = mInFlightFences[mCurrentFrame];
 
-		mContext.getVkDevice().resetFences(1, mInFlightFences.data() + mCurrentFrame);
+		mContext.getDevice().resetFences(1, mInFlightFences.data() + mCurrentFrame);
 
 		cmdPool->submitCommandBuffer(
 			mGraphicCommandBuffers[imageIdx],
@@ -172,100 +157,10 @@ namespace gr
 
 		builder.pushSubpassDependency(dependency);
 
-		mRenderPass =  builder.buildRenderPass(mContext.getDeviceComp());
+		mRenderPass =  builder.buildRenderPass(mContext);
 	}
 
-	void Engine::createAndRecordPresentCommandBuffers()
-	{
 
-		const vkg::CommandPool* cmdPool = mContext.getCommandPool(vkg::Context::CommandPoolTypes::ePresent);
-
-		mPresentCommandBuffers = cmdPool->createCommandBuffers(mSwapChain.getNumImages());
-
-
-		const uint32_t presentQueueFamilyIdx = mContext.getQueueFamilyIndex(vkg::Context::CommandPoolTypes::ePresent);
-
-		vk::CommandBufferBeginInfo beginInfo(vk::CommandBufferUsageFlagBits::eSimultaneousUse);
-
-		vk::ClearColorValue clearColor;
-		clearColor.setFloat32({ 1.0f, 0.8f, 0.4f, 0.0f });
-
-		// range of the image that will be modified
-		vk::ImageSubresourceRange imageRange(
-			vk::ImageAspectFlagBits::eColor,	// aspect mask
-			0, 1,	// base mip level and count
-			0, 1	// base Array layer and count
-		);
-
-		vk::ImageMemoryBarrier barrier = vk::ImageMemoryBarrier(
-			{}, {}, {}, {}, // src/dest masks and layouts	
-			presentQueueFamilyIdx,	// src Family
-			presentQueueFamilyIdx,	// dst Family
-			nullptr,				// image
-			imageRange);			// range
-
-
-		const uint32_t num = static_cast<uint32_t>(mPresentCommandBuffers.size());
-		assert(num == mSwapChain.getNumImages());
-
-		for (uint32_t i = 0; i < num; ++i) {
-
-			// Begin command buffer recording
-			vk::CommandBuffer commandBuffer = mPresentCommandBuffers[i];
-			commandBuffer.begin(beginInfo);
-
-			// Set actual image to barrier
-			barrier.setImage(mSwapChain.getImagesVector()[i]);
-
-			// from present to clear barrier
-			barrier
-				.setSrcAccessMask(vk::AccessFlagBits::eMemoryRead)
-				.setDstAccessMask(vk::AccessFlagBits::eMemoryWrite)
-				.setOldLayout(vk::ImageLayout::eUndefined)
-				.setNewLayout(vk::ImageLayout::eTransferDstOptimal);
-
-			commandBuffer.pipelineBarrier(
-				vk::PipelineStageFlagBits::eTransfer,	// src stage
-				vk::PipelineStageFlagBits::eTransfer,	// dst stage
-				{},										// dependency flags
-				0, nullptr,								// memory barrier
-				0, nullptr,								// buffer barrier
-				1, &barrier								// image barrier
-			);
-
-			// Clear image with clear color
-			commandBuffer.clearColorImage(
-				barrier.image,							// image
-				vk::ImageLayout::eTransferDstOptimal,	// image actual layout
-				&clearColor,							// color to use
-				1, &imageRange							// image subresource range
-			);
-
-			// from clear to present barrier
-			barrier
-				.setSrcAccessMask(vk::AccessFlagBits::eMemoryWrite)
-				.setDstAccessMask(vk::AccessFlagBits::eMemoryRead)
-				.setOldLayout(vk::ImageLayout::eTransferDstOptimal)
-				.setNewLayout(vk::ImageLayout::ePresentSrcKHR);
-
-			commandBuffer.pipelineBarrier(
-				vk::PipelineStageFlagBits::eTransfer,	// src stage
-				vk::PipelineStageFlagBits::eTransfer,	// dst stage
-				{},										// dependency flags
-				0, nullptr,								// memory barrier
-				0, nullptr,								// buffer barrier
-				1, &barrier								// image barrier
-			);
-
-			commandBuffer.end();
-		}
-	}
-
-	void Engine::deletePresentCommandBuffers()
-	{
-		const vkg::CommandPool* cmdPool = mContext.getCommandPool(vkg::Context::CommandPoolTypes::ePresent);
-		cmdPool->free(mPresentCommandBuffers.data(), static_cast<uint32_t>(mPresentCommandBuffers.size()));
-	}
 
 	void Engine::recreateSwapChain()
 	{
@@ -277,7 +172,7 @@ namespace gr
 
 		cleanupSwapChainDependantObjs();
 
-		mSwapChain.recreateSwapChain(mContext.getDeviceComp(), mWindow);
+		mSwapChain.recreateSwapChain(mContext, mWindow);
 
 		createRenderPass();
 
@@ -294,7 +189,7 @@ namespace gr
 		mGraphicCommandBuffers = cmdPool->createCommandBuffers(mSwapChain.getNumImages());
 
 
-		const uint32_t graphicsQueueFamilyIdx = mContext.getQueueFamilyIndex(vkg::Context::CommandPoolTypes::eGraphic);
+		const uint32_t graphicsQueueFamilyIdx = mContext.getGraphicsFamilyIdx();
 
 		vk::CommandBufferBeginInfo beginInfo = {};
 
@@ -348,7 +243,7 @@ namespace gr
 			0, nullptr // push constants
 		);
 
-		mPipLayout = mContext.getVkDevice().createPipelineLayout(createInfo);
+		mPipLayout = mContext.getDevice().createPipelineLayout(createInfo);
 	}
 
 	void Engine::createGraphicsPipeline()
@@ -363,7 +258,7 @@ namespace gr
 		builder.setColorBlendAttachmentStd();
 		builder.setPipelineLayout(mPipLayout);
 
-		mGraphicsPipeline = builder.createPipeline(mContext.getVkDevice(), mRenderPass, 0);
+		mGraphicsPipeline = builder.createPipeline(mContext.getDevice(), mRenderPass, 0);
 	}
 
 	void Engine::createSyncObjects()
@@ -387,7 +282,7 @@ namespace gr
 		}
 
 		cleanupSwapChainDependantObjs();
-		mContext.getVkDevice().destroyPipelineLayout(mPipLayout);
+		mContext.getDevice().destroyPipelineLayout(mPipLayout);
 
 		mContext.destroy(mShaderModules[0]);
 		mContext.destroy(mShaderModules[1]);
@@ -399,9 +294,8 @@ namespace gr
 			mContext.destroy(frambuffer);
 		}
 
-		deletePresentCommandBuffers();
 
-		mContext.getVkDevice().destroyPipeline(mGraphicsPipeline);
+		mContext.getDevice().destroyPipeline(mGraphicsPipeline);
 		mContext.destroy(mRenderPass);
 	}
 

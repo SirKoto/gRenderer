@@ -203,6 +203,7 @@
     <ClInclude Include="src\graphics\render\PipelineBuilder.h" />
     <ClInclude Include="src\graphics\render\RenderPass.h" />
     <ClInclude Include="src\graphics\render\RenderPassBuilder.h" />
+    <ClInclude Include="src\graphics\resources\Allocatable.h" />
     <ClInclude Include="src\graphics\resources\Buffer.h" />
     <ClInclude Include="src\graphics\resources\Image.h" />
     <ClInclude Include="src\graphics\resources\Image2D.h" />

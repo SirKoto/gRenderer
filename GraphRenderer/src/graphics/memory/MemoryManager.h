@@ -32,12 +32,16 @@ namespace vkg
 
 		void freeAllocation(VmaAllocation allocation) const;
 
-		void getAllocationInfo(const VmaAllocation& allocation,
+		void getAllocationInfo(VmaAllocation allocation,
 			vk::DeviceMemory* outDeviceMemory,
 			vk::DeviceSize* outOffset,
 			vk::DeviceSize* outSize) const;
 
+		bool isMemoryMappable(VmaAllocation allocation) const;
 
+		[[nodiscard]] void* mapMemory(VmaAllocation allocation) const;
+		
+		void unmapMemory(VmaAllocation allocation) const;
 
 		void destroy();
 

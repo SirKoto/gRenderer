@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../memory/MemoryManager.h"
+#include "Allocatable.h"
 
 namespace gr
 {
@@ -8,22 +8,19 @@ namespace vkg
 {
 
 
-class Buffer
+class Buffer : public Allocatable
 {
 public:
+	Buffer() = default;
+	Buffer(vk::Buffer buffer, VmaAllocation alloc) : Allocatable(alloc), mBuffer(buffer) {}
 
-	Buffer(vk::Buffer buffer, VmaAllocation alloc) : mBuffer(buffer), mAllocation(alloc) {}
-
-	void setAllocation(VmaAllocation allocation) { mAllocation = allocation; }
 	void setVkBuffer(vk::Buffer buff) { mBuffer = buff; }
 
-	VmaAllocation getAllocation() const { return mAllocation; }
 	vk::Buffer getVkBuffer() const { return mBuffer; }
 
 protected:
 
 	vk::Buffer mBuffer;
-	VmaAllocation mAllocation;
 };
 
 }

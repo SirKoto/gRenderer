@@ -233,8 +233,11 @@
     <ClInclude Include="src\graphics\shaders\VertexInputDescription.h">
       <Filter>Header Files\vkg\shaders</Filter>
     </ClInclude>
+    <ClInclude Include="src\graphics\resources\Allocatable.h">
+      <Filter>Header Files\vkg\resources</Filter>
+    </ClInclude>
     <ClInclude Include="src\graphics\resources\Buffer.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\vkg\resources</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

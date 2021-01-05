@@ -49,6 +49,8 @@ namespace vkg
 
 		void safeDestroyBuffer(Buffer& buffer);
 
+		void transferDataToGPU(const Allocatable& allocatable, void* data, size_t numBytes) const;
+
 		vk::Semaphore createSemaphore() const;
 
 		vk::Fence createFence(bool signaled) const;

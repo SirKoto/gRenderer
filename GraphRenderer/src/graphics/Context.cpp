@@ -136,6 +136,18 @@ void Context::createDevice(bool enableAnisotropySampler,
 		}
 	}
 
+	void Context::transferDataToGPU(const Allocatable& allocatable, void* data, size_t numBytes) const
+	{
+		// Check that the allocation is cpu mappable
+		if (!mMemManager.isMemoryMappable(allocatable.getAllocation())) {
+			throw std::logic_error("Trying to map on unmappable memory!!!");
+		}
+		// Copy data
+		void* mappedMem = mMemManager.mapMemory(allocatable.getAllocation());
+		std::memcpy(mappedMem, data, numBytes);
+		mMemManager.unmapMemory(allocatable.getAllocation());
+	}
+
 
 
 	vk::Semaphore Context::createSemaphore() const

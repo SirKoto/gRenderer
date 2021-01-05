@@ -40,6 +40,8 @@ namespace gr
 		std::array<vk::Fence, MAX_FRAMES_IN_FLIGHT> mInFlightFences;
 		std::vector<vk::Fence> mImagesInFlightFences;
 
+		vkg::Buffer mVertexBuffer;
+
 		void draw();
 
 		void createRenderPass();
@@ -54,6 +56,8 @@ namespace gr
 		void createGraphicsPipeline();
 
 		void createSyncObjects();
+
+		void createBuffers();
 
 		void cleanup();
 		void cleanupSwapChainDependantObjs();

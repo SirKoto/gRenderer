@@ -46,10 +46,11 @@ namespace vkg
 		void safeDestroyImage(Image2D& image);
 
 		Buffer createVertexBuffer(size_t sizeInBytes);
+		Buffer createStagingBuffer(size_t sizeInBytes);
 
 		void safeDestroyBuffer(Buffer& buffer);
 
-		void transferDataToGPU(const Allocatable& allocatable, void* data, size_t numBytes) const;
+		void transferDataToGPU(const Allocatable& allocatable, const void* data, size_t numBytes) const;
 
 		vk::Semaphore createSemaphore() const;
 
@@ -59,13 +60,8 @@ namespace vkg
 
 		void waitIdle() const;
 
-		enum class CommandPoolTypes {
-			eGraphic,
-			ePresent,
-			NUM
-		};
-
-		const CommandPool* getCommandPool(const CommandPoolTypes type) const;
+		const CommandPool* getGraphicsCommandPool() const { return &mGraphicsCommandPool; }
+		const CommandPool* getPresentCommandPool() const { return &mPresentCommandPool; }
 
 		vk::Queue getGraphicsQueue() const { return mGraphicsQueue; }
 		vk::Queue getComputeQueue() const { return mComputeQueue; }
@@ -105,12 +101,14 @@ namespace vkg
 		vk::Queue mTransferQueue;
 		vk::Queue mPresentQueue;
 
+		CommandPool mGraphicsCommandPool;
+		CommandPool mPresentCommandPool;
+
+
 		uint32_t mGraphicsFamilyIdx, mComputeFamilyIdx, mTransferFamilyIdx, mPresentFamilyIdx;
 		
 		bool mAnisotropySamplerEnabled, mPresentQueueRequested;
 		vk::SampleCountFlagBits mMsaaSamples = vk::SampleCountFlagBits::e1;
-
-		std::vector<CommandPool> mCommandPools;
 
 		void createCommandPools();
 		void destroyCommandPools();

@@ -25,6 +25,16 @@ void GraphicsPipelineBuilder::setShaderStages(vk::ShaderModule vertex, vk::Shade
 	mFragmentModule = fragment;
 }
 
+void GraphicsPipelineBuilder::setVertexBindingDescriptions(const std::vector<vk::VertexInputBindingDescription>& bindings)
+{
+	mVertInBindings = bindings;
+}
+
+void GraphicsPipelineBuilder::setVertexAttirbuteDescriptions(const std::vector<vk::VertexInputAttributeDescription>& attributes)
+{
+	mVertInAttributes = attributes;
+}
+
 void GraphicsPipelineBuilder::addVertexBindingDescription(const vk::VertexInputBindingDescription& binding)
 {
 	mVertInBindings.push_back(binding);

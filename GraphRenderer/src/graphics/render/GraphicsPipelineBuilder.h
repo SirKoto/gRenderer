@@ -17,6 +17,8 @@ public:
 	void setShaderStages(vk::ShaderModule vertex, vk::ShaderModule fragment);
 
 	// Pipeline Vertex Input State
+	void setVertexBindingDescriptions(const std::vector<vk::VertexInputBindingDescription>& bindings);
+	void setVertexAttirbuteDescriptions(const std::vector<vk::VertexInputAttributeDescription>& attributes);
 	void addVertexBindingDescription(const vk::VertexInputBindingDescription& binding);
 	void addVertexAttributDescription(const vk::VertexInputAttributeDescription& attrib);
 	void addVertexBindingDescription(vk::VertexInputBindingDescription&& binding);

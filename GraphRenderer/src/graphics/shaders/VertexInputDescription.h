@@ -17,7 +17,7 @@ public:
 	
 	std::vector<vk::VertexInputBindingDescription> getBindingDescription() const;
 
-	std::vector<vk::VertexInputAttributeDescription> getAttributeDescriptions(uint32_t index) const;
+	std::vector<vk::VertexInputAttributeDescription> getAttributeDescriptions() const;
 
 	class Attribute
 	{

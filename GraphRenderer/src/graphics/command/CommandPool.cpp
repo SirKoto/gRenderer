@@ -27,10 +27,27 @@ std::vector<vk::CommandBuffer> CommandPool::createCommandBuffers(const uint32_t 
 	return mDevice.allocateCommandBuffers(info);
 }
 
+vk::CommandBuffer CommandPool::createCommandBuffer() const
+{
+	vk::CommandBufferAllocateInfo info = vk::CommandBufferAllocateInfo(
+		mPool,
+		vk::CommandBufferLevel::ePrimary,
+		1
+	);
+	vk::CommandBuffer cmd;
+	vk::Result res = mDevice.allocateCommandBuffers(&info, &cmd);
+	if (res != vk::Result::eSuccess) {
+		throw std::runtime_error("Error Allocate command buffers!!");
+	}
+
+	return cmd;
+}
+
 void CommandPool::free(const vk::CommandBuffer* pCommandBuffers, uint32_t num) const
 {
 	mDevice.freeCommandBuffers(mPool, num, pCommandBuffers);
 }
+
 
 void CommandPool::submitCommandBuffer(
 	const vk::CommandBuffer commandBuffer,

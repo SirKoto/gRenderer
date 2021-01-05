@@ -32,7 +32,7 @@ std::vector<vk::VertexInputBindingDescription> gr::vkg::VertexInputDescription::
 	return descs;
 }
 
-std::vector<vk::VertexInputAttributeDescription> gr::vkg::VertexInputDescription::getAttributeDescriptions(uint32_t index) const
+std::vector<vk::VertexInputAttributeDescription> gr::vkg::VertexInputDescription::getAttributeDescriptions() const
 {
 	const uint32_t numBind = static_cast<uint32_t>(mBindings.size());
 	uint32_t numAttribs = 0;

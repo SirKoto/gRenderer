@@ -11,11 +11,25 @@
 #include "graphics/memory/MemoryManager.h"
 #include "graphics/render/RenderPassBuilder.h"
 #include "graphics/render/GraphicsPipelineBuilder.h"
+#include "graphics/shaders/VertexInputDescription.h"
 
 #include "utils/grjob.h"
 
+#include <glm/glm.hpp>
+
 namespace gr
 {
+
+	struct Vertex {
+		glm::vec2 pos;
+		glm::vec3 color;
+	};
+
+	const std::vector<Vertex> vertices = {
+	 { {0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+	 { {-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+	 { {0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}}
+	};
 
 	void Engine::init()
 	{
@@ -51,8 +65,10 @@ namespace gr
 		mPresentFramebuffers = mSwapChain.createFramebuffersOfSwapImages(mRenderPass);
 
 		createShaderModules();
+		createBuffers();
 		createPipelineLayout();
 		createGraphicsPipeline();
+
 
 		createAndRecordGraphicCommandBuffers();
 
@@ -82,10 +98,10 @@ namespace gr
 		mCurrentFrame = (mCurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
 		// Wait for current frame, if it was still being executed
-		res = mContext.getDevice().waitForFences(1, mInFlightFences.data() + mCurrentFrame, true, UINT32_MAX);
+		res = mContext.getDevice().waitForFences(1, mInFlightFences.data() + mCurrentFrame, true, UINT64_MAX);
 		assert(res == vk::Result::eSuccess);
 
-		const vkg::CommandPool* cmdPool = mContext.getCommandPool(vkg::Context::CommandPoolTypes::eGraphic);
+		const vkg::CommandPool* cmdPool = mContext.getGraphicsCommandPool();
 
 		uint32_t imageIdx;
 		bool outOfDateSwapChain = !mSwapChain.acquireNextImageBlock(
@@ -98,7 +114,7 @@ namespace gr
 
 		// maybe out of order next image, thus wait also for next image
 		if (mImagesInFlightFences[imageIdx]) {
-			res = mContext.getDevice().waitForFences(1, mImagesInFlightFences.data() + imageIdx, true, UINT32_MAX);
+			res = mContext.getDevice().waitForFences(1, mImagesInFlightFences.data() + imageIdx, true, UINT64_MAX);
 			assert(res == vk::Result::eSuccess);
 		}
 		// update in flight image
@@ -114,7 +130,7 @@ namespace gr
 			mInFlightFences[mCurrentFrame]);
 
 		bool swapChainNeedsRecreation = 
-			!mContext.getCommandPool(vkg::Context::CommandPoolTypes::ePresent)->submitPresentationImage(
+			!mContext.getPresentCommandPool()->submitPresentationImage(
 				mSwapChain.getVkSwapChain(),
 				imageIdx,
 				&mRenderingFinishedSemaphores[mCurrentFrame]
@@ -184,7 +200,7 @@ namespace gr
 
 	void Engine::createAndRecordGraphicCommandBuffers()
 	{
-		const vkg::CommandPool* cmdPool = mContext.getCommandPool(vkg::Context::CommandPoolTypes::eGraphic);
+		const vkg::CommandPool* cmdPool = mContext.getGraphicsCommandPool();
 
 		mGraphicCommandBuffers = cmdPool->createCommandBuffers(mSwapChain.getNumImages());
 
@@ -212,7 +228,10 @@ namespace gr
 
 			buff.bindPipeline(vk::PipelineBindPoint::eGraphics, mGraphicsPipeline);
 
-			buff.draw(3, 1, 0, 0); // num vert, instance, first vertex, first instance
+			vk::DeviceSize offset = 0;
+			buff.bindVertexBuffers(0, 1, &mVertexBuffer.getVkBuffer(), &offset);
+
+			buff.draw(static_cast<uint32_t>(vertices.size()), 1, 0, 0); // num vert, instance, first vertex, first instance
 
 			buff.endRenderPass();
 
@@ -225,8 +244,8 @@ namespace gr
 	{
 		{
 			grjob::Job jobs[2];
-			jobs[0] = grjob::Job(&vkg::Context::createShaderModule, &mContext, "resources/shaders/SPIR-V/hardCodedTri.vert.spv", mShaderModules + 0);
-			jobs[1] = grjob::Job(&vkg::Context::createShaderModule, &mContext, "resources/shaders/SPIR-V/test.frag.spv", mShaderModules + 1);
+			jobs[0] = grjob::Job(&vkg::Context::createShaderModule, &mContext, "resources/shaders/SPIR-V/inputPC.vert.spv", mShaderModules + 0);
+			jobs[1] = grjob::Job(&vkg::Context::createShaderModule, &mContext, "resources/shaders/SPIR-V/inC.frag.spv", mShaderModules + 1);
 			grjob::Counter* c = nullptr;
 
 			grjob::runJobBatch(gr::grjob::Priority::eMid, jobs, 2, &c);
@@ -249,9 +268,19 @@ namespace gr
 	void Engine::createGraphicsPipeline()
 	{
 		vkg::GraphicsPipelineBuilder builder;
+		
+		// Set Vertex Input descriptions
+		{
+			vkg::VertexInputDescription vid;
+			vid.addBinding(0, sizeof(Vertex))
+				.addAttribute(0, 2, offsetof(Vertex, Vertex::pos))
+				.addAttribute(1, 3, offsetof(Vertex, Vertex::color));
 
+			assert(vid.getBindingDescription().size() == 1);
+			builder.setVertexBindingDescriptions( vid.getBindingDescription() );
+			builder.setVertexAttirbuteDescriptions( vid.getAttributeDescriptions() );
+		}
 		builder.setShaderStages(mShaderModules[0], mShaderModules[1]);
-		// NO VertexBindingDescription
 		builder.setPrimitiveTopology(vk::PrimitiveTopology::eTriangleList);
 		builder.setViewportSize(mSwapChain.getExtent());
 		builder.setMultisampleCount(vk::SampleCountFlagBits::e1);
@@ -272,6 +301,30 @@ namespace gr
 		mImagesInFlightFences.resize(mSwapChain.getNumImages());
 	}
 
+	void Engine::createBuffers()
+	{
+		mVertexBuffer = mContext.createVertexBuffer(sizeof(Vertex) * vertices.size());
+		vkg::Buffer stageBuffer = mContext.createStagingBuffer(sizeof(Vertex) * vertices.size());
+
+		mContext.transferDataToGPU(stageBuffer, vertices.data(), sizeof(Vertex) * vertices.size());
+
+		vk::CommandBuffer copyCommand = mContext.getGraphicsCommandPool()->createCommandBuffer();
+
+		copyCommand.begin({ vk::CommandBufferUsageFlagBits::eOneTimeSubmit });
+
+		vk::BufferCopy buffercopy(0, 0, sizeof(Vertex) * vertices.size());
+		copyCommand.copyBuffer(stageBuffer.getVkBuffer(), mVertexBuffer.getVkBuffer(), 1, &buffercopy);
+
+		copyCommand.end();
+
+		vk::Fence fence = mContext.createFence(false);
+		mContext.getGraphicsCommandPool()->submitCommandBuffer(copyCommand, nullptr, {}, nullptr, fence);
+		vk::Result res = mContext.getDevice().waitForFences(1, &fence, true, UINT64_MAX);
+		assert(res == vk::Result::eSuccess);
+		mContext.destroy(fence);
+		mContext.safeDestroyBuffer(stageBuffer);
+	}
+
 	void Engine::cleanup()
 	{
 		// destroy sync objects
@@ -282,6 +335,10 @@ namespace gr
 		}
 
 		cleanupSwapChainDependantObjs();
+		
+		// Destroy Buffers
+		mContext.safeDestroyBuffer(mVertexBuffer);
+
 		mContext.getDevice().destroyPipelineLayout(mPipLayout);
 
 		mContext.destroy(mShaderModules[0]);

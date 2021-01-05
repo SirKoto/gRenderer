@@ -16,7 +16,7 @@ public:
 
 	void setVkBuffer(vk::Buffer buff) { mBuffer = buff; }
 
-	vk::Buffer getVkBuffer() const { return mBuffer; }
+	const vk::Buffer& getVkBuffer() const { return mBuffer; }
 
 protected:
 

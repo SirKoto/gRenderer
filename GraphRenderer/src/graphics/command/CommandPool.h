@@ -10,11 +10,13 @@ namespace vkg
 	class CommandPool
 	{
 	public:
-
+		CommandPool() = default;
 		CommandPool(uint32_t familyIdx, vk::CommandPoolCreateFlags flags, vk::Device device);
 
 		// num must be different from zero
 		std::vector<vk::CommandBuffer> createCommandBuffers(const uint32_t num) const;
+
+		vk::CommandBuffer createCommandBuffer() const;
 
 		void free(const vk::CommandBuffer* pCommandBuffers, uint32_t num) const;
 

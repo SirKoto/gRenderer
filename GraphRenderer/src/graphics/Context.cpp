@@ -3,6 +3,8 @@
 #include "../utils/FsTools.h"
 #include "DebugVk.h"
 
+#include <glm/glm.hpp>
+
 namespace gr
 {
 namespace vkg
@@ -107,7 +109,8 @@ void Context::createDevice(bool enableAnisotropySampler,
 		vk::BufferCreateInfo createInfo(
 			vk::BufferCreateFlagBits(),	// flags
 			sizeInBytes,				// size of buffer
-			vk::BufferUsageFlagBits::eVertexBuffer,
+			vk::BufferUsageFlagBits::eVertexBuffer | 
+				vk::BufferUsageFlagBits::eTransferDst,
 			vk::SharingMode::eExclusive
 		);
 
@@ -124,6 +127,29 @@ void Context::createDevice(bool enableAnisotropySampler,
 		return Buffer(buffer, alloc);
 	}
 
+	Buffer Context::createStagingBuffer(size_t sizeInBytes)
+	{
+		vk::BufferCreateInfo createInfo(
+			vk::BufferCreateFlagBits(),	// flags
+			sizeInBytes,				// size of buffer
+			vk::BufferUsageFlagBits::eTransferSrc,
+			vk::SharingMode::eExclusive
+		);
+
+		vk::Buffer buffer;
+		VmaAllocation alloc;
+
+		mMemManager.createBufferAllocation(createInfo,
+			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+			&buffer,
+			&alloc);
+
+
+		return Buffer(buffer, alloc);
+	}
+
+
 	void Context::safeDestroyBuffer(Buffer& buffer)
 	{
 		if (buffer.getAllocation() != nullptr) {
@@ -136,7 +162,7 @@ void Context::createDevice(bool enableAnisotropySampler,
 		}
 	}
 
-	void Context::transferDataToGPU(const Allocatable& allocatable, void* data, size_t numBytes) const
+	void Context::transferDataToGPU(const Allocatable& allocatable, const void* data, size_t numBytes) const
 	{
 		// Check that the allocation is cpu mappable
 		if (!mMemManager.isMemoryMappable(allocatable.getAllocation())) {
@@ -179,13 +205,6 @@ void Context::createDevice(bool enableAnisotropySampler,
 	void Context::waitIdle() const
 	{
 		getDevice().waitIdle();
-	}
-
-	const CommandPool* Context::getCommandPool(const CommandPoolTypes type) const
-	{
-		assert(type != CommandPoolTypes::NUM);
-
-		return mCommandPools.data() + static_cast<size_t>(type);
 	}
 
 	void Context::destroy(const vk::RenderPass renderPass) const
@@ -235,28 +254,27 @@ void Context::createDevice(bool enableAnisotropySampler,
 
 	void Context::createCommandPools()
 	{
-
-		mCommandPools.reserve(static_cast<size_t>(CommandPoolTypes::NUM));
-
-		mCommandPools.push_back(CommandPool(getGraphicsFamilyIdx(), {}, getDevice()));
+		mGraphicsCommandPool = CommandPool(getGraphicsFamilyIdx(), {}, getDevice());
 
 
 		if (getPresentFamilyIdx() == getGraphicsFamilyIdx())
 		{
-			mCommandPools.push_back(mCommandPools.back());
+			mPresentCommandPool = mGraphicsCommandPool;
 		}
 		else {
-			mCommandPools.push_back(CommandPool(getPresentFamilyIdx(), {}, getDevice()));
+			mPresentCommandPool = CommandPool(getPresentFamilyIdx(), {}, getDevice());
 		}
 
 	}
 
 	void Context::destroyCommandPools()
 	{
+		std::set<vk::CommandPool> alreadyDestroyed;
+		alreadyDestroyed.insert(mGraphicsCommandPool.get());
+		mGraphicsCommandPool.destroy();
 
-		mCommandPools[static_cast<size_t>(CommandPoolTypes::eGraphic)].destroy();
-		if (getPresentFamilyIdx() != getGraphicsFamilyIdx()) {
-			mCommandPools[static_cast<size_t>(CommandPoolTypes::ePresent)].destroy();
+		if (alreadyDestroyed.count(mPresentCommandPool.get()) == 0) {
+			mPresentCommandPool.destroy();
 		}
 
 	}

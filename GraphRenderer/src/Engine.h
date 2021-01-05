@@ -21,7 +21,7 @@ namespace gr
 	protected:
 		vkg::Context mContext;
 		vkg::SwapChain mSwapChain;
-		vkg::Window mWindow = vkg::Window(800, 600, "Test");
+		vkg::Window mWindow = vkg::Window(1280, 1024, "Test");
 
 
 		std::vector<vk::CommandBuffer> mPresentCommandBuffers;

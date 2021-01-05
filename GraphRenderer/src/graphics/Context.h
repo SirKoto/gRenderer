@@ -5,6 +5,7 @@
 #include "command/CommandPool.h"
 #include "present/SwapChain.h"
 #include "resources/Image2D.h"
+#include "resources/Buffer.h"
 
 #include <optional>
 #include <set>
@@ -43,6 +44,10 @@ namespace vkg
 			vk::ImageAspectFlags ImageAspect = vk::ImageAspectFlagBits::eColor);
 
 		void safeDestroyImage(Image2D& image);
+
+		Buffer createVertexBuffer(size_t sizeInBytes);
+
+		void safeDestroyBuffer(Buffer& buffer);
 
 		vk::Semaphore createSemaphore() const;
 

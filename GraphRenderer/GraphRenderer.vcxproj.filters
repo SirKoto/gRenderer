@@ -37,6 +37,9 @@
     <Filter Include="Header Files\gui">
       <UniqueIdentifier>{8e6a83e9-9d7b-4eef-bd48-02d9c24b062d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\vkg\shaders">
+      <UniqueIdentifier>{b2200053-9a1b-4875-a526-42a3a832f9eb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -124,6 +127,12 @@
       <Filter>Header Files\imgui</Filter>
     </ClCompile>
     <ClCompile Include="src\gui\Gui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\shaders\VertexInputDescription.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\resources\Buffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -220,6 +229,12 @@
     </ClInclude>
     <ClInclude Include="src\gui\Gui.h">
       <Filter>Header Files\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\shaders\VertexInputDescription.h">
+      <Filter>Header Files\vkg\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\resources\Buffer.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

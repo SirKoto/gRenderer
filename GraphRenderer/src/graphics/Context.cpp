@@ -101,6 +101,43 @@ void Context::createDevice(bool enableAnisotropySampler,
 		}
 	}
 
+	Buffer Context::createVertexBuffer(size_t sizeInBytes)
+	{
+
+		vk::BufferCreateInfo createInfo(
+			vk::BufferCreateFlagBits(),	// flags
+			sizeInBytes,				// size of buffer
+			vk::BufferUsageFlagBits::eVertexBuffer,
+			vk::SharingMode::eExclusive
+		);
+
+		vk::Buffer buffer;
+		VmaAllocation alloc;
+
+		mMemManager.createBufferAllocation(createInfo,
+			vk::MemoryPropertyFlagBits::eDeviceLocal,
+			vk::MemoryPropertyFlagBits::eDeviceLocal,
+			&buffer,
+			&alloc);
+
+
+		return Buffer(buffer, alloc);
+	}
+
+	void Context::safeDestroyBuffer(Buffer& buffer)
+	{
+		if (buffer.getAllocation() != nullptr) {
+			mMemManager.freeAllocation(buffer.getAllocation());
+			buffer.setAllocation(nullptr);
+		}
+		if (static_cast<bool>(buffer.getVkBuffer())) {
+			getDevice().destroyBuffer(buffer.getVkBuffer());
+			buffer.setVkBuffer(nullptr);
+		}
+	}
+
+
+
 	vk::Semaphore Context::createSemaphore() const
 	{
 		vk::SemaphoreCreateInfo createInfo;

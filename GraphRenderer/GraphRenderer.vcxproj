@@ -169,8 +169,10 @@
     <ClCompile Include="src\graphics\render\PipelineBuilder.cpp" />
     <ClCompile Include="src\graphics\render\RenderPass.cpp" />
     <ClCompile Include="src\graphics\render\RenderPassBuilder.cpp" />
+    <ClCompile Include="src\graphics\resources\Buffer.cpp" />
     <ClCompile Include="src\graphics\resources\Image.cpp" />
     <ClCompile Include="src\graphics\resources\Image2D.cpp" />
+    <ClCompile Include="src\graphics\shaders\VertexInputDescription.cpp" />
     <ClCompile Include="src\graphics\Window.cpp" />
     <ClCompile Include="src\gui\Gui.cpp" />
     <ClCompile Include="src\main.cpp" />
@@ -201,8 +203,10 @@
     <ClInclude Include="src\graphics\render\PipelineBuilder.h" />
     <ClInclude Include="src\graphics\render\RenderPass.h" />
     <ClInclude Include="src\graphics\render\RenderPassBuilder.h" />
+    <ClInclude Include="src\graphics\resources\Buffer.h" />
     <ClInclude Include="src\graphics\resources\Image.h" />
     <ClInclude Include="src\graphics\resources\Image2D.h" />
+    <ClInclude Include="src\graphics\shaders\VertexInputDescription.h" />
     <ClInclude Include="src\graphics\Window.h" />
     <ClInclude Include="src\gui\Gui.h" />
     <ClInclude Include="src\utils\ConstExprHelp.h" />

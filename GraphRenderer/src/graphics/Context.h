@@ -45,12 +45,16 @@ namespace vkg
 
 		void safeDestroyImage(Image2D& image);
 
-		Buffer createVertexBuffer(size_t sizeInBytes);
-		Buffer createStagingBuffer(size_t sizeInBytes);
+		Buffer createVertexBuffer(size_t sizeInBytes) const;
+		Buffer createIndexBuffer(size_t sizeInBytes) const;
+		Buffer createStagingBuffer(size_t sizeInBytes) const;
 
 		void safeDestroyBuffer(Buffer& buffer);
 
 		void transferDataToGPU(const Allocatable& allocatable, const void* data, size_t numBytes) const;
+		// Transfer sequentaly multiple pointers to the same allocatable resource
+		void transferDataToGPU(const Allocatable& allocatable, uint32_t numDatas, const void** datas, size_t* numBytes) const;
+
 
 		vk::Semaphore createSemaphore() const;
 

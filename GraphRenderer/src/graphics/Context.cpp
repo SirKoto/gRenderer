@@ -103,9 +103,34 @@ void Context::createDevice(bool enableAnisotropySampler,
 		}
 	}
 
-	Buffer Context::createVertexBuffer(size_t sizeInBytes)
+	Buffer Context::createIndexBuffer(size_t sizeInBytes) const
 	{
+		std::array<const uint32_t, 2> sharedR = { getGraphicsFamilyIdx(), getTransferFamilyIdx() };
+		vk::BufferCreateInfo createInfo(
+			vk::BufferCreateFlagBits(),	// flags
+			sizeInBytes,				// size of buffer
+			vk::BufferUsageFlagBits::eIndexBuffer |
+			vk::BufferUsageFlagBits::eTransferDst,
+			vk::SharingMode::eConcurrent, // To use with graphics and transfer queue
+			static_cast<uint32_t>(sharedR.size()),
+			sharedR.data()
+		);
 
+		vk::Buffer buffer;
+		VmaAllocation alloc;
+
+		mMemManager.createBufferAllocation(createInfo,
+			vk::MemoryPropertyFlagBits::eDeviceLocal,
+			vk::MemoryPropertyFlagBits::eDeviceLocal,
+			&buffer,
+			&alloc);
+
+
+		return Buffer(buffer, alloc);
+	}
+
+	Buffer Context::createVertexBuffer(size_t sizeInBytes) const
+	{
 		std::array<const uint32_t, 2> sharedR = { getGraphicsFamilyIdx(), getTransferFamilyIdx() };
 		vk::BufferCreateInfo createInfo(
 			vk::BufferCreateFlagBits(),	// flags
@@ -130,7 +155,7 @@ void Context::createDevice(bool enableAnisotropySampler,
 		return Buffer(buffer, alloc);
 	}
 
-	Buffer Context::createStagingBuffer(size_t sizeInBytes)
+	Buffer Context::createStagingBuffer(size_t sizeInBytes) const
 	{
 		std::array<const uint32_t, 2> sharedR = { getGraphicsFamilyIdx(), getTransferFamilyIdx() };
 		vk::BufferCreateInfo createInfo(
@@ -178,6 +203,26 @@ void Context::createDevice(bool enableAnisotropySampler,
 		void* mappedMem = mMemManager.mapMemory(allocatable.getAllocation());
 		std::memcpy(mappedMem, data, numBytes);
 		mMemManager.unmapMemory(allocatable.getAllocation());
+	}
+
+	void Context::transferDataToGPU(const Allocatable& allocatable, uint32_t numDatas, const void** datas, size_t* numBytes) const
+	{
+		// Check that the allocation is cpu mappable
+		if (!mMemManager.isMemoryMappable(allocatable.getAllocation())) {
+			throw std::logic_error("Trying to map on unmappable memory!!!");
+		}
+		void* mappedMem = mMemManager.mapMemory(allocatable.getAllocation());
+
+		size_t offset = 0;
+		for (uint32_t i = 0; i < numDatas; ++i) {
+			std::memcpy( reinterpret_cast<char*>(mappedMem) + offset,
+				datas[i],
+				numBytes[i]);
+			offset += numBytes[i];
+		}
+
+		mMemManager.unmapMemory(allocatable.getAllocation());
+
 	}
 
 

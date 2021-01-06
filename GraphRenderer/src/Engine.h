@@ -41,6 +41,7 @@ namespace gr
 		std::vector<vk::Fence> mImagesInFlightFences;
 
 		vkg::Buffer mVertexBuffer;
+		vkg::Buffer mIndexBuffer;
 
 		void draw();
 

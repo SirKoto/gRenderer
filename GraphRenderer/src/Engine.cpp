@@ -26,10 +26,15 @@ namespace gr
 	};
 
 	const std::vector<Vertex> vertices = {
-	 { {0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-	 { {-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-	 { {0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}}
+	{ {-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+	{ {0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+	{ {0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+	{ {-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
 	};
+	const std::vector<uint16_t> indices = {
+		0, 2, 1, 2, 0, 3
+	};
+
 
 	void Engine::init()
 	{
@@ -230,8 +235,12 @@ namespace gr
 
 			vk::DeviceSize offset = 0;
 			buff.bindVertexBuffers(0, 1, &mVertexBuffer.getVkBuffer(), &offset);
+			buff.bindIndexBuffer(mIndexBuffer.getVkBuffer(), 0, vk::IndexType::eUint16);
 
-			buff.draw(static_cast<uint32_t>(vertices.size()), 1, 0, 0); // num vert, instance, first vertex, first instance
+			buff.drawIndexed(
+				static_cast<uint32_t>(indices.size()), // index count
+				1, 0, 0, 0	// instance count, and offsets
+			);
 
 			buff.endRenderPass();
 
@@ -303,10 +312,15 @@ namespace gr
 
 	void Engine::createBuffers()
 	{
-		mVertexBuffer = mContext.createVertexBuffer(sizeof(Vertex) * vertices.size());
-		vkg::Buffer stageBuffer = mContext.createStagingBuffer(sizeof(Vertex) * vertices.size());
+		size_t VBsize = sizeof(vertices[0]) * vertices.size();
+		size_t IBsize = sizeof(indices[0]) * indices.size();
+		mVertexBuffer = mContext.createVertexBuffer(VBsize);
+		mIndexBuffer = mContext.createIndexBuffer(IBsize);
+		vkg::Buffer stageBuffer = mContext.createStagingBuffer(VBsize + IBsize);
 
-		mContext.transferDataToGPU(stageBuffer, vertices.data(), sizeof(Vertex) * vertices.size());
+		std::array<const void*, 2> datas = { vertices.data(), indices.data() };
+		std::array<size_t, 2> sizes = { VBsize, IBsize };
+		mContext.transferDataToGPU(stageBuffer, 2, datas.data(), sizes.data());
 
 		vk::CommandBuffer copyCommand = mContext.getTransferTransientCommandPool().createCommandBuffer();
 
@@ -314,9 +328,14 @@ namespace gr
 
 		vk::BufferCopy buffercopy(
 			0, 0, // src and dst offsets
-			sizeof(Vertex) * vertices.size() // bytes to copy
+			VBsize // bytes to copy
 		);
 		copyCommand.copyBuffer(stageBuffer.getVkBuffer(), mVertexBuffer.getVkBuffer(), 1, &buffercopy);
+		buffercopy = vk::BufferCopy(
+			VBsize, 0, // src and dst offsets
+			IBsize // bytes to copy
+		);
+		copyCommand.copyBuffer(stageBuffer.getVkBuffer(), mIndexBuffer.getVkBuffer(), 1, &buffercopy);
 
 		copyCommand.end();
 
@@ -341,6 +360,7 @@ namespace gr
 		
 		// Destroy Buffers
 		mContext.safeDestroyBuffer(mVertexBuffer);
+		mContext.safeDestroyBuffer(mIndexBuffer);
 
 		mContext.getDevice().destroyPipelineLayout(mPipLayout);
 

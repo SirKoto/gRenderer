@@ -106,12 +106,15 @@ void Context::createDevice(bool enableAnisotropySampler,
 	Buffer Context::createVertexBuffer(size_t sizeInBytes)
 	{
 
+		std::array<const uint32_t, 2> sharedR = { getGraphicsFamilyIdx(), getTransferFamilyIdx() };
 		vk::BufferCreateInfo createInfo(
 			vk::BufferCreateFlagBits(),	// flags
 			sizeInBytes,				// size of buffer
 			vk::BufferUsageFlagBits::eVertexBuffer | 
 				vk::BufferUsageFlagBits::eTransferDst,
-			vk::SharingMode::eExclusive
+			vk::SharingMode::eConcurrent, // To use with graphics and transfer queue
+			static_cast<uint32_t>(sharedR.size()),
+			sharedR.data()
 		);
 
 		vk::Buffer buffer;
@@ -129,11 +132,14 @@ void Context::createDevice(bool enableAnisotropySampler,
 
 	Buffer Context::createStagingBuffer(size_t sizeInBytes)
 	{
+		std::array<const uint32_t, 2> sharedR = { getGraphicsFamilyIdx(), getTransferFamilyIdx() };
 		vk::BufferCreateInfo createInfo(
 			vk::BufferCreateFlagBits(),	// flags
 			sizeInBytes,				// size of buffer
 			vk::BufferUsageFlagBits::eTransferSrc,
-			vk::SharingMode::eExclusive
+			vk::SharingMode::eConcurrent, // To use with graphics and transfer queue
+			static_cast<uint32_t>(sharedR.size()),
+			sharedR.data()
 		);
 
 		vk::Buffer buffer;
@@ -265,6 +271,15 @@ void Context::createDevice(bool enableAnisotropySampler,
 			mPresentCommandPool = CommandPool(getPresentFamilyIdx(), {}, getDevice());
 		}
 
+		if (getGraphicsFamilyIdx() == getTransferFamilyIdx()) {
+			throw std::runtime_error("Graphics family is the same as the transfer family!!");
+		}
+
+		mTransferTransientCommandPool = CommandPool(
+			getTransferFamilyIdx(),
+			vk::CommandPoolCreateFlagBits::eTransient,
+			getDevice());
+
 	}
 
 	void Context::destroyCommandPools()
@@ -276,6 +291,8 @@ void Context::createDevice(bool enableAnisotropySampler,
 		if (alreadyDestroyed.count(mPresentCommandPool.get()) == 0) {
 			mPresentCommandPool.destroy();
 		}
+
+		mTransferTransientCommandPool.destroy();
 
 	}
 
@@ -463,12 +480,26 @@ void Context::createDevice(bool enableAnisotropySampler,
 			}
 		}
 
+		// Try to assign unique compute queue
+		for (uint32_t i = 0; i < static_cast<uint32_t>(families.size()); ++i) {
+			vk::QueueFamilyProperties& family = families[i];
+
+			if (family.queueFlags & vk::QueueFlagBits::eCompute &&
+				i != indices.graphicsFamily.value() &&
+				i != indices.presentFamily.value()) {
+				indices.computeFamily = i;
+				break;
+			}
+		}
 		// Try to assign a unique transfer queue
 		for (uint32_t i = 0; i < static_cast<uint32_t>(families.size()); ++i) {
 			vk::QueueFamilyProperties& family = families[i];
 
-			if (family.queueFlags == vk::QueueFlagBits::eTransfer) {
+			if (family.queueFlags & vk::QueueFlagBits::eTransfer &&
+				i != indices.computeFamily.value() &&
+				!(family.queueFlags & vk::QueueFlagBits::eGraphics)) {
 				indices.transferFamily = i;
+				break;
 			}
 		}
 

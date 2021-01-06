@@ -101,7 +101,7 @@ namespace gr
 		res = mContext.getDevice().waitForFences(1, mInFlightFences.data() + mCurrentFrame, true, UINT64_MAX);
 		assert(res == vk::Result::eSuccess);
 
-		const vkg::CommandPool* cmdPool = mContext.getGraphicsCommandPool();
+		const vkg::CommandPool& cmdPool = mContext.getGraphicsCommandPool();
 
 		uint32_t imageIdx;
 		bool outOfDateSwapChain = !mSwapChain.acquireNextImageBlock(
@@ -122,7 +122,7 @@ namespace gr
 
 		mContext.getDevice().resetFences(1, mInFlightFences.data() + mCurrentFrame);
 
-		cmdPool->submitCommandBuffer(
+		cmdPool.submitCommandBuffer(
 			mGraphicCommandBuffers[imageIdx],
 			&mImageAvailableSemaphores[mCurrentFrame],
 			vk::PipelineStageFlagBits::eColorAttachmentOutput,
@@ -130,7 +130,7 @@ namespace gr
 			mInFlightFences[mCurrentFrame]);
 
 		bool swapChainNeedsRecreation = 
-			!mContext.getPresentCommandPool()->submitPresentationImage(
+			!mContext.getPresentCommandPool().submitPresentationImage(
 				mSwapChain.getVkSwapChain(),
 				imageIdx,
 				&mRenderingFinishedSemaphores[mCurrentFrame]
@@ -200,9 +200,9 @@ namespace gr
 
 	void Engine::createAndRecordGraphicCommandBuffers()
 	{
-		const vkg::CommandPool* cmdPool = mContext.getGraphicsCommandPool();
+		const vkg::CommandPool& cmdPool = mContext.getGraphicsCommandPool();
 
-		mGraphicCommandBuffers = cmdPool->createCommandBuffers(mSwapChain.getNumImages());
+		mGraphicCommandBuffers = cmdPool.createCommandBuffers(mSwapChain.getNumImages());
 
 
 		const uint32_t graphicsQueueFamilyIdx = mContext.getGraphicsFamilyIdx();
@@ -308,17 +308,20 @@ namespace gr
 
 		mContext.transferDataToGPU(stageBuffer, vertices.data(), sizeof(Vertex) * vertices.size());
 
-		vk::CommandBuffer copyCommand = mContext.getGraphicsCommandPool()->createCommandBuffer();
+		vk::CommandBuffer copyCommand = mContext.getTransferTransientCommandPool().createCommandBuffer();
 
 		copyCommand.begin({ vk::CommandBufferUsageFlagBits::eOneTimeSubmit });
 
-		vk::BufferCopy buffercopy(0, 0, sizeof(Vertex) * vertices.size());
+		vk::BufferCopy buffercopy(
+			0, 0, // src and dst offsets
+			sizeof(Vertex) * vertices.size() // bytes to copy
+		);
 		copyCommand.copyBuffer(stageBuffer.getVkBuffer(), mVertexBuffer.getVkBuffer(), 1, &buffercopy);
 
 		copyCommand.end();
 
 		vk::Fence fence = mContext.createFence(false);
-		mContext.getGraphicsCommandPool()->submitCommandBuffer(copyCommand, nullptr, {}, nullptr, fence);
+		mContext.getTransferTransientCommandPool().submitCommandBuffer(copyCommand, nullptr, {}, nullptr, fence);
 		vk::Result res = mContext.getDevice().waitForFences(1, &fence, true, UINT64_MAX);
 		assert(res == vk::Result::eSuccess);
 		mContext.destroy(fence);

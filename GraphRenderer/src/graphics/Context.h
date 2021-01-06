@@ -60,8 +60,9 @@ namespace vkg
 
 		void waitIdle() const;
 
-		const CommandPool* getGraphicsCommandPool() const { return &mGraphicsCommandPool; }
-		const CommandPool* getPresentCommandPool() const { return &mPresentCommandPool; }
+		const CommandPool& getGraphicsCommandPool() const { return mGraphicsCommandPool; }
+		const CommandPool& getPresentCommandPool() const { return mPresentCommandPool; }
+		const CommandPool& getTransferTransientCommandPool() const { return mTransferTransientCommandPool; }
 
 		vk::Queue getGraphicsQueue() const { return mGraphicsQueue; }
 		vk::Queue getComputeQueue() const { return mComputeQueue; }
@@ -103,6 +104,7 @@ namespace vkg
 
 		CommandPool mGraphicsCommandPool;
 		CommandPool mPresentCommandPool;
+		CommandPool mTransferTransientCommandPool;
 
 
 		uint32_t mGraphicsFamilyIdx, mComputeFamilyIdx, mTransferFamilyIdx, mPresentFamilyIdx;

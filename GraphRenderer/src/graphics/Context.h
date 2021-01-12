@@ -48,6 +48,7 @@ namespace vkg
 		Buffer createVertexBuffer(size_t sizeInBytes) const;
 		Buffer createIndexBuffer(size_t sizeInBytes) const;
 		Buffer createStagingBuffer(size_t sizeInBytes) const;
+		Buffer createUniformBuffer(size_t sizeInBytes) const;
 
 		void safeDestroyBuffer(Buffer& buffer);
 

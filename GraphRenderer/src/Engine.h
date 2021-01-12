@@ -4,6 +4,7 @@
 #include "graphics/present/SwapChain.h"
 #include "graphics/Window.h"
 #include "graphics/render/RenderPass.h"
+#include "graphics/resources/DescriptorManager.h"
 
 namespace gr
 {
@@ -42,8 +43,15 @@ namespace gr
 
 		vkg::Buffer mVertexBuffer;
 		vkg::Buffer mIndexBuffer;
+		std::vector<vkg::Buffer> mUbos;
+
+		vkg::DescriptorManager mDescriptorManager;
+		vk::DescriptorSetLayout mDescriptorSetLayout;
+		std::vector<vk::DescriptorSet> mDescriptorSets;
 
 		void draw();
+
+		void updateUBO(uint32_t currentImage);
 
 		void createRenderPass();
 		void recreateSwapChain();
@@ -52,13 +60,18 @@ namespace gr
 
 		void createShaderModules();
 
+		void createDescriptorSetLayout();
+		void createDescriptorSets();
+
 		void createPipelineLayout();
 
 		void createGraphicsPipeline();
 
 		void createSyncObjects();
 
+
 		void createBuffers();
+		void createUniformBuffers();
 
 		void cleanup();
 		void cleanupSwapChainDependantObjs();

@@ -170,6 +170,7 @@
     <ClCompile Include="src\graphics\render\RenderPass.cpp" />
     <ClCompile Include="src\graphics\render\RenderPassBuilder.cpp" />
     <ClCompile Include="src\graphics\resources\Buffer.cpp" />
+    <ClCompile Include="src\graphics\resources\DescriptorManager.cpp" />
     <ClCompile Include="src\graphics\resources\Image.cpp" />
     <ClCompile Include="src\graphics\resources\Image2D.cpp" />
     <ClCompile Include="src\graphics\shaders\VertexInputDescription.cpp" />
@@ -205,6 +206,7 @@
     <ClInclude Include="src\graphics\render\RenderPassBuilder.h" />
     <ClInclude Include="src\graphics\resources\Allocatable.h" />
     <ClInclude Include="src\graphics\resources\Buffer.h" />
+    <ClInclude Include="src\graphics\resources\DescriptorManager.h" />
     <ClInclude Include="src\graphics\resources\Image.h" />
     <ClInclude Include="src\graphics\resources\Image2D.h" />
     <ClInclude Include="src\graphics\shaders\VertexInputDescription.h" />

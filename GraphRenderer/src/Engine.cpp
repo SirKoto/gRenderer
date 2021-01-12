@@ -1,5 +1,7 @@
 #include "Engine.h"
 
+#define GLM_FORCE_RADIANS
+
 #ifdef _WIN32 // TO avoid APIENTRY redefinition warning
 #include <Windows.h>
 #endif
@@ -16,6 +18,8 @@
 #include "utils/grjob.h"
 
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <chrono>
 
 namespace gr
 {
@@ -32,7 +36,11 @@ namespace gr
 	{ {-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
 	};
 	const std::vector<uint16_t> indices = {
-		0, 2, 1, 2, 0, 3
+		0, 1, 2, 2, 3, 0
+	};
+
+	struct UBO {
+		glm::mat4 M, V, P;
 	};
 
 
@@ -69,8 +77,13 @@ namespace gr
 		createRenderPass();
 		mPresentFramebuffers = mSwapChain.createFramebuffersOfSwapImages(mRenderPass);
 
+		mDescriptorManager.initialize(mContext);
+
 		createShaderModules();
 		createBuffers();
+		createUniformBuffers();
+		createDescriptorSetLayout();
+		createDescriptorSets();
 		createPipelineLayout();
 		createGraphicsPipeline();
 
@@ -127,6 +140,8 @@ namespace gr
 
 		mContext.getDevice().resetFences(1, mInFlightFences.data() + mCurrentFrame);
 
+		updateUBO(imageIdx);
+
 		cmdPool.submitCommandBuffer(
 			mGraphicCommandBuffers[imageIdx],
 			&mImageAvailableSemaphores[mCurrentFrame],
@@ -144,6 +159,24 @@ namespace gr
 		if (swapChainNeedsRecreation) {
 			recreateSwapChain();
 		}
+	}
+
+	void Engine::updateUBO(uint32_t currentImage)
+	{
+		static auto start = std::chrono::high_resolution_clock::now();
+		auto now = std::chrono::high_resolution_clock::now();
+		float time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
+		UBO ubo;
+		ubo.M = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f),
+			glm::vec3(0.0f, 0.0f, 1.0f));
+		ubo.V = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f,
+			0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+		ubo.P = glm::perspective(glm::radians(45.0f),
+			mSwapChain.getExtent().width / static_cast<float>(mSwapChain.getExtent().height),
+			0.1f, 10.0f);
+		ubo.P[1][1] *= -1.0;
+
+		mContext.transferDataToGPU(mUbos[currentImage], &ubo, sizeof(ubo));
 	}
 
 	void Engine::createRenderPass()
@@ -199,6 +232,8 @@ namespace gr
 
 		mPresentFramebuffers = mSwapChain.createFramebuffersOfSwapImages(mRenderPass);
 
+		createUniformBuffers();
+		createDescriptorSets();
 		createGraphicsPipeline();
 		createAndRecordGraphicCommandBuffers();
 	}
@@ -237,6 +272,13 @@ namespace gr
 			buff.bindVertexBuffers(0, 1, &mVertexBuffer.getVkBuffer(), &offset);
 			buff.bindIndexBuffer(mIndexBuffer.getVkBuffer(), 0, vk::IndexType::eUint16);
 
+			buff.bindDescriptorSets(
+				vk::PipelineBindPoint::eGraphics,
+				mPipLayout,
+				0, 1, &mDescriptorSets[i],	// first set, descriptors sets
+				0, nullptr					// dynamic offsets
+			);
+
 			buff.drawIndexed(
 				static_cast<uint32_t>(indices.size()), // index count
 				1, 0, 0, 0	// instance count, and offsets
@@ -253,7 +295,7 @@ namespace gr
 	{
 		{
 			grjob::Job jobs[2];
-			jobs[0] = grjob::Job(&vkg::Context::createShaderModule, &mContext, "resources/shaders/SPIR-V/inputPC.vert.spv", mShaderModules + 0);
+			jobs[0] = grjob::Job(&vkg::Context::createShaderModule, &mContext, "resources/shaders/SPIR-V/ubo.vert.spv", mShaderModules + 0);
 			jobs[1] = grjob::Job(&vkg::Context::createShaderModule, &mContext, "resources/shaders/SPIR-V/inC.frag.spv", mShaderModules + 1);
 			grjob::Counter* c = nullptr;
 
@@ -263,11 +305,66 @@ namespace gr
 		}
 	}
 
+	void Engine::createDescriptorSetLayout()
+	{
+		vk::DescriptorSetLayoutBinding binding(
+			0u, // binding
+			vk::DescriptorType::eUniformBuffer,
+			1,		// number of elements in the ubo (array)
+			vk::ShaderStageFlagBits::eVertex,
+			nullptr
+		);
+
+		vk::DescriptorSetLayoutCreateInfo createInfo(
+			{}, // flags
+			1,	// number of bindings
+			&binding
+		);
+
+		mDescriptorSetLayout = mContext.getDevice().createDescriptorSetLayout(createInfo);
+
+	}
+
+	void Engine::createDescriptorSets()
+	{
+		mDescriptorSets.resize(mSwapChain.getNumImages());
+
+		mDescriptorManager.allocateDescriptorSets(
+			mContext,
+			mSwapChain.getNumImages(),
+			mDescriptorSetLayout,
+			mDescriptorSets.data()
+		);
+
+		for (uint32_t i = 0; i < mSwapChain.getNumImages(); ++i) {
+			vk::DescriptorBufferInfo buffInfo(
+				mUbos[i].getVkBuffer(), // buffer
+				0, sizeof(UBO) // offset and range
+			);
+
+			vk::WriteDescriptorSet writeDesc(
+				mDescriptorSets[i],
+				0,	// dst binding
+				0,  // dst array element 
+				1,	// descriptor count
+				vk::DescriptorType::eUniformBuffer,
+				nullptr, // descriptor image,
+				&buffInfo,// descriptor buffer
+				nullptr // texel buffer view
+			);
+
+			mContext.getDevice().updateDescriptorSets(
+				1, &writeDesc,	// write descriptions
+				0, nullptr		// copy descriptions
+			);
+		}
+	}
+
 	void Engine::createPipelineLayout()
 	{
 		vk::PipelineLayoutCreateInfo createInfo(
 			{}, // flags
-			0, nullptr, // set layouts
+			1, &mDescriptorSetLayout, // set layouts
 			0, nullptr // push constants
 		);
 
@@ -347,6 +444,15 @@ namespace gr
 		mContext.safeDestroyBuffer(stageBuffer);
 	}
 
+	void Engine::createUniformBuffers()
+	{
+		// Create uniform buffer objects
+		mUbos.resize(mSwapChain.getNumImages());
+		for (uint32_t i = 0; i < mSwapChain.getNumImages(); ++i) {
+			mUbos[i] = mContext.createUniformBuffer(sizeof(UBO));
+		}
+	}
+
 	void Engine::cleanup()
 	{
 		// destroy sync objects
@@ -361,11 +467,17 @@ namespace gr
 		// Destroy Buffers
 		mContext.safeDestroyBuffer(mVertexBuffer);
 		mContext.safeDestroyBuffer(mIndexBuffer);
+		
+
+		// layout
+		mContext.getDevice().destroyDescriptorSetLayout(mDescriptorSetLayout);
 
 		mContext.getDevice().destroyPipelineLayout(mPipLayout);
 
 		mContext.destroy(mShaderModules[0]);
 		mContext.destroy(mShaderModules[1]);
+
+		mDescriptorManager.destroy(mContext);
 	}
 
 	void Engine::cleanupSwapChainDependantObjs()
@@ -374,6 +486,14 @@ namespace gr
 			mContext.destroy(frambuffer);
 		}
 
+		for (vkg::Buffer& b : mUbos) {
+			mContext.safeDestroyBuffer(b);
+		}
+
+		// free descriptor sets
+		for (vk::DescriptorSet set : mDescriptorSets) {
+			mDescriptorManager.freeDescriptorSet(set, mDescriptorSetLayout);
+		}
 
 		mContext.getDevice().destroyPipeline(mGraphicsPipeline);
 		mContext.destroy(mRenderPass);

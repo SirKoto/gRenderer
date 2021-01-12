@@ -180,6 +180,32 @@ void Context::createDevice(bool enableAnisotropySampler,
 		return Buffer(buffer, alloc);
 	}
 
+	Buffer Context::createUniformBuffer(size_t sizeInBytes) const
+	{
+		std::array<const uint32_t, 2> sharedR = { getGraphicsFamilyIdx(), getTransferFamilyIdx() };
+		vk::BufferCreateInfo createInfo(
+			vk::BufferCreateFlagBits(),	// flags
+			sizeInBytes,				// size of buffer
+			vk::BufferUsageFlagBits::eUniformBuffer |
+			vk::BufferUsageFlagBits::eTransferDst,
+			vk::SharingMode::eConcurrent, // To use with graphics and transfer queue
+			static_cast<uint32_t>(sharedR.size()),
+			sharedR.data()
+		);
+
+		vk::Buffer buffer;
+		VmaAllocation alloc;
+
+		mMemManager.createBufferAllocation(createInfo,
+			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+			&buffer,
+			&alloc);
+
+
+		return Buffer(buffer, alloc);
+	}
+
 
 	void Context::safeDestroyBuffer(Buffer& buffer)
 	{

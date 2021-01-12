@@ -135,6 +135,9 @@
     <ClCompile Include="src\graphics\resources\Buffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\graphics\resources\DescriptorManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engine.h">
@@ -238,6 +241,9 @@
     </ClInclude>
     <ClInclude Include="src\graphics\resources\Buffer.h">
       <Filter>Header Files\vkg\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\resources\DescriptorManager.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

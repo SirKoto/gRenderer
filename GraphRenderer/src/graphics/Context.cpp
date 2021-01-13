@@ -29,17 +29,15 @@ void Context::createDevice(bool enableAnisotropySampler,
 }
 
 
-	Image2D Context::createDeviceImage2D(
+	Image2D Context::createTexture2D(
 		const vk::Extent2D& extent,
 		uint32_t mipLevels,
 		vk::SampleCountFlagBits numSamples,
 		vk::Format format,
-		vk::ImageTiling tiling,
-		vk::ImageUsageFlags usage,
 		vk::ImageAspectFlags imageAspect)
 	{
 
-		// Explicit sharing mode
+
 		vk::ImageCreateInfo createInfo(
 			{},							// flags
 			vk::ImageType::e2D,			// Image Type
@@ -48,8 +46,13 @@ void Context::createDevice(bool enableAnisotropySampler,
 			mipLevels,					// Mip levels
 			1,							// Array layers
 			numSamples,					// SampleCount
-			tiling,						// Image Tiling
-			usage);						// Image usage
+			vk::ImageTiling::eOptimal,	// Image Tiling
+			vk::ImageUsageFlagBits::eTransferDst |
+			vk::ImageUsageFlagBits::eSampled,	// Image usage
+			vk::SharingMode::eExclusive,
+			0, nullptr, // concurrent families
+			vk::ImageLayout::eUndefined	// initial layout
+		);						
 
 		vk::Image image;
 		VmaAllocation alloc;
@@ -87,7 +90,7 @@ void Context::createDevice(bool enableAnisotropySampler,
 		return r_image;
 	}
 
-	void Context::safeDestroyImage(Image2D& image)
+	void Context::safeDestroyImage(Image& image)
 	{
 		if (image.getAllocation() != nullptr) {
 			mMemManager.freeAllocation(image.getAllocation());
@@ -103,17 +106,30 @@ void Context::createDevice(bool enableAnisotropySampler,
 		}
 	}
 
+	vk::Sampler Context::createSampler(vk::SamplerAddressMode addressMode) const
+	{
+		vk::SamplerCreateInfo createInfo(
+			vk::SamplerCreateFlags{},					// flags
+			vk::Filter::eLinear, vk::Filter::eLinear,   // mag&min filter
+			vk::SamplerMipmapMode::eNearest,			// mip map
+			addressMode, addressMode, addressMode,		// address mode uvw
+			0,											// mip bias
+			true, 16									// anisotropy
+			// ... compare ops
+		);
+
+		return mDevice.createSampler(createInfo);
+	}
+
 	Buffer Context::createIndexBuffer(size_t sizeInBytes) const
 	{
-		std::array<const uint32_t, 2> sharedR = { getGraphicsFamilyIdx(), getTransferFamilyIdx() };
 		vk::BufferCreateInfo createInfo(
 			vk::BufferCreateFlagBits(),	// flags
 			sizeInBytes,				// size of buffer
 			vk::BufferUsageFlagBits::eIndexBuffer |
 			vk::BufferUsageFlagBits::eTransferDst,
-			vk::SharingMode::eConcurrent, // To use with graphics and transfer queue
-			static_cast<uint32_t>(sharedR.size()),
-			sharedR.data()
+			vk::SharingMode::eExclusive, // To use with graphics and transfer queue
+			0, nullptr
 		);
 
 		vk::Buffer buffer;
@@ -131,15 +147,13 @@ void Context::createDevice(bool enableAnisotropySampler,
 
 	Buffer Context::createVertexBuffer(size_t sizeInBytes) const
 	{
-		std::array<const uint32_t, 2> sharedR = { getGraphicsFamilyIdx(), getTransferFamilyIdx() };
 		vk::BufferCreateInfo createInfo(
 			vk::BufferCreateFlagBits(),	// flags
 			sizeInBytes,				// size of buffer
 			vk::BufferUsageFlagBits::eVertexBuffer | 
 				vk::BufferUsageFlagBits::eTransferDst,
-			vk::SharingMode::eConcurrent, // To use with graphics and transfer queue
-			static_cast<uint32_t>(sharedR.size()),
-			sharedR.data()
+			vk::SharingMode::eExclusive,
+			0, nullptr
 		);
 
 		vk::Buffer buffer;
@@ -157,14 +171,12 @@ void Context::createDevice(bool enableAnisotropySampler,
 
 	Buffer Context::createStagingBuffer(size_t sizeInBytes) const
 	{
-		std::array<const uint32_t, 2> sharedR = { getGraphicsFamilyIdx(), getTransferFamilyIdx() };
 		vk::BufferCreateInfo createInfo(
 			vk::BufferCreateFlagBits(),	// flags
 			sizeInBytes,				// size of buffer
 			vk::BufferUsageFlagBits::eTransferSrc,
-			vk::SharingMode::eConcurrent, // To use with graphics and transfer queue
-			static_cast<uint32_t>(sharedR.size()),
-			sharedR.data()
+			vk::SharingMode::eExclusive, // To use with graphics and transfer queue
+			0, nullptr					// family sharing
 		);
 
 		vk::Buffer buffer;
@@ -277,6 +289,11 @@ void Context::createDevice(bool enableAnisotropySampler,
 	void Context::destroy(vk::Fence fence) const
 	{
 		getDevice().destroyFence(fence);
+	}
+
+	void Context::destroy(vk::Sampler sampler) const
+	{
+		mDevice.destroySampler(sampler);
 	}
 
 	void Context::waitIdle() const

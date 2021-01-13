@@ -19,14 +19,19 @@ void DescriptorManager::initialize(const Context& context)
 		destroy(context);
 	}
 
-	vk::DescriptorPoolSize poolSize(
-		vk::DescriptorType::eUniformBuffer,
-		MAX_SIZE_RESOURCE);
+	typedef vk::DescriptorPoolSize DPS;
+	std::array< DPS, 2> poolSizes =
+	{
+		DPS{vk::DescriptorType::eUniformBuffer, MAX_SIZE_RESOURCE},
+		DPS{vk::DescriptorType::eCombinedImageSampler, MAX_SIZE_RESOURCE}
+	};
+
+	
 
 	vk::DescriptorPoolCreateInfo createInfo(
 		{},
-		MAX_SIZE_RESOURCE, // max sets
-		1, &poolSize
+		2 * MAX_SIZE_RESOURCE, // max sets
+		poolSizes
 	);
 
 	mDescriptorPool = context.getDevice().createDescriptorPool(createInfo);

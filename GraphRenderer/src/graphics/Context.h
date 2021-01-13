@@ -35,15 +35,15 @@ namespace vkg
 		explicit operator vk::PhysicalDevice() const { return mPhysicalDevice; }
 		explicit operator vk::Device() const { return mDevice; }
 
-		Image2D createDeviceImage2D(const vk::Extent2D& extent,
+		Image2D createTexture2D(const vk::Extent2D& extent,
 			uint32_t mipLevels,
 			vk::SampleCountFlagBits numSamples,
 			vk::Format format,
-			vk::ImageTiling tiling,
-			vk::ImageUsageFlags usage,
 			vk::ImageAspectFlags ImageAspect = vk::ImageAspectFlagBits::eColor);
 
-		void safeDestroyImage(Image2D& image);
+		void safeDestroyImage(Image& image);
+
+		vk::Sampler createSampler(vk::SamplerAddressMode addressMode) const;
 
 		Buffer createVertexBuffer(size_t sizeInBytes) const;
 		Buffer createIndexBuffer(size_t sizeInBytes) const;
@@ -92,6 +92,8 @@ namespace vkg
 		void destroy(vk::Semaphore semaphore) const;
 
 		void destroy(vk::Fence fence) const;
+
+		void destroy(vk::Sampler sampler) const;
 
 		void destroy();
 

@@ -19,7 +19,9 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <stb_image/stb_image.h>
 #include <chrono>
+
 
 namespace gr
 {
@@ -27,13 +29,14 @@ namespace gr
 	struct Vertex {
 		glm::vec2 pos;
 		glm::vec3 color;
+		glm::vec2 texCoord;
 	};
 
 	const std::vector<Vertex> vertices = {
-	{ {-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-	{ {0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-	{ {0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-	{ {-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
+	{ {-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f} },
+	{ {0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
+	{ {0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
+	{ {-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}}
 	};
 	const std::vector<uint16_t> indices = {
 		0, 1, 2, 2, 3, 0
@@ -66,13 +69,6 @@ namespace gr
 
 		createSyncObjects();
 
-		Image2D image = mContext.createDeviceImage2D({ 800,600 },
-			1,
-			vk::SampleCountFlagBits::e1,
-			vk::Format::eR8G8B8A8Unorm,
-			vk::ImageTiling::eOptimal,
-			vk::ImageUsageFlagBits::eSampled);
-
 		
 		createRenderPass();
 		mPresentFramebuffers = mSwapChain.createFramebuffersOfSwapImages(mRenderPass);
@@ -82,6 +78,7 @@ namespace gr
 		createShaderModules();
 		createBuffers();
 		createUniformBuffers();
+		createTextureImage();
 		createDescriptorSetLayout();
 		createDescriptorSets();
 		createPipelineLayout();
@@ -100,7 +97,6 @@ namespace gr
 
 		mContext.waitIdle();
 
-		mContext.safeDestroyImage(image);
 
 		cleanup();
 
@@ -295,8 +291,8 @@ namespace gr
 	{
 		{
 			grjob::Job jobs[2];
-			jobs[0] = grjob::Job(&vkg::Context::createShaderModule, &mContext, "resources/shaders/SPIR-V/ubo.vert.spv", mShaderModules + 0);
-			jobs[1] = grjob::Job(&vkg::Context::createShaderModule, &mContext, "resources/shaders/SPIR-V/inC.frag.spv", mShaderModules + 1);
+			jobs[0] = grjob::Job(&vkg::Context::createShaderModule, &mContext, "resources/shaders/SPIR-V/sampler.vert.spv", mShaderModules + 0);
+			jobs[1] = grjob::Job(&vkg::Context::createShaderModule, &mContext, "resources/shaders/SPIR-V/sampler.frag.spv", mShaderModules + 1);
 			grjob::Counter* c = nullptr;
 
 			grjob::runJobBatch(gr::grjob::Priority::eMid, jobs, 2, &c);
@@ -307,18 +303,25 @@ namespace gr
 
 	void Engine::createDescriptorSetLayout()
 	{
-		vk::DescriptorSetLayoutBinding binding(
+		std::array< vk::DescriptorSetLayoutBinding, 2> bindings;
+		bindings[0] = vk::DescriptorSetLayoutBinding(
 			0u, // binding
 			vk::DescriptorType::eUniformBuffer,
 			1,		// number of elements in the ubo (array)
 			vk::ShaderStageFlagBits::eVertex,
 			nullptr
 		);
+		bindings[1] = vk::DescriptorSetLayoutBinding(
+			1u, // binding
+			vk::DescriptorType::eCombinedImageSampler,
+			1,		// descriptor count
+			vk::ShaderStageFlagBits::eFragment,
+			nullptr
+		);
 
 		vk::DescriptorSetLayoutCreateInfo createInfo(
 			{}, // flags
-			1,	// number of bindings
-			&binding
+			bindings
 		);
 
 		mDescriptorSetLayout = mContext.getDevice().createDescriptorSetLayout(createInfo);
@@ -342,19 +345,38 @@ namespace gr
 				0, sizeof(UBO) // offset and range
 			);
 
-			vk::WriteDescriptorSet writeDesc(
+			vk::DescriptorImageInfo imgInfo(
+				mTexSampler,
+				mTexture.getVkImageview(),
+				vk::ImageLayout::eShaderReadOnlyOptimal
+			);
+
+			std::array< vk::WriteDescriptorSet, 2> writeDesc;
+
+			writeDesc[0] = vk::WriteDescriptorSet(
 				mDescriptorSets[i],
 				0,	// dst binding
-				0,  // dst array element 
+				0,  // dst array element
 				1,	// descriptor count
 				vk::DescriptorType::eUniformBuffer,
 				nullptr, // descriptor image,
 				&buffInfo,// descriptor buffer
 				nullptr // texel buffer view
 			);
+			writeDesc[1] = vk::WriteDescriptorSet(
+				mDescriptorSets[i],
+				1,	// dst binding
+				0,  // dst array element
+				1,	// descriptor count
+				vk::DescriptorType::eCombinedImageSampler,
+				&imgInfo, // descriptor image,
+				nullptr,// descriptor buffer
+				nullptr // texel buffer view
+			);
 
 			mContext.getDevice().updateDescriptorSets(
-				1, &writeDesc,	// write descriptions
+				static_cast<uint32_t>(writeDesc.size()),
+					writeDesc.data(),	// write descriptions
 				0, nullptr		// copy descriptions
 			);
 		}
@@ -380,7 +402,8 @@ namespace gr
 			vkg::VertexInputDescription vid;
 			vid.addBinding(0, sizeof(Vertex))
 				.addAttribute(0, 2, offsetof(Vertex, Vertex::pos))
-				.addAttribute(1, 3, offsetof(Vertex, Vertex::color));
+				.addAttribute(1, 3, offsetof(Vertex, Vertex::color))
+				.addAttribute(2, 2, offsetof(Vertex, Vertex::texCoord));
 
 			assert(vid.getBindingDescription().size() == 1);
 			builder.setVertexBindingDescriptions( vid.getBindingDescription() );
@@ -442,6 +465,8 @@ namespace gr
 		assert(res == vk::Result::eSuccess);
 		mContext.destroy(fence);
 		mContext.safeDestroyBuffer(stageBuffer);
+		mContext.getTransferTransientCommandPool().free(&copyCommand, 1);
+
 	}
 
 	void Engine::createUniformBuffers()
@@ -451,6 +476,124 @@ namespace gr
 		for (uint32_t i = 0; i < mSwapChain.getNumImages(); ++i) {
 			mUbos[i] = mContext.createUniformBuffer(sizeof(UBO));
 		}
+	}
+
+	void Engine::createTextureImage()
+	{
+		int32_t width, height, chann;
+		stbi_uc* pix = stbi_load(
+			"resources/textures/A.png",
+			&width, &height, &chann, STBI_rgb_alpha);
+
+		vk::DeviceSize imSize = 4 * width * height;
+
+		if (!pix) {
+			throw std::runtime_error("Error: Image can't be loaded!!");
+		}
+
+		// Transfer to GPU
+		vkg::Buffer staging = mContext.createStagingBuffer(imSize);
+		mContext.transferDataToGPU(staging, pix, imSize);
+
+		stbi_image_free(pix);
+
+		mTexture = mContext.createTexture2D(
+			{ static_cast<vk::DeviceSize>(width),
+				static_cast<vk::DeviceSize>(height)}, // extent
+			1, vk::SampleCountFlagBits::e1, // mip levels and samples
+			vk::Format::eR8G8B8A8Srgb,
+			vk::ImageAspectFlagBits::eColor
+		);
+
+		vk::CommandBuffer cmd = mContext.getTransferTransientCommandPool().createCommandBuffer();
+
+		cmd.begin({ vk::CommandBufferUsageFlagBits::eOneTimeSubmit });
+
+		// First transition image to dstOptimal
+		vk::ImageMemoryBarrier barrier(
+			vk::AccessFlags{}, // src AccessMask
+			vk::AccessFlagBits::eTransferWrite, // dst AccessMask
+			vk::ImageLayout::eUndefined,// old layout
+			vk::ImageLayout::eTransferDstOptimal,// new layout
+			VK_QUEUE_FAMILY_IGNORED,	// src queue family
+			VK_QUEUE_FAMILY_IGNORED,	// dst queue family
+			mTexture.getVkImage(),	// image
+			vk::ImageSubresourceRange( // range
+				vk::ImageAspectFlagBits::eColor,
+				0, 1, 0, 1 // base mip, level count, base array, layer count
+			)
+		);
+
+		cmd.pipelineBarrier(
+			vk::PipelineStageFlagBits::eTopOfPipe, // src stage mask
+			vk::PipelineStageFlagBits::eTransfer, // dst stage mask
+			vk::DependencyFlagBits{},
+			0, nullptr, 0, nullptr, // buffer and memory barrier
+			1, &barrier				// image memory barrier
+		);
+
+		// Copy into image
+
+		vk::BufferImageCopy regionInfo(
+			0, 0u, 0u,	// offset, row length, image height
+			vk::ImageSubresourceLayers(
+				vk::ImageAspectFlagBits::eColor,
+				0, 0, 1 // mip level, base array, layer count
+			),		// subresource range
+			vk::Offset3D(0),
+			vk::Extent3D{ mTexture.getExtent(), 1 }
+		);
+
+		cmd.copyBufferToImage(
+			staging.getVkBuffer(), mTexture.getVkImage(),	// src and dst buffer / image
+			vk::ImageLayout::eTransferDstOptimal,			// dst image layout
+			1, &regionInfo									// regions
+		);
+
+		// Transition into shader access
+		barrier.setSrcAccessMask(vk::AccessFlagBits::eTransferWrite);
+		barrier.setDstAccessMask(vk::AccessFlagBits::eShaderRead);
+		barrier.setOldLayout(vk::ImageLayout::eTransferDstOptimal);
+		barrier.setNewLayout(vk::ImageLayout::eShaderReadOnlyOptimal);
+		barrier.setSrcQueueFamilyIndex(mContext.getTransferFamilyIdx());
+		barrier.setDstQueueFamilyIndex(mContext.getGraphicsFamilyIdx());
+
+		cmd.pipelineBarrier(
+			vk::PipelineStageFlagBits::eTransfer, // src stage mask
+			vk::PipelineStageFlagBits::eFragmentShader, // dst stage mask
+			vk::DependencyFlagBits{},
+			0, nullptr, 0, nullptr, // buffer and memory barrier
+			1, &barrier				// image memory barrier
+		);
+
+		cmd.end();
+
+
+		vk::Fence fence = mContext.createFence(false);
+		mContext.getTransferTransientCommandPool().submitCommandBuffer(cmd, nullptr, {}, nullptr, fence);
+
+		// create sampler
+		mTexSampler = mContext.createSampler(vk::SamplerAddressMode::eRepeat);
+
+		vk::Result res = mContext.getDevice().waitForFences(1, &fence, true, UINT64_MAX);
+		assert(res == vk::Result::eSuccess);
+		mContext.destroy(fence);
+
+		mContext.safeDestroyBuffer(staging);
+		mContext.getTransferTransientCommandPool().free(&cmd, 1);
+
+		// because of ownership transfer we need to do transition on graphics
+		cmd = mContext.getGraphicsCommandPool().createCommandBuffer();
+		cmd.begin({ vk::CommandBufferUsageFlagBits::eOneTimeSubmit });
+		cmd.pipelineBarrier(
+			vk::PipelineStageFlagBits::eTransfer, // src stage mask
+			vk::PipelineStageFlagBits::eFragmentShader, // dst stage mask
+			vk::DependencyFlagBits{},
+			0, nullptr, 0, nullptr, // buffer and memory barrier
+			1, &barrier				// image memory barrier
+		);
+		cmd.end();
+		mContext.getGraphicsCommandPool().submitCommandBuffer(cmd, nullptr, {}, nullptr);
 	}
 
 	void Engine::cleanup()
@@ -468,6 +611,9 @@ namespace gr
 		mContext.safeDestroyBuffer(mVertexBuffer);
 		mContext.safeDestroyBuffer(mIndexBuffer);
 		
+		mContext.safeDestroyImage(mTexture);
+
+		mContext.destroy(mTexSampler);
 
 		// layout
 		mContext.getDevice().destroyDescriptorSetLayout(mDescriptorSetLayout);

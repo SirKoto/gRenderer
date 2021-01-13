@@ -44,6 +44,8 @@ namespace gr
 		vkg::Buffer mVertexBuffer;
 		vkg::Buffer mIndexBuffer;
 		std::vector<vkg::Buffer> mUbos;
+		vkg::Image2D mTexture;
+		vk::Sampler mTexSampler;
 
 		vkg::DescriptorManager mDescriptorManager;
 		vk::DescriptorSetLayout mDescriptorSetLayout;
@@ -72,6 +74,7 @@ namespace gr
 
 		void createBuffers();
 		void createUniformBuffers();
+		void createTextureImage();
 
 		void cleanup();
 		void cleanupSwapChainDependantObjs();

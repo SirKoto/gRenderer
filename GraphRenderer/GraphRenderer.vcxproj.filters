@@ -138,6 +138,9 @@
     <ClCompile Include="src\graphics\resources\DescriptorManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\dependencies\stbi_image.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engine.h">
@@ -243,7 +246,7 @@
       <Filter>Header Files\vkg\resources</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\resources\DescriptorManager.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\vkg\resources</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

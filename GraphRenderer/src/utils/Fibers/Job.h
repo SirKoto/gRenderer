@@ -61,11 +61,7 @@ private:
 		TClass* mClass;
 		std::tuple<Args...> mArgs;
 
-		HolderMember(void(TClass::* fun)(Args...), TClass* c, Args... args) : mFun(fun)
-		{
-			mClass = c;
-			new (std::addressof(mArgs)) std::tuple<Args...>(args...);
-		}
+		
 
 		HolderMember(void(TClass::* fun)(Args...), TClass* c, Args&&... args) : mFun(fun)
 		{

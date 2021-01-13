@@ -75,11 +75,17 @@ namespace gr
 
 		mDescriptorManager.initialize(mContext);
 
-		createShaderModules();
-		createBuffers();
-		createUniformBuffers();
-		createTextureImage();
-		createDescriptorSetLayout();
+		std::array<grjob::Job, 5> jobs;
+		jobs[0] = grjob::Job(&Engine::createShaderModules, this);
+		jobs[1] = grjob::Job(&Engine::createBuffers, this);
+		jobs[2] = grjob::Job(&Engine::createUniformBuffers, this);
+		jobs[3] = grjob::Job(&Engine::createTextureImage, this);
+		jobs[4] = grjob::Job(&Engine::createDescriptorSetLayout, this);
+
+		grjob::Counter* counter = nullptr;
+		grjob::runJobBatch(grjob::Priority::eMid, jobs.data(), static_cast<uint32_t>(jobs.size()), &counter);
+		grjob::waitForCounterAndFree(counter, 0);
+
 		createDescriptorSets();
 		createPipelineLayout();
 		createGraphicsPipeline();
@@ -465,7 +471,6 @@ namespace gr
 		assert(res == vk::Result::eSuccess);
 		mContext.destroy(fence);
 		mContext.safeDestroyBuffer(stageBuffer);
-		mContext.getTransferTransientCommandPool().free(&copyCommand, 1);
 
 	}
 
@@ -580,7 +585,6 @@ namespace gr
 		mContext.destroy(fence);
 
 		mContext.safeDestroyBuffer(staging);
-		mContext.getTransferTransientCommandPool().free(&cmd, 1);
 
 		// because of ownership transfer we need to do transition on graphics
 		cmd = mContext.getGraphicsCommandPool().createCommandBuffer();

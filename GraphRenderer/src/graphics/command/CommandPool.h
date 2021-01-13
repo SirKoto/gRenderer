@@ -18,8 +18,6 @@ namespace vkg
 
 		vk::CommandBuffer createCommandBuffer() const;
 
-		void free(const vk::CommandBuffer* pCommandBuffers, uint32_t num) const;
-
 		void submitCommandBuffer(const vk::CommandBuffer commandBuffer,
 			const vk::Semaphore* waitSemaphore,
 			const vk::PipelineStageFlags waitPipelineStage,
@@ -33,17 +31,17 @@ namespace vkg
 
 		void destroy();
 
-		explicit operator vk::CommandPool() const { return mPool; }
+		explicit operator vk::CommandPool() const;
 
-		vk::CommandPool get() const { return mPool;  }
+		vk::CommandPool get() const;
 
 		bool operator<(CommandPool const& o) const
 		{
-			return mDevice < o.mDevice && mPool < o.mPool;
+			return mDevice < o.mDevice && mPools < o.mPools;
 		}
 
 	private:
-		vk::CommandPool mPool;
+		std::vector<vk::CommandPool> mPools;
 		vk::Device mDevice;
 		vk::Queue mQueue;
 	};

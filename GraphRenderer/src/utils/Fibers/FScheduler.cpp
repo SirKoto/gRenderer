@@ -80,10 +80,10 @@ void FScheduler::startJobSystem()
 			std::array< moodycamel::ConcurrentQueue<Task>*, 3>{&mHighPriorityQueue, & mMidPriorityQueue, & mLowPriorityQueue}
 		);
 
-		mThreads[i] = std::thread(&s_funThread, this, std::move(threadTokens));
+		mThreads[i] = std::thread(&s_funThread, this, i+1, std::move(threadTokens));
 	}
 
-	s_funThread(this, nullptr);
+	s_funThread(this, 0, nullptr);
 
 	joinAllThreads();
 
@@ -218,6 +218,11 @@ void FScheduler::waitForCounter(const Counter* counter, uint32_t value)
 	FScheduler::sTls.scheduler->mFibers[FScheduler::sTls.currentFiber].switchTo(FScheduler::sTls.threadFiber);
 }
 
+uint32_t FScheduler::getThreadId()
+{
+	return FScheduler::sTls.threadId;
+}
+
 
 bool FScheduler::tryGetHighPriorityNextTask(Task* task)
 {
@@ -335,13 +340,14 @@ void FScheduler::s_funWorkerFiber(const FiberContext* context)
 
 thread_local FScheduler::TLS FScheduler::sTls;
 
-void FScheduler::s_funThread(FScheduler* scheduler, std::unique_ptr<QueueTokens>&& tokens)
+void FScheduler::s_funThread(FScheduler* scheduler, uint32_t threadId, std::unique_ptr<QueueTokens>&& tokens)
 {
 	if (tokens) {
 		FScheduler::sTls.tokens = std::forward<std::unique_ptr<QueueTokens>>(tokens);
 	}
 
 	FScheduler::sTls.scheduler = scheduler;
+	FScheduler::sTls.threadId = threadId;
 	FScheduler::sTls.threadFiber.createFromCurrentThread();
 
 	bool recievedTask = false;

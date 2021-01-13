@@ -1,15 +1,20 @@
 #include "CommandPool.h"
 
+#include "../../utils/grjob.h"
+
 namespace gr
 {
 namespace vkg
 {
 
-CommandPool::CommandPool(uint32_t familyIdx, vk::CommandPoolCreateFlags flags, vk::Device device) : mDevice(device)
+CommandPool::CommandPool(uint32_t familyIdx, vk::CommandPoolCreateFlags flags, vk::Device device) : 
+	mPools(grjob::getNumThreads()), mDevice(device)
 {
 	vk::CommandPoolCreateInfo createInfo(flags, familyIdx);
 
-	mPool = device.createCommandPool(createInfo);
+	for (uint32_t i = 0; i < static_cast<uint32_t>(mPools.size()); ++i) {
+		mPools[i] = device.createCommandPool(createInfo);
+	}
 
 	mQueue = mDevice.getQueue(familyIdx, 0);
 }
@@ -19,7 +24,7 @@ std::vector<vk::CommandBuffer> CommandPool::createCommandBuffers(const uint32_t 
 	assert(num != 0);
 
 	vk::CommandBufferAllocateInfo info = vk::CommandBufferAllocateInfo(
-		mPool,
+		mPools[grjob::getThreadId()],
 		vk::CommandBufferLevel::ePrimary,
 		num
 	);
@@ -30,7 +35,7 @@ std::vector<vk::CommandBuffer> CommandPool::createCommandBuffers(const uint32_t 
 vk::CommandBuffer CommandPool::createCommandBuffer() const
 {
 	vk::CommandBufferAllocateInfo info = vk::CommandBufferAllocateInfo(
-		mPool,
+		mPools[grjob::getThreadId()],
 		vk::CommandBufferLevel::ePrimary,
 		1
 	);
@@ -41,11 +46,6 @@ vk::CommandBuffer CommandPool::createCommandBuffer() const
 	}
 
 	return cmd;
-}
-
-void CommandPool::free(const vk::CommandBuffer* pCommandBuffers, uint32_t num) const
-{
-	mDevice.freeCommandBuffers(mPool, num, pCommandBuffers);
 }
 
 
@@ -91,7 +91,19 @@ bool CommandPool::submitPresentationImage(
 
 void CommandPool::destroy()
 {
-	mDevice.destroyCommandPool(mPool);
+	for (vk::CommandPool pool : mPools) {
+		mDevice.destroyCommandPool(pool);
+	}
+}
+
+CommandPool::operator vk::CommandPool() const
+{
+	return mPools[grjob::getThreadId()];
+}
+
+vk::CommandPool CommandPool::get() const
+{
+	return mPools[grjob::getThreadId()];
 }
 
 }; // namespace vkg

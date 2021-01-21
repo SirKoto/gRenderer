@@ -7,12 +7,12 @@ namespace gr
 namespace vkg
 {
 
-SwapChain::SwapChain(const Context& context, const Window& window) :  mDevice(context.getDevice())
+SwapChain::SwapChain(const RenderContext& context, const Window& window) :  mDevice(context.getDevice())
 {
 	createSwapChainAndImages(context, window);
 }
 
-void SwapChain::createSwapChainAndImages(const Context& context, const Window& window)
+void SwapChain::createSwapChainAndImages(const RenderContext& context, const Window& window)
 {
 	vk::SurfaceKHR surface = window.getSurface();
 
@@ -140,7 +140,7 @@ void SwapChain::createSwapChainAndImages(const Context& context, const Window& w
 	}
 }
 
-void SwapChain::recreateSwapChain(const Context& context, const Window& window)
+void SwapChain::recreateSwapChain(const RenderContext& context, const Window& window)
 {
 	destroy();
 	createSwapChainAndImages(context, window);

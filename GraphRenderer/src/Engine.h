@@ -1,6 +1,6 @@
 #pragma once
 
-#include "graphics/Context.h"
+#include "control/FrameContext.h"
 #include "graphics/present/SwapChain.h"
 #include "graphics/Window.h"
 #include "graphics/render/RenderPass.h"
@@ -17,10 +17,15 @@ namespace gr
 
 		static void terminate();
 
+		Engine();
+
 		void run();
 
 	protected:
-		vkg::Context mContext;
+		static constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
+
+		std::array<FrameContext, MAX_FRAMES_IN_FLIGHT> mContexts;
+		std::unique_ptr<vkg::RenderContext> pRenderContext;
 		vkg::SwapChain mSwapChain;
 		vkg::Window mWindow = vkg::Window(1280, 1024, "Test");
 
@@ -35,7 +40,6 @@ namespace gr
 		vk::Pipeline mGraphicsPipeline;
 
 		uint32_t mCurrentFrame = 0;
-		static constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 		std::array<vk::Semaphore, MAX_FRAMES_IN_FLIGHT> mImageAvailableSemaphores;
 		std::array<vk::Semaphore, MAX_FRAMES_IN_FLIGHT> mRenderingFinishedSemaphores;
 		std::array<vk::Fence, MAX_FRAMES_IN_FLIGHT> mInFlightFences;
@@ -51,9 +55,9 @@ namespace gr
 		vk::DescriptorSetLayout mDescriptorSetLayout;
 		std::vector<vk::DescriptorSet> mDescriptorSets;
 
-		void draw();
+		void draw(const FrameContext& frameContext);
 
-		void updateUBO(uint32_t currentImage);
+		void updateUBO(const FrameContext& frameContext, uint32_t currentImage);
 
 		void createRenderPass();
 		void recreateSwapChain();

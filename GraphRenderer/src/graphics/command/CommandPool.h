@@ -6,7 +6,7 @@ namespace gr
 {
 namespace vkg
 {
-	class Context;
+	class RenderContext;
 	class CommandPool
 	{
 	public:

@@ -90,7 +90,7 @@ void RenderPassBuilder::pushSubpassDependency(const vk::SubpassDependency& depen
 	mDependencies.push_back(dependency);
 }
 
-RenderPass RenderPassBuilder::buildRenderPass(const Context& context) const
+RenderPass RenderPassBuilder::buildRenderPass(const RenderContext& context) const
 {
 	RenderPass pass;
 

@@ -1,4 +1,4 @@
-#include "Context.h"
+#include "RenderContext.h"
 
 #include "../utils/FsTools.h"
 #include "DebugVk.h"
@@ -10,11 +10,11 @@ namespace gr
 namespace vkg
 {
 
-Context::Context(std::vector<const char*> extensions, bool loadGLFWextensions)
+RenderContext::RenderContext(std::vector<const char*> extensions, bool loadGLFWextensions)
 	: mInstance(extensions, loadGLFWextensions), mMemManager()
 { }
 
-void Context::createDevice(bool enableAnisotropySampler,
+void RenderContext::createDevice(bool enableAnisotropySampler,
 	const vk::SurfaceKHR* surfaceToRequestSwapChain)
 {
 	mAnisotropySamplerEnabled = enableAnisotropySampler;
@@ -29,7 +29,7 @@ void Context::createDevice(bool enableAnisotropySampler,
 }
 
 
-	Image2D Context::createTexture2D(
+	Image2D RenderContext::createTexture2D(
 		const vk::Extent2D& extent,
 		uint32_t mipLevels,
 		vk::SampleCountFlagBits numSamples,
@@ -90,7 +90,7 @@ void Context::createDevice(bool enableAnisotropySampler,
 		return r_image;
 	}
 
-	void Context::safeDestroyImage(Image& image)
+	void RenderContext::safeDestroyImage(Image& image)
 	{
 		if (image.getAllocation() != nullptr) {
 			mMemManager.freeAllocation(image.getAllocation());
@@ -106,7 +106,7 @@ void Context::createDevice(bool enableAnisotropySampler,
 		}
 	}
 
-	vk::Sampler Context::createSampler(vk::SamplerAddressMode addressMode) const
+	vk::Sampler RenderContext::createSampler(vk::SamplerAddressMode addressMode) const
 	{
 		vk::SamplerCreateInfo createInfo(
 			vk::SamplerCreateFlags{},					// flags
@@ -121,7 +121,7 @@ void Context::createDevice(bool enableAnisotropySampler,
 		return mDevice.createSampler(createInfo);
 	}
 
-	Buffer Context::createIndexBuffer(size_t sizeInBytes) const
+	Buffer RenderContext::createIndexBuffer(size_t sizeInBytes) const
 	{
 		vk::BufferCreateInfo createInfo(
 			vk::BufferCreateFlagBits(),	// flags
@@ -145,7 +145,7 @@ void Context::createDevice(bool enableAnisotropySampler,
 		return Buffer(buffer, alloc);
 	}
 
-	Buffer Context::createVertexBuffer(size_t sizeInBytes) const
+	Buffer RenderContext::createVertexBuffer(size_t sizeInBytes) const
 	{
 		vk::BufferCreateInfo createInfo(
 			vk::BufferCreateFlagBits(),	// flags
@@ -169,7 +169,7 @@ void Context::createDevice(bool enableAnisotropySampler,
 		return Buffer(buffer, alloc);
 	}
 
-	Buffer Context::createStagingBuffer(size_t sizeInBytes) const
+	Buffer RenderContext::createStagingBuffer(size_t sizeInBytes) const
 	{
 		vk::BufferCreateInfo createInfo(
 			vk::BufferCreateFlagBits(),	// flags
@@ -192,7 +192,7 @@ void Context::createDevice(bool enableAnisotropySampler,
 		return Buffer(buffer, alloc);
 	}
 
-	Buffer Context::createUniformBuffer(size_t sizeInBytes) const
+	Buffer RenderContext::createUniformBuffer(size_t sizeInBytes) const
 	{
 		std::array<const uint32_t, 2> sharedR = { getGraphicsFamilyIdx(), getTransferFamilyIdx() };
 		vk::BufferCreateInfo createInfo(
@@ -219,7 +219,7 @@ void Context::createDevice(bool enableAnisotropySampler,
 	}
 
 
-	void Context::safeDestroyBuffer(Buffer& buffer)
+	void RenderContext::safeDestroyBuffer(Buffer& buffer)
 	{
 		if (buffer.getAllocation() != nullptr) {
 			mMemManager.freeAllocation(buffer.getAllocation());
@@ -231,7 +231,7 @@ void Context::createDevice(bool enableAnisotropySampler,
 		}
 	}
 
-	void Context::transferDataToGPU(const Allocatable& allocatable, const void* data, size_t numBytes) const
+	void RenderContext::transferDataToGPU(const Allocatable& allocatable, const void* data, size_t numBytes) const
 	{
 		// Check that the allocation is cpu mappable
 		if (!mMemManager.isMemoryMappable(allocatable.getAllocation())) {
@@ -243,7 +243,7 @@ void Context::createDevice(bool enableAnisotropySampler,
 		mMemManager.unmapMemory(allocatable.getAllocation());
 	}
 
-	void Context::transferDataToGPU(const Allocatable& allocatable, uint32_t numDatas, const void** datas, size_t* numBytes) const
+	void RenderContext::transferDataToGPU(const Allocatable& allocatable, uint32_t numDatas, const void** datas, size_t* numBytes) const
 	{
 		// Check that the allocation is cpu mappable
 		if (!mMemManager.isMemoryMappable(allocatable.getAllocation())) {
@@ -265,14 +265,14 @@ void Context::createDevice(bool enableAnisotropySampler,
 
 
 
-	vk::Semaphore Context::createSemaphore() const
+	vk::Semaphore RenderContext::createSemaphore() const
 	{
 		vk::SemaphoreCreateInfo createInfo;
 		
 		return getDevice().createSemaphore(createInfo);
 	}
 
-	vk::Fence Context::createFence(bool signaled) const
+	vk::Fence RenderContext::createFence(bool signaled) const
 	{
 		vk::FenceCreateInfo createInfo(
 			signaled ? vk::FenceCreateFlagBits::eSignaled : vk::FenceCreateFlagBits{}
@@ -281,37 +281,37 @@ void Context::createDevice(bool enableAnisotropySampler,
 		return getDevice().createFence(createInfo);
 	}
 
-	void Context::destroy(vk::Semaphore semaphore) const
+	void RenderContext::destroy(vk::Semaphore semaphore) const
 	{
 		getDevice().destroySemaphore(semaphore);
 	}
 
-	void Context::destroy(vk::Fence fence) const
+	void RenderContext::destroy(vk::Fence fence) const
 	{
 		getDevice().destroyFence(fence);
 	}
 
-	void Context::destroy(vk::Sampler sampler) const
+	void RenderContext::destroy(vk::Sampler sampler) const
 	{
 		mDevice.destroySampler(sampler);
 	}
 
-	void Context::waitIdle() const
+	void RenderContext::waitIdle() const
 	{
 		getDevice().waitIdle();
 	}
 
-	void Context::destroy(const vk::RenderPass renderPass) const
+	void RenderContext::destroy(const vk::RenderPass renderPass) const
 	{
 		getDevice().destroyRenderPass(renderPass);
 	}
 
-	void Context::destroy(const vk::Framebuffer framebuffer) const
+	void RenderContext::destroy(const vk::Framebuffer framebuffer) const
 	{
 		getDevice().destroyFramebuffer(framebuffer);
 	}
 
-	void Context::createShaderModule(const char* fileName, vk::ShaderModule* module) const
+	void RenderContext::createShaderModule(const char* fileName, vk::ShaderModule* module) const
 	{
 		assert(module != nullptr);
 
@@ -331,13 +331,13 @@ void Context::createDevice(bool enableAnisotropySampler,
 		(*module) = getDevice().createShaderModule(createInfo);
 	}
 
-	void Context::destroy(const vk::ShaderModule module) const
+	void RenderContext::destroy(const vk::ShaderModule module) const
 	{
 		getDevice().destroyShaderModule(module);
 	}
 
 
-	void Context::destroy()
+	void RenderContext::destroy()
 	{
 		destroyCommandPools();
 
@@ -346,7 +346,7 @@ void Context::createDevice(bool enableAnisotropySampler,
 		mInstance.destroy();
 	}
 
-	void Context::createCommandPools()
+	void RenderContext::createCommandPools()
 	{
 		mGraphicsCommandPool = CommandPool(getGraphicsFamilyIdx(), {}, getDevice());
 
@@ -370,7 +370,7 @@ void Context::createDevice(bool enableAnisotropySampler,
 
 	}
 
-	void Context::destroyCommandPools()
+	void RenderContext::destroyCommandPools()
 	{
 		std::set<vk::CommandPool> alreadyDestroyed;
 		alreadyDestroyed.insert(mGraphicsCommandPool.get());
@@ -384,7 +384,7 @@ void Context::createDevice(bool enableAnisotropySampler,
 
 	}
 
-	void Context::pickAndCreatePysicalDevice(const vk::SurfaceKHR* surf)
+	void RenderContext::pickAndCreatePysicalDevice(const vk::SurfaceKHR* surf)
 	{
 		const vk::Instance instance = getInstance();
 		std::vector<vk::PhysicalDevice> devices = instance.enumeratePhysicalDevices();
@@ -424,7 +424,7 @@ void Context::createDevice(bool enableAnisotropySampler,
 		}
 	}
 
-	void Context::createLogicalDevice(const vk::SurfaceKHR* surf)
+	void RenderContext::createLogicalDevice(const vk::SurfaceKHR* surf)
 	{
 		QueueIndices indices = findQueueFamiliesIndices(mPhysicalDevice, surf);
 		std::set<uint32_t> familyIndices = indices.getUniqueIndices();
@@ -471,7 +471,7 @@ void Context::createDevice(bool enableAnisotropySampler,
 		mDevice = mPhysicalDevice.createDevice(createInfo);
 	}
 
-	void Context::createQueues()
+	void RenderContext::createQueues()
 	{
 		mGraphicsQueue = mDevice.getQueue(mGraphicsFamilyIdx, 0);
 		mComputeQueue = mDevice.getQueue(mComputeFamilyIdx, 0);
@@ -481,7 +481,7 @@ void Context::createDevice(bool enableAnisotropySampler,
 		}
 	}
 
-	bool Context::isDeviceSuitable(vk::PhysicalDevice physicalDevice,
+	bool RenderContext::isDeviceSuitable(vk::PhysicalDevice physicalDevice,
 		const std::vector<const char*>& deviceExtensions,
 		const vk::SurfaceKHR* surfaceToRequestSwapChain,
 		bool requestAnisotropySampler)
@@ -535,7 +535,7 @@ void Context::createDevice(bool enableAnisotropySampler,
 		return extensionSupport && familySupport && featureSupport && swapChainAvailable;
 	}
 
-	Context::QueueIndices Context::findQueueFamiliesIndices(
+	RenderContext::QueueIndices RenderContext::findQueueFamiliesIndices(
 		vk::PhysicalDevice physicalDevice,
 		const vk::SurfaceKHR* surf)
 	{
@@ -594,7 +594,7 @@ void Context::createDevice(bool enableAnisotropySampler,
 		return indices;
 	}
 
-	vk::SampleCountFlagBits Context::getMaxUsableSampleCount() const
+	vk::SampleCountFlagBits RenderContext::getMaxUsableSampleCount() const
 	{
 		vk::PhysicalDeviceProperties properties = mPhysicalDevice.getProperties();
 

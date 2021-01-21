@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../graphics/Context.h"
+#include "../graphics/RenderContext.h"
 
 namespace gr {
 
@@ -8,7 +8,7 @@ class Gui
 {
 public:
 
-	Gui(const gr::vkg::Context& context);
+	Gui(const gr::vkg::RenderContext& context);
 
 protected:
 

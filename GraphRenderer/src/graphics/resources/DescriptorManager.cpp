@@ -7,12 +7,12 @@ namespace vkg
 
 
 
-DescriptorManager::DescriptorManager(const Context& context)
+DescriptorManager::DescriptorManager(const RenderContext& context)
 {
 	initialize(context);
 }
 
-void DescriptorManager::initialize(const Context& context)
+void DescriptorManager::initialize(const RenderContext& context)
 {
 	// If it is already initialized, destroy
 	if (mDescriptorPool) {
@@ -37,7 +37,7 @@ void DescriptorManager::initialize(const Context& context)
 	mDescriptorPool = context.getDevice().createDescriptorPool(createInfo);
 }
 
-void DescriptorManager::destroy(const Context& context)
+void DescriptorManager::destroy(const RenderContext& context)
 {
 	context.getDevice().destroyDescriptorPool(mDescriptorPool);
 	mDescriptorSetsCache.clear();
@@ -45,7 +45,7 @@ void DescriptorManager::destroy(const Context& context)
 }
 
 void DescriptorManager::allocateDescriptorSets(
-	const Context& context,
+	const RenderContext& context,
 	uint32_t num, 
 	const vk::DescriptorSetLayout layout,
 	vk::DescriptorSet* outLayouts)

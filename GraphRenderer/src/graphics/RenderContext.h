@@ -15,12 +15,14 @@ namespace gr
 {
 namespace vkg
 {
-	class Context
+	class RenderContext
 	{
 	public:
 
-		Context(std::vector<const char*> extensions = {},
+		RenderContext(std::vector<const char*> extensions = {},
 			bool loadGLFWextensions = true);
+
+		RenderContext(const RenderContext& o) = default;
 
 		void createDevice(
 			bool enableAnisotropySampler = true,

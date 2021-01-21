@@ -14,6 +14,7 @@
 #include "graphics/render/RenderPassBuilder.h"
 #include "graphics/render/GraphicsPipelineBuilder.h"
 #include "graphics/shaders/VertexInputDescription.h"
+#include "control/FrameContext.h"
 
 #include "utils/grjob.h"
 
@@ -57,15 +58,24 @@ namespace gr
 		glfwTerminate();
 	}
 
+	Engine::Engine()
+	{
+		pRenderContext = std::make_unique<vkg::RenderContext>();
+
+		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+			mContexts[i] = FrameContext(i, pRenderContext.get());
+		}
+	}
+
 	void Engine::run()
 	{
 		using namespace vkg;
 
-		mWindow.createVkSurface(mContext.getInstance());
+		mWindow.createVkSurface(pRenderContext->getInstance());
 
-		mContext.createDevice(true, &mWindow.getSurface());
+		pRenderContext->createDevice(true, &mWindow.getSurface());
 
-		mSwapChain = SwapChain(mContext, mWindow);
+		mSwapChain = SwapChain(*pRenderContext, mWindow);
 
 		createSyncObjects();
 
@@ -73,7 +83,7 @@ namespace gr
 		createRenderPass();
 		mPresentFramebuffers = mSwapChain.createFramebuffersOfSwapImages(mRenderPass);
 
-		mDescriptorManager.initialize(mContext);
+		mDescriptorManager.initialize(*pRenderContext);
 
 		std::array<grjob::Job, 5> jobs;
 		jobs[0] = grjob::Job(&Engine::createShaderModules, this);
@@ -94,38 +104,41 @@ namespace gr
 		createAndRecordGraphicCommandBuffers();
 
 		while (!mWindow.windowShouldClose()) {
+			// advance frame
+			mCurrentFrame = (mCurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+			mContexts[mCurrentFrame].updateTime(glfwGetTime());
 
-			draw();
+			draw(mContexts[mCurrentFrame]);
+
 			Window::pollEvents();
 		}
 
 		// Destroy everything
 
-		mContext.waitIdle();
+		pRenderContext->waitIdle();
 
 
 		cleanup();
 
 		mSwapChain.destroy();
-		mWindow.destroy(mContext.getInstance());
-		mContext.destroy();
+		mWindow.destroy(pRenderContext->getInstance());
+		pRenderContext->destroy();
 	}
 
-	void Engine::draw()
+	void Engine::draw(const FrameContext& frameContext)
 	{
 		vk::Result res;
-		// advance frame
-		mCurrentFrame = (mCurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+
 
 		// Wait for current frame, if it was still being executed
-		res = mContext.getDevice().waitForFences(1, mInFlightFences.data() + mCurrentFrame, true, UINT64_MAX);
+		res = pRenderContext->getDevice().waitForFences(1, mInFlightFences.data() + frameContext.getIdx(), true, UINT64_MAX);
 		assert(res == vk::Result::eSuccess);
 
-		const vkg::CommandPool& cmdPool = mContext.getGraphicsCommandPool();
+		const vkg::CommandPool& cmdPool = pRenderContext->getGraphicsCommandPool();
 
 		uint32_t imageIdx;
 		bool outOfDateSwapChain = !mSwapChain.acquireNextImageBlock(
-			mImageAvailableSemaphores[mCurrentFrame], &imageIdx);
+			mImageAvailableSemaphores[frameContext.getIdx()], &imageIdx);
 
 		if (outOfDateSwapChain) {
 			recreateSwapChain();
@@ -134,28 +147,28 @@ namespace gr
 
 		// maybe out of order next image, thus wait also for next image
 		if (mImagesInFlightFences[imageIdx]) {
-			res = mContext.getDevice().waitForFences(1, mImagesInFlightFences.data() + imageIdx, true, UINT64_MAX);
+			res = pRenderContext->getDevice().waitForFences(1, mImagesInFlightFences.data() + imageIdx, true, UINT64_MAX);
 			assert(res == vk::Result::eSuccess);
 		}
 		// update in flight image
-		mImagesInFlightFences[imageIdx] = mInFlightFences[mCurrentFrame];
+		mImagesInFlightFences[imageIdx] = mInFlightFences[frameContext.getIdx()];
 
-		mContext.getDevice().resetFences(1, mInFlightFences.data() + mCurrentFrame);
+		pRenderContext->getDevice().resetFences(1, mInFlightFences.data() + frameContext.getIdx());
 
-		updateUBO(imageIdx);
+		updateUBO(frameContext, imageIdx);
 
 		cmdPool.submitCommandBuffer(
 			mGraphicCommandBuffers[imageIdx],
-			&mImageAvailableSemaphores[mCurrentFrame],
+			&mImageAvailableSemaphores[frameContext.getIdx()],
 			vk::PipelineStageFlagBits::eColorAttachmentOutput,
-			&mRenderingFinishedSemaphores[mCurrentFrame],
-			mInFlightFences[mCurrentFrame]);
+			&mRenderingFinishedSemaphores[frameContext.getIdx()],
+			mInFlightFences[frameContext.getIdx()]);
 
 		bool swapChainNeedsRecreation = 
-			!mContext.getPresentCommandPool().submitPresentationImage(
+			!pRenderContext->getPresentCommandPool().submitPresentationImage(
 				mSwapChain.getVkSwapChain(),
 				imageIdx,
-				&mRenderingFinishedSemaphores[mCurrentFrame]
+				&mRenderingFinishedSemaphores[frameContext.getIdx()]
 			);
 
 		if (swapChainNeedsRecreation) {
@@ -163,11 +176,10 @@ namespace gr
 		}
 	}
 
-	void Engine::updateUBO(uint32_t currentImage)
+	void Engine::updateUBO(const FrameContext& frameContext, uint32_t currentImage)
 	{
-		static auto start = std::chrono::high_resolution_clock::now();
-		auto now = std::chrono::high_resolution_clock::now();
-		float time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
+		
+		float time = frameContext.timef();
 		UBO ubo;
 		ubo.M = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f),
 			glm::vec3(0.0f, 0.0f, 1.0f));
@@ -178,7 +190,7 @@ namespace gr
 			0.1f, 10.0f);
 		ubo.P[1][1] *= -1.0;
 
-		mContext.transferDataToGPU(mUbos[currentImage], &ubo, sizeof(ubo));
+		pRenderContext->transferDataToGPU(mUbos[currentImage], &ubo, sizeof(ubo));
 	}
 
 	void Engine::createRenderPass()
@@ -213,7 +225,7 @@ namespace gr
 
 		builder.pushSubpassDependency(dependency);
 
-		mRenderPass =  builder.buildRenderPass(mContext);
+		mRenderPass =  builder.buildRenderPass(*pRenderContext);
 	}
 
 
@@ -224,11 +236,11 @@ namespace gr
 			mWindow.waitEvents();
 		}
 
-		mContext.waitIdle();
+		pRenderContext->waitIdle();
 
 		cleanupSwapChainDependantObjs();
 
-		mSwapChain.recreateSwapChain(mContext, mWindow);
+		mSwapChain.recreateSwapChain(*pRenderContext, mWindow);
 
 		createRenderPass();
 
@@ -242,12 +254,12 @@ namespace gr
 
 	void Engine::createAndRecordGraphicCommandBuffers()
 	{
-		const vkg::CommandPool& cmdPool = mContext.getGraphicsCommandPool();
+		const vkg::CommandPool& cmdPool = pRenderContext->getGraphicsCommandPool();
 
 		mGraphicCommandBuffers = cmdPool.createCommandBuffers(mSwapChain.getNumImages());
 
 
-		const uint32_t graphicsQueueFamilyIdx = mContext.getGraphicsFamilyIdx();
+		const uint32_t graphicsQueueFamilyIdx = pRenderContext->getGraphicsFamilyIdx();
 
 		vk::CommandBufferBeginInfo beginInfo = {};
 
@@ -297,8 +309,8 @@ namespace gr
 	{
 		{
 			grjob::Job jobs[2];
-			jobs[0] = grjob::Job(&vkg::Context::createShaderModule, &mContext, "resources/shaders/SPIR-V/sampler.vert.spv", mShaderModules + 0);
-			jobs[1] = grjob::Job(&vkg::Context::createShaderModule, &mContext, "resources/shaders/SPIR-V/sampler.frag.spv", mShaderModules + 1);
+			jobs[0] = grjob::Job(&vkg::RenderContext::createShaderModule, pRenderContext.get(), "resources/shaders/SPIR-V/sampler.vert.spv", mShaderModules + 0);
+			jobs[1] = grjob::Job(&vkg::RenderContext::createShaderModule, pRenderContext.get(), "resources/shaders/SPIR-V/sampler.frag.spv", mShaderModules + 1);
 			grjob::Counter* c = nullptr;
 
 			grjob::runJobBatch(gr::grjob::Priority::eMid, jobs, 2, &c);
@@ -330,7 +342,7 @@ namespace gr
 			bindings
 		);
 
-		mDescriptorSetLayout = mContext.getDevice().createDescriptorSetLayout(createInfo);
+		mDescriptorSetLayout = pRenderContext->getDevice().createDescriptorSetLayout(createInfo);
 
 	}
 
@@ -339,7 +351,7 @@ namespace gr
 		mDescriptorSets.resize(mSwapChain.getNumImages());
 
 		mDescriptorManager.allocateDescriptorSets(
-			mContext,
+			*pRenderContext,
 			mSwapChain.getNumImages(),
 			mDescriptorSetLayout,
 			mDescriptorSets.data()
@@ -380,7 +392,7 @@ namespace gr
 				nullptr // texel buffer view
 			);
 
-			mContext.getDevice().updateDescriptorSets(
+			pRenderContext->getDevice().updateDescriptorSets(
 				static_cast<uint32_t>(writeDesc.size()),
 					writeDesc.data(),	// write descriptions
 				0, nullptr		// copy descriptions
@@ -396,7 +408,7 @@ namespace gr
 			0, nullptr // push constants
 		);
 
-		mPipLayout = mContext.getDevice().createPipelineLayout(createInfo);
+		mPipLayout = pRenderContext->getDevice().createPipelineLayout(createInfo);
 	}
 
 	void Engine::createGraphicsPipeline()
@@ -422,15 +434,15 @@ namespace gr
 		builder.setColorBlendAttachmentStd();
 		builder.setPipelineLayout(mPipLayout);
 
-		mGraphicsPipeline = builder.createPipeline(mContext.getDevice(), mRenderPass, 0);
+		mGraphicsPipeline = builder.createPipeline(pRenderContext->getDevice(), mRenderPass, 0);
 	}
 
 	void Engine::createSyncObjects()
 	{
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
-			mImageAvailableSemaphores[i] = mContext.createSemaphore();
-			mRenderingFinishedSemaphores[i] = mContext.createSemaphore();
-			mInFlightFences[i] = mContext.createFence(true);
+			mImageAvailableSemaphores[i] = pRenderContext->createSemaphore();
+			mRenderingFinishedSemaphores[i] = pRenderContext->createSemaphore();
+			mInFlightFences[i] = pRenderContext->createFence(true);
 		}
 
 		mImagesInFlightFences.resize(mSwapChain.getNumImages());
@@ -440,15 +452,15 @@ namespace gr
 	{
 		size_t VBsize = sizeof(vertices[0]) * vertices.size();
 		size_t IBsize = sizeof(indices[0]) * indices.size();
-		mVertexBuffer = mContext.createVertexBuffer(VBsize);
-		mIndexBuffer = mContext.createIndexBuffer(IBsize);
-		vkg::Buffer stageBuffer = mContext.createStagingBuffer(VBsize + IBsize);
+		mVertexBuffer = pRenderContext->createVertexBuffer(VBsize);
+		mIndexBuffer = pRenderContext->createIndexBuffer(IBsize);
+		vkg::Buffer stageBuffer = pRenderContext->createStagingBuffer(VBsize + IBsize);
 
 		std::array<const void*, 2> datas = { vertices.data(), indices.data() };
 		std::array<size_t, 2> sizes = { VBsize, IBsize };
-		mContext.transferDataToGPU(stageBuffer, 2, datas.data(), sizes.data());
+		pRenderContext->transferDataToGPU(stageBuffer, 2, datas.data(), sizes.data());
 
-		vk::CommandBuffer copyCommand = mContext.getTransferTransientCommandPool().createCommandBuffer();
+		vk::CommandBuffer copyCommand = pRenderContext->getTransferTransientCommandPool().createCommandBuffer();
 
 		copyCommand.begin({ vk::CommandBufferUsageFlagBits::eOneTimeSubmit });
 
@@ -465,12 +477,12 @@ namespace gr
 
 		copyCommand.end();
 
-		vk::Fence fence = mContext.createFence(false);
-		mContext.getTransferTransientCommandPool().submitCommandBuffer(copyCommand, nullptr, {}, nullptr, fence);
-		vk::Result res = mContext.getDevice().waitForFences(1, &fence, true, UINT64_MAX);
+		vk::Fence fence = pRenderContext->createFence(false);
+		pRenderContext->getTransferTransientCommandPool().submitCommandBuffer(copyCommand, nullptr, {}, nullptr, fence);
+		vk::Result res = pRenderContext->getDevice().waitForFences(1, &fence, true, UINT64_MAX);
 		assert(res == vk::Result::eSuccess);
-		mContext.destroy(fence);
-		mContext.safeDestroyBuffer(stageBuffer);
+		pRenderContext->destroy(fence);
+		pRenderContext->safeDestroyBuffer(stageBuffer);
 
 	}
 
@@ -479,7 +491,7 @@ namespace gr
 		// Create uniform buffer objects
 		mUbos.resize(mSwapChain.getNumImages());
 		for (uint32_t i = 0; i < mSwapChain.getNumImages(); ++i) {
-			mUbos[i] = mContext.createUniformBuffer(sizeof(UBO));
+			mUbos[i] = pRenderContext->createUniformBuffer(sizeof(UBO));
 		}
 	}
 
@@ -497,12 +509,12 @@ namespace gr
 		}
 
 		// Transfer to GPU
-		vkg::Buffer staging = mContext.createStagingBuffer(imSize);
-		mContext.transferDataToGPU(staging, pix, imSize);
+		vkg::Buffer staging = pRenderContext->createStagingBuffer(imSize);
+		pRenderContext->transferDataToGPU(staging, pix, imSize);
 
 		stbi_image_free(pix);
 
-		mTexture = mContext.createTexture2D(
+		mTexture = pRenderContext->createTexture2D(
 			{ static_cast<vk::DeviceSize>(width),
 				static_cast<vk::DeviceSize>(height)}, // extent
 			1, vk::SampleCountFlagBits::e1, // mip levels and samples
@@ -510,7 +522,7 @@ namespace gr
 			vk::ImageAspectFlagBits::eColor
 		);
 
-		vk::CommandBuffer cmd = mContext.getTransferTransientCommandPool().createCommandBuffer();
+		vk::CommandBuffer cmd = pRenderContext->getTransferTransientCommandPool().createCommandBuffer();
 
 		cmd.begin({ vk::CommandBufferUsageFlagBits::eOneTimeSubmit });
 
@@ -560,8 +572,8 @@ namespace gr
 		barrier.setDstAccessMask(vk::AccessFlagBits::eShaderRead);
 		barrier.setOldLayout(vk::ImageLayout::eTransferDstOptimal);
 		barrier.setNewLayout(vk::ImageLayout::eShaderReadOnlyOptimal);
-		barrier.setSrcQueueFamilyIndex(mContext.getTransferFamilyIdx());
-		barrier.setDstQueueFamilyIndex(mContext.getGraphicsFamilyIdx());
+		barrier.setSrcQueueFamilyIndex(pRenderContext->getTransferFamilyIdx());
+		barrier.setDstQueueFamilyIndex(pRenderContext->getGraphicsFamilyIdx());
 
 		cmd.pipelineBarrier(
 			vk::PipelineStageFlagBits::eTransfer, // src stage mask
@@ -574,20 +586,20 @@ namespace gr
 		cmd.end();
 
 
-		vk::Fence fence = mContext.createFence(false);
-		mContext.getTransferTransientCommandPool().submitCommandBuffer(cmd, nullptr, {}, nullptr, fence);
+		vk::Fence fence = pRenderContext->createFence(false);
+		pRenderContext->getTransferTransientCommandPool().submitCommandBuffer(cmd, nullptr, {}, nullptr, fence);
 
 		// create sampler
-		mTexSampler = mContext.createSampler(vk::SamplerAddressMode::eRepeat);
+		mTexSampler = pRenderContext->createSampler(vk::SamplerAddressMode::eRepeat);
 
-		vk::Result res = mContext.getDevice().waitForFences(1, &fence, true, UINT64_MAX);
+		vk::Result res = pRenderContext->getDevice().waitForFences(1, &fence, true, UINT64_MAX);
 		assert(res == vk::Result::eSuccess);
-		mContext.destroy(fence);
+		pRenderContext->destroy(fence);
 
-		mContext.safeDestroyBuffer(staging);
+		pRenderContext->safeDestroyBuffer(staging);
 
 		// because of ownership transfer we need to do transition on graphics
-		cmd = mContext.getGraphicsCommandPool().createCommandBuffer();
+		cmd = pRenderContext->getGraphicsCommandPool().createCommandBuffer();
 		cmd.begin({ vk::CommandBufferUsageFlagBits::eOneTimeSubmit });
 		cmd.pipelineBarrier(
 			vk::PipelineStageFlagBits::eTransfer, // src stage mask
@@ -597,47 +609,47 @@ namespace gr
 			1, &barrier				// image memory barrier
 		);
 		cmd.end();
-		mContext.getGraphicsCommandPool().submitCommandBuffer(cmd, nullptr, {}, nullptr);
+		pRenderContext->getGraphicsCommandPool().submitCommandBuffer(cmd, nullptr, {}, nullptr);
 	}
 
 	void Engine::cleanup()
 	{
 		// destroy sync objects
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
-			mContext.destroy(mImageAvailableSemaphores[i]);
-			mContext.destroy(mRenderingFinishedSemaphores[i]);
-			mContext.destroy(mInFlightFences[i]);
+			pRenderContext->destroy(mImageAvailableSemaphores[i]);
+			pRenderContext->destroy(mRenderingFinishedSemaphores[i]);
+			pRenderContext->destroy(mInFlightFences[i]);
 		}
 
 		cleanupSwapChainDependantObjs();
 		
 		// Destroy Buffers
-		mContext.safeDestroyBuffer(mVertexBuffer);
-		mContext.safeDestroyBuffer(mIndexBuffer);
+		pRenderContext->safeDestroyBuffer(mVertexBuffer);
+		pRenderContext->safeDestroyBuffer(mIndexBuffer);
 		
-		mContext.safeDestroyImage(mTexture);
+		pRenderContext->safeDestroyImage(mTexture);
 
-		mContext.destroy(mTexSampler);
+		pRenderContext->destroy(mTexSampler);
 
 		// layout
-		mContext.getDevice().destroyDescriptorSetLayout(mDescriptorSetLayout);
+		pRenderContext->getDevice().destroyDescriptorSetLayout(mDescriptorSetLayout);
 
-		mContext.getDevice().destroyPipelineLayout(mPipLayout);
+		pRenderContext->getDevice().destroyPipelineLayout(mPipLayout);
 
-		mContext.destroy(mShaderModules[0]);
-		mContext.destroy(mShaderModules[1]);
+		pRenderContext->destroy(mShaderModules[0]);
+		pRenderContext->destroy(mShaderModules[1]);
 
-		mDescriptorManager.destroy(mContext);
+		mDescriptorManager.destroy(*pRenderContext);
 	}
 
 	void Engine::cleanupSwapChainDependantObjs()
 	{
 		for (vk::Framebuffer frambuffer : mPresentFramebuffers) {
-			mContext.destroy(frambuffer);
+			pRenderContext->destroy(frambuffer);
 		}
 
 		for (vkg::Buffer& b : mUbos) {
-			mContext.safeDestroyBuffer(b);
+			pRenderContext->safeDestroyBuffer(b);
 		}
 
 		// free descriptor sets
@@ -645,8 +657,8 @@ namespace gr
 			mDescriptorManager.freeDescriptorSet(set, mDescriptorSetLayout);
 		}
 
-		mContext.getDevice().destroyPipeline(mGraphicsPipeline);
-		mContext.destroy(mRenderPass);
+		pRenderContext->getDevice().destroyPipeline(mGraphicsPipeline);
+		pRenderContext->destroy(mRenderPass);
 	}
 
 }; // namespace gr

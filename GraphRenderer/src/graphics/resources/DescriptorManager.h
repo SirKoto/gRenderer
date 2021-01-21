@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Context.h"
+#include "../RenderContext.h"
 
 #include <unordered_map>
 
@@ -16,13 +16,13 @@ class DescriptorManager
 {
 public:
 	DescriptorManager() = default;
-	DescriptorManager(const Context& context);
-	void initialize(const Context& context);
+	DescriptorManager(const RenderContext& context);
+	void initialize(const RenderContext& context);
 
-	void destroy(const Context& context);
+	void destroy(const RenderContext& context);
 
 	void allocateDescriptorSets(
-		const Context& context,
+		const RenderContext& context,
 		uint32_t num,
 		const vk::DescriptorSetLayout layout, 
 		vk::DescriptorSet* outLayouts);

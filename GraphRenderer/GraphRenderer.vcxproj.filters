@@ -84,9 +84,6 @@
     <ClCompile Include="src\utils\FsTools.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\Context.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\utils\Fibers\FScheduler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -141,13 +138,16 @@
     <ClCompile Include="src\dependencies\stbi_image.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\graphics\RenderContext.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\control\FrameContext.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engine.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\Context.h">
-      <Filter>Header Files\vkg</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\AppInstance.h">
       <Filter>Header Files\vkg</Filter>
@@ -247,6 +247,12 @@
     </ClInclude>
     <ClInclude Include="src\graphics\resources\DescriptorManager.h">
       <Filter>Header Files\vkg\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\control\FrameContext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\RenderContext.h">
+      <Filter>Header Files\vkg</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

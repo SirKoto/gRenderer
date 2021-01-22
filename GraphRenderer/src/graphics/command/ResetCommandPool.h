@@ -7,16 +7,17 @@ namespace gr
 namespace vkg
 {
 	class RenderContext;
-	class CommandPool
+	// Warning this command pool does not have a free implemented
+	class ResetCommandPool
 	{
 	public:
-		CommandPool() = default;
-		CommandPool(uint32_t familyIdx, vk::CommandPoolCreateFlags flags, vk::Device device);
+		ResetCommandPool();
+		ResetCommandPool(uint32_t familyIdx, vk::CommandPoolCreateFlags flags, vk::Device device);
 
 		// num must be different from zero
-		std::vector<vk::CommandBuffer> createCommandBuffers(const uint32_t num) const;
+		std::vector<vk::CommandBuffer> newCommandBuffers(const uint32_t num);
 
-		vk::CommandBuffer createCommandBuffer() const;
+		vk::CommandBuffer newCommandBuffer();
 
 		void submitCommandBuffer(const vk::CommandBuffer commandBuffer,
 			const vk::Semaphore* waitSemaphore,
@@ -29,21 +30,29 @@ namespace vkg
 			const uint32_t imageIdx,
 			const vk::Semaphore* semaphoreToSignal) const;
 
+		void reset(bool release = false);
+
 		void destroy();
 
 		explicit operator vk::CommandPool() const;
 
 		vk::CommandPool get() const;
 
-		bool operator<(CommandPool const& o) const
+	protected:
+		struct CommandSpace
 		{
-			return mDevice < o.mDevice && mPools < o.mPools;
-		}
+			vk::CommandPool pool = nullptr;
+			uint32_t lastUsed = 0;
+			std::vector<vk::CommandBuffer> buffers;
+		};
 
-	private:
-		std::vector<vk::CommandPool> mPools;
+		std::vector<CommandSpace> mCommandSpaces;
 		vk::Device mDevice;
 		vk::Queue mQueue;
+
+		CommandSpace& getCS();
+		const CommandSpace& getCS() const;
+
 	};
 
 }; // namespace vkg

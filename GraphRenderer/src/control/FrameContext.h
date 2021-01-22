@@ -8,8 +8,13 @@ class FrameContext
 {
 public:
 	FrameContext() { mDeltaTimes.fill(1 / 30.0); };
-	FrameContext(uint32_t id, vkg::RenderContext* rc) : mFrameId(id), mRenderContext(rc) { mDeltaTimes.fill(1 / 30.0); }
-	FrameContext(vkg::RenderContext* rc) : mFrameId(0), mRenderContext(rc) { mDeltaTimes.fill(1 / 30.0); }
+	FrameContext(uint32_t id, vkg::RenderContext* rc) : mFrameId(id), mRenderContext(rc) {
+		mDeltaTimes.fill(1 / 30.0); 
+	}
+	FrameContext(vkg::RenderContext* rc) : mFrameId(0), mRenderContext(rc) { 
+		mDeltaTimes.fill(1 / 30.0); 
+	}
+
 	FrameContext(const FrameContext& o) = default;
 
 	vkg::RenderContext& rc() { return *mRenderContext; }
@@ -25,12 +30,27 @@ public:
 	float_t timef() const { return static_cast<float_t>(mTime); }
 	float_t dtf() const { return static_cast<float_t>(mDeltaTime); }
 
+	vkg::ResetCommandPool& graphicsPool() { return mPools.graphicsPool; };
+	const vkg::ResetCommandPool& graphicsPool() const { return mPools.graphicsPool; };
+	vkg::ResetCommandPool& presentPool() { return mPools.presentPool; };
+	const vkg::ResetCommandPool& presentPool() const { return mPools.presentPool; };
+	vkg::ResetCommandPool& transferPool() { return mPools.transferTransientPool; };
+	const vkg::ResetCommandPool& transferPool() const { return mPools.transferTransientPool; };
+
+
+	void resetFrameResources();
+	void recreateCommandPools();
+	void destroyCommandPools();
+
+
 private:
 	uint32_t mFrameId = 0;
 	double_t mTime = 0.0;
 	std::array<double_t, 3> mDeltaTimes = {};
 	double_t mDeltaTime = 1/30.0;
-	vkg::RenderContext* mRenderContext = nullptr;
+	vkg::RenderContext* mRenderContext;
+
+	vkg::RenderContext::CommandPools mPools;
 };
 
 }

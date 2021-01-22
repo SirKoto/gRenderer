@@ -163,7 +163,7 @@
     <ClCompile Include="src\Engine.cpp" />
     <ClCompile Include="src\graphics\RenderContext.cpp" />
     <ClCompile Include="src\graphics\AppInstance.cpp" />
-    <ClCompile Include="src\graphics\command\CommandPool.cpp" />
+    <ClCompile Include="src\graphics\command\ResetCommandPool.cpp" />
     <ClCompile Include="src\graphics\DebugVk.cpp" />
     <ClCompile Include="src\graphics\memory\MemoryManager.cpp" />
     <ClCompile Include="src\graphics\present\SwapChain.cpp" />
@@ -199,7 +199,7 @@
     <ClInclude Include="src\Engine.h" />
     <ClInclude Include="src\graphics\RenderContext.h" />
     <ClInclude Include="src\graphics\AppInstance.h" />
-    <ClInclude Include="src\graphics\command\CommandPool.h" />
+    <ClInclude Include="src\graphics\command\ResetCommandPool.h" />
     <ClInclude Include="src\graphics\DebugVk.h" />
     <ClInclude Include="src\graphics\memory\MemoryManager.h" />
     <ClInclude Include="src\graphics\present\SwapChain.h" />

@@ -40,6 +40,9 @@
     <Filter Include="Header Files\vkg\shaders">
       <UniqueIdentifier>{b2200053-9a1b-4875-a526-42a3a832f9eb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\vkg\commands">
+      <UniqueIdentifier>{b9571ac3-965d-4a83-8899-e391b947a769}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -64,9 +67,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics\present\SwapChain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\graphics\command\CommandPool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics\resources\Image2D.cpp">
@@ -144,15 +144,15 @@
     <ClCompile Include="src\control\FrameContext.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\graphics\command\ResetCommandPool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\AppInstance.h">
-      <Filter>Header Files\vkg</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\command\CommandPool.h">
       <Filter>Header Files\vkg</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\DebugVk.h">
@@ -253,6 +253,9 @@
     </ClInclude>
     <ClInclude Include="src\graphics\RenderContext.h">
       <Filter>Header Files\vkg</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\command\ResetCommandPool.h">
+      <Filter>Header Files\vkg\commands</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

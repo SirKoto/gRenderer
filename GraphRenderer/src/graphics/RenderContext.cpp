@@ -24,8 +24,6 @@ void RenderContext::createDevice(bool enableAnisotropySampler,
 	createQueues();
 
 	mMemManager = MemoryManager(mInstance, mPhysicalDevice, mDevice);
-
-	createCommandPools();
 }
 
 
@@ -339,49 +337,54 @@ void RenderContext::createDevice(bool enableAnisotropySampler,
 
 	void RenderContext::destroy()
 	{
-		destroyCommandPools();
-
 		mMemManager.destroy();
 		mDevice.destroy();
 		mInstance.destroy();
 	}
 
-	void RenderContext::createCommandPools()
+	RenderContext::CommandPools RenderContext::createCommandPools() const
 	{
-		mGraphicsCommandPool = CommandPool(getGraphicsFamilyIdx(), {}, getDevice());
+		ResetCommandPool gp(getGraphicsFamilyIdx(), {}, getDevice());
 
+		ResetCommandPool pp;
 
 		if (getPresentFamilyIdx() == getGraphicsFamilyIdx())
 		{
-			mPresentCommandPool = mGraphicsCommandPool;
+			pp = gp;
 		}
 		else {
-			mPresentCommandPool = CommandPool(getPresentFamilyIdx(), {}, getDevice());
+			pp = ResetCommandPool(getPresentFamilyIdx(), {}, getDevice());
 		}
 
 		if (getGraphicsFamilyIdx() == getTransferFamilyIdx()) {
 			throw std::runtime_error("Graphics family is the same as the transfer family!!");
 		}
 
-		mTransferTransientCommandPool = CommandPool(
+		ResetCommandPool tp(
 			getTransferFamilyIdx(),
 			vk::CommandPoolCreateFlagBits::eTransient,
 			getDevice());
 
+		CommandPools pools;
+		pools.graphicsPool = gp;
+		pools.presentPool = pp;
+		pools.transferTransientPool = tp;
+
+		return pools;
+
 	}
 
-	void RenderContext::destroyCommandPools()
+	void RenderContext::destroyCommandPools(CommandPools* pools) const
 	{
 		std::set<vk::CommandPool> alreadyDestroyed;
-		alreadyDestroyed.insert(mGraphicsCommandPool.get());
-		mGraphicsCommandPool.destroy();
+		alreadyDestroyed.insert(pools->graphicsPool.get());
+		pools->graphicsPool.destroy();
 
-		if (alreadyDestroyed.count(mPresentCommandPool.get()) == 0) {
-			mPresentCommandPool.destroy();
+		if (alreadyDestroyed.count(pools->presentPool.get()) == 0) {
+			pools->presentPool.destroy();
 		}
 
-		mTransferTransientCommandPool.destroy();
-
+		pools->transferTransientPool.destroy();
 	}
 
 	void RenderContext::pickAndCreatePysicalDevice(const vk::SurfaceKHR* surf)

@@ -58,22 +58,20 @@ namespace gr
 		glfwTerminate();
 	}
 
-	Engine::Engine()
-	{
-		pRenderContext = std::make_unique<vkg::RenderContext>();
-
-		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
-			mContexts[i] = FrameContext(i, pRenderContext.get());
-		}
-	}
-
 	void Engine::run()
 	{
 		using namespace vkg;
 
+		pRenderContext = std::make_unique<vkg::RenderContext>();
+
 		mWindow.createVkSurface(pRenderContext->getInstance());
 
 		pRenderContext->createDevice(true, &mWindow.getSurface());
+
+		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+			mContexts[i] = FrameContext(i, pRenderContext.get());
+			mContexts[i].recreateCommandPools();
+		}
 
 		mSwapChain = SwapChain(*pRenderContext, mWindow);
 
@@ -100,13 +98,22 @@ namespace gr
 		createPipelineLayout();
 		createGraphicsPipeline();
 
-
-		createAndRecordGraphicCommandBuffers();
+		pRenderContext->waitIdle();
 
 		while (!mWindow.windowShouldClose()) {
 			// advance frame
 			mCurrentFrame = (mCurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+
+			// Wait for current frame, if it was still being executed
+			{
+				vk::Result res = pRenderContext->getDevice().waitForFences(1, mInFlightFences.data() + mCurrentFrame, true, UINT64_MAX);
+				assert(res == vk::Result::eSuccess);
+			}
+
 			mContexts[mCurrentFrame].updateTime(glfwGetTime());
+			mContexts[mCurrentFrame].resetFrameResources();
+
+			createAndRecordGraphicCommandBuffers(mContexts.data() + mCurrentFrame);
 
 			draw(mContexts[mCurrentFrame]);
 
@@ -120,6 +127,10 @@ namespace gr
 
 		cleanup();
 
+		for (FrameContext& c : mContexts) {
+			c.destroyCommandPools();
+		}
+
 		mSwapChain.destroy();
 		mWindow.destroy(pRenderContext->getInstance());
 		pRenderContext->destroy();
@@ -129,12 +140,7 @@ namespace gr
 	{
 		vk::Result res;
 
-
-		// Wait for current frame, if it was still being executed
-		res = pRenderContext->getDevice().waitForFences(1, mInFlightFences.data() + frameContext.getIdx(), true, UINT64_MAX);
-		assert(res == vk::Result::eSuccess);
-
-		const vkg::CommandPool& cmdPool = pRenderContext->getGraphicsCommandPool();
+		const vkg::ResetCommandPool& cmdPool = frameContext.graphicsPool();
 
 		uint32_t imageIdx;
 		bool outOfDateSwapChain = !mSwapChain.acquireNextImageBlock(
@@ -165,7 +171,7 @@ namespace gr
 			mInFlightFences[frameContext.getIdx()]);
 
 		bool swapChainNeedsRecreation = 
-			!pRenderContext->getPresentCommandPool().submitPresentationImage(
+			!frameContext.presentPool().submitPresentationImage(
 				mSwapChain.getVkSwapChain(),
 				imageIdx,
 				&mRenderingFinishedSemaphores[frameContext.getIdx()]
@@ -249,14 +255,13 @@ namespace gr
 		createUniformBuffers();
 		createDescriptorSets();
 		createGraphicsPipeline();
-		createAndRecordGraphicCommandBuffers();
 	}
 
-	void Engine::createAndRecordGraphicCommandBuffers()
+	void Engine::createAndRecordGraphicCommandBuffers(FrameContext* frame)
 	{
-		const vkg::CommandPool& cmdPool = pRenderContext->getGraphicsCommandPool();
+		 vkg::ResetCommandPool& cmdPool = frame->graphicsPool();
 
-		mGraphicCommandBuffers = cmdPool.createCommandBuffers(mSwapChain.getNumImages());
+		mGraphicCommandBuffers = cmdPool.newCommandBuffers(mSwapChain.getNumImages());
 
 
 		const uint32_t graphicsQueueFamilyIdx = pRenderContext->getGraphicsFamilyIdx();
@@ -460,7 +465,7 @@ namespace gr
 		std::array<size_t, 2> sizes = { VBsize, IBsize };
 		pRenderContext->transferDataToGPU(stageBuffer, 2, datas.data(), sizes.data());
 
-		vk::CommandBuffer copyCommand = pRenderContext->getTransferTransientCommandPool().createCommandBuffer();
+		vk::CommandBuffer copyCommand = mContexts.front().transferPool().newCommandBuffer();
 
 		copyCommand.begin({ vk::CommandBufferUsageFlagBits::eOneTimeSubmit });
 
@@ -478,7 +483,7 @@ namespace gr
 		copyCommand.end();
 
 		vk::Fence fence = pRenderContext->createFence(false);
-		pRenderContext->getTransferTransientCommandPool().submitCommandBuffer(copyCommand, nullptr, {}, nullptr, fence);
+		mContexts.front().transferPool().submitCommandBuffer(copyCommand, nullptr, {}, nullptr, fence);
 		vk::Result res = pRenderContext->getDevice().waitForFences(1, &fence, true, UINT64_MAX);
 		assert(res == vk::Result::eSuccess);
 		pRenderContext->destroy(fence);
@@ -522,7 +527,7 @@ namespace gr
 			vk::ImageAspectFlagBits::eColor
 		);
 
-		vk::CommandBuffer cmd = pRenderContext->getTransferTransientCommandPool().createCommandBuffer();
+		vk::CommandBuffer cmd = mContexts.front().transferPool().newCommandBuffer();
 
 		cmd.begin({ vk::CommandBufferUsageFlagBits::eOneTimeSubmit });
 
@@ -587,7 +592,7 @@ namespace gr
 
 
 		vk::Fence fence = pRenderContext->createFence(false);
-		pRenderContext->getTransferTransientCommandPool().submitCommandBuffer(cmd, nullptr, {}, nullptr, fence);
+		mContexts.front().transferPool().submitCommandBuffer(cmd, nullptr, {}, nullptr, fence);
 
 		// create sampler
 		mTexSampler = pRenderContext->createSampler(vk::SamplerAddressMode::eRepeat);
@@ -599,7 +604,7 @@ namespace gr
 		pRenderContext->safeDestroyBuffer(staging);
 
 		// because of ownership transfer we need to do transition on graphics
-		cmd = pRenderContext->getGraphicsCommandPool().createCommandBuffer();
+		cmd = mContexts.front().graphicsPool().newCommandBuffer();
 		cmd.begin({ vk::CommandBufferUsageFlagBits::eOneTimeSubmit });
 		cmd.pipelineBarrier(
 			vk::PipelineStageFlagBits::eTransfer, // src stage mask
@@ -609,7 +614,7 @@ namespace gr
 			1, &barrier				// image memory barrier
 		);
 		cmd.end();
-		pRenderContext->getGraphicsCommandPool().submitCommandBuffer(cmd, nullptr, {}, nullptr);
+		mContexts.front().graphicsPool().submitCommandBuffer(cmd, nullptr, {}, nullptr);
 	}
 
 	void Engine::cleanup()

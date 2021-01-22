@@ -2,7 +2,7 @@
 
 #include "AppInstance.h"
 #include "memory/MemoryManager.h"
-#include "command/CommandPool.h"
+#include "command/ResetCommandPool.h"
 #include "present/SwapChain.h"
 #include "resources/Image2D.h"
 #include "resources/Buffer.h"
@@ -67,9 +67,16 @@ namespace vkg
 
 		void waitIdle() const;
 
-		const CommandPool& getGraphicsCommandPool() const { return mGraphicsCommandPool; }
-		const CommandPool& getPresentCommandPool() const { return mPresentCommandPool; }
-		const CommandPool& getTransferTransientCommandPool() const { return mTransferTransientCommandPool; }
+		struct CommandPools
+		{
+			ResetCommandPool graphicsPool;
+			ResetCommandPool presentPool;
+			ResetCommandPool transferTransientPool;
+		};
+
+		CommandPools createCommandPools() const;
+		void destroyCommandPools(CommandPools* pools) const;
+
 
 		vk::Queue getGraphicsQueue() const { return mGraphicsQueue; }
 		vk::Queue getComputeQueue() const { return mComputeQueue; }
@@ -111,19 +118,11 @@ namespace vkg
 		vk::Queue mTransferQueue;
 		vk::Queue mPresentQueue;
 
-		CommandPool mGraphicsCommandPool;
-		CommandPool mPresentCommandPool;
-		CommandPool mTransferTransientCommandPool;
-
 
 		uint32_t mGraphicsFamilyIdx, mComputeFamilyIdx, mTransferFamilyIdx, mPresentFamilyIdx;
 		
 		bool mAnisotropySamplerEnabled, mPresentQueueRequested;
 		vk::SampleCountFlagBits mMsaaSamples = vk::SampleCountFlagBits::e1;
-
-		void createCommandPools();
-		void destroyCommandPools();
-
 
 		// Device creation
 		// Struct used to determine the queueIndices inside this device

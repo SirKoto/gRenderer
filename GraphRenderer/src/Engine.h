@@ -17,7 +17,6 @@ namespace gr
 
 		static void terminate();
 
-		Engine();
 
 		void run();
 
@@ -62,7 +61,7 @@ namespace gr
 		void createRenderPass();
 		void recreateSwapChain();
 
-		void createAndRecordGraphicCommandBuffers();
+		void createAndRecordGraphicCommandBuffers(FrameContext* frame);
 
 		void createShaderModules();
 

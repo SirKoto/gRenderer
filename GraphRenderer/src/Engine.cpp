@@ -68,14 +68,15 @@ namespace gr
 
 		pRenderContext->createDevice(true, &mWindow.getSurface());
 
-		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
-			mContexts[i] = FrameContext(i, pRenderContext.get());
-			mContexts[i].recreateCommandPools();
-		}
-
 		mSwapChain = SwapChain(*pRenderContext, mWindow);
 
 		createSyncObjects();
+
+		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+			mContexts[i] = FrameContext(i, pRenderContext.get());
+			mContexts[i].recreateCommandPools();
+			mContexts[i].commandFlusher().setNumControls(*pRenderContext, mSwapChain.getNumImages());
+		}
 
 		
 		createRenderPass();
@@ -113,8 +114,6 @@ namespace gr
 			mContexts[mCurrentFrame].updateTime(glfwGetTime());
 			mContexts[mCurrentFrame].resetFrameResources();
 
-			createAndRecordGraphicCommandBuffers(mContexts.data() + mCurrentFrame);
-
 			draw(mContexts[mCurrentFrame]);
 
 			Window::pollEvents();
@@ -128,7 +127,7 @@ namespace gr
 		cleanup();
 
 		for (FrameContext& c : mContexts) {
-			c.destroyCommandPools();
+			c.destroy();
 		}
 
 		mSwapChain.destroy();
@@ -136,7 +135,7 @@ namespace gr
 		pRenderContext->destroy();
 	}
 
-	void Engine::draw(const FrameContext& frameContext)
+	void Engine::draw(FrameContext& frameContext)
 	{
 		vk::Result res;
 
@@ -146,10 +145,16 @@ namespace gr
 		bool outOfDateSwapChain = !mSwapChain.acquireNextImageBlock(
 			mImageAvailableSemaphores[frameContext.getIdx()], &imageIdx);
 
+		frameContext.setImageIdx(imageIdx);
+
 		if (outOfDateSwapChain) {
 			recreateSwapChain();
 			return;
 		}
+
+		frameContext.commandFlusher().pushGraphicsCB(createAndRecordGraphicCommandBuffers(mContexts.data() + mCurrentFrame));
+		frameContext.commandFlusher().pushExternalGraphicsWait(mImageAvailableSemaphores[frameContext.getIdx()], vk::PipelineStageFlagBits::eColorAttachmentOutput);
+		frameContext.commandFlusher().pushExternalGraphicsSignal(mRenderingFinishedSemaphores[frameContext.getIdx()]);
 
 		// maybe out of order next image, thus wait also for next image
 		if (mImagesInFlightFences[imageIdx]) {
@@ -163,12 +168,8 @@ namespace gr
 
 		updateUBO(frameContext, imageIdx);
 
-		cmdPool.submitCommandBuffer(
-			mGraphicCommandBuffers[imageIdx],
-			&mImageAvailableSemaphores[frameContext.getIdx()],
-			vk::PipelineStageFlagBits::eColorAttachmentOutput,
-			&mRenderingFinishedSemaphores[frameContext.getIdx()],
-			mInFlightFences[frameContext.getIdx()]);
+		
+		frameContext.commandFlusher().flush(frameContext, mInFlightFences[frameContext.getIdx()]);
 
 		bool swapChainNeedsRecreation = 
 			!frameContext.presentPool().submitPresentationImage(
@@ -257,56 +258,55 @@ namespace gr
 		createGraphicsPipeline();
 	}
 
-	void Engine::createAndRecordGraphicCommandBuffers(FrameContext* frame)
+	vk::CommandBuffer Engine::createAndRecordGraphicCommandBuffers(FrameContext* frame)
 	{
 		 vkg::ResetCommandPool& cmdPool = frame->graphicsPool();
 
-		mGraphicCommandBuffers = cmdPool.newCommandBuffers(mSwapChain.getNumImages());
+		vk::CommandBuffer buff = cmdPool.newCommandBuffer();
 
 
 		const uint32_t graphicsQueueFamilyIdx = pRenderContext->getGraphicsFamilyIdx();
 
 		vk::CommandBufferBeginInfo beginInfo = {};
 
-		for (uint32_t i = 0; i < mSwapChain.getNumImages(); ++i) {
-			vk::CommandBuffer buff = mGraphicCommandBuffers[i];
-			buff.begin(beginInfo);
+		buff.begin(beginInfo);
 
-			std::array<vk::ClearValue, 1> clearVal = {};
-			clearVal[0].color.setFloat32({ 0.0f, 0.0f, 0.0f, 1.0f });
+		std::array<vk::ClearValue, 1> clearVal = {};
+		clearVal[0].color.setFloat32({ 0.0f, 0.0f, 0.0f, 1.0f });
 
-			vk::RenderPassBeginInfo passInfo(
-				mRenderPass,
-				mPresentFramebuffers[i],
-				vk::Rect2D(vk::Offset2D{0, 0},
-					mSwapChain.getExtent()),
-				clearVal
-			);
+		vk::RenderPassBeginInfo passInfo(
+			mRenderPass,
+			mPresentFramebuffers[frame->getImageIdx()],
+			vk::Rect2D(vk::Offset2D{0, 0},
+				mSwapChain.getExtent()),
+			clearVal
+		);
 
-			buff.beginRenderPass(passInfo, vk::SubpassContents::eInline);
+		buff.beginRenderPass(passInfo, vk::SubpassContents::eInline);
 
-			buff.bindPipeline(vk::PipelineBindPoint::eGraphics, mGraphicsPipeline);
+		buff.bindPipeline(vk::PipelineBindPoint::eGraphics, mGraphicsPipeline);
 
-			vk::DeviceSize offset = 0;
-			buff.bindVertexBuffers(0, 1, &mVertexBuffer.getVkBuffer(), &offset);
-			buff.bindIndexBuffer(mIndexBuffer.getVkBuffer(), 0, vk::IndexType::eUint16);
+		vk::DeviceSize offset = 0;
+		buff.bindVertexBuffers(0, 1, &mVertexBuffer.getVkBuffer(), &offset);
+		buff.bindIndexBuffer(mIndexBuffer.getVkBuffer(), 0, vk::IndexType::eUint16);
 
-			buff.bindDescriptorSets(
-				vk::PipelineBindPoint::eGraphics,
-				mPipLayout,
-				0, 1, &mDescriptorSets[i],	// first set, descriptors sets
-				0, nullptr					// dynamic offsets
-			);
+		buff.bindDescriptorSets(
+			vk::PipelineBindPoint::eGraphics,
+			mPipLayout,
+			0, 1, &mDescriptorSets[frame->getImageIdx()],	// first set, descriptors sets
+			0, nullptr					// dynamic offsets
+		);
 
-			buff.drawIndexed(
-				static_cast<uint32_t>(indices.size()), // index count
-				1, 0, 0, 0	// instance count, and offsets
-			);
+		buff.drawIndexed(
+			static_cast<uint32_t>(indices.size()), // index count
+			1, 0, 0, 0	// instance count, and offsets
+		);
 
-			buff.endRenderPass();
+		buff.endRenderPass();
 
-			buff.end();
-		}
+		buff.end();
+
+		return buff;
 
 	}
 

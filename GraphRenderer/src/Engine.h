@@ -29,9 +29,7 @@ namespace gr
 		vkg::Window mWindow = vkg::Window(1280, 1024, "Test");
 
 
-		std::vector<vk::CommandBuffer> mPresentCommandBuffers;
 		std::vector<vk::Framebuffer> mPresentFramebuffers;
-		std::vector<vk::CommandBuffer> mGraphicCommandBuffers;
 		vkg::RenderPass mRenderPass;
 
 		vk::PipelineLayout mPipLayout;
@@ -54,14 +52,15 @@ namespace gr
 		vk::DescriptorSetLayout mDescriptorSetLayout;
 		std::vector<vk::DescriptorSet> mDescriptorSets;
 
-		void draw(const FrameContext& frameContext);
+		void draw(FrameContext& frameContext);
 
 		void updateUBO(const FrameContext& frameContext, uint32_t currentImage);
 
 		void createRenderPass();
 		void recreateSwapChain();
 
-		void createAndRecordGraphicCommandBuffers(FrameContext* frame);
+		vk::CommandBuffer createAndRecordGraphicCommandBuffers(FrameContext* frame);
+
 
 		void createShaderModules();
 

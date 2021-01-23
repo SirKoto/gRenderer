@@ -147,6 +147,9 @@
     <ClCompile Include="src\graphics\command\ResetCommandPool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\graphics\command\CommandFlusher.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engine.h">
@@ -256,6 +259,9 @@
     </ClInclude>
     <ClInclude Include="src\graphics\command\ResetCommandPool.h">
       <Filter>Header Files\vkg\commands</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\command\CommandFlusher.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

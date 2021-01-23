@@ -28,6 +28,12 @@ void gr::FrameContext::recreateCommandPools()
 	mPools = rc().createCommandPools();
 }
 
+void gr::FrameContext::destroy()
+{
+	commandFlusher().destroy(rc());
+	destroyCommandPools();
+}
+
 void gr::FrameContext::destroyCommandPools()
 {
 	if (mPools.graphicsPool.get()) {

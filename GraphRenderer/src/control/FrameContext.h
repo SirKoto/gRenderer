@@ -1,5 +1,6 @@
 #pragma once
 #include "../graphics/RenderContext.h"
+#include "../graphics/command/CommandFlusher.h"
 
 namespace gr
 {
@@ -22,6 +23,8 @@ public:
 
 	void setFrameId(uint32_t id) { mFrameId = id; }
 	uint32_t getIdx() const { return mFrameId; }
+	void setImageIdx(uint32_t idx) { mImageIdx = idx; }
+	uint32_t getImageIdx() const { return mImageIdx; }
 
 	void updateTime(double_t newTime);
 
@@ -37,20 +40,28 @@ public:
 	vkg::ResetCommandPool& transferPool() { return mPools.transferTransientPool; };
 	const vkg::ResetCommandPool& transferPool() const { return mPools.transferTransientPool; };
 
+	vkg::CommandFlusher& commandFlusher() { return mCommandFlusher; }
+	const vkg::CommandFlusher& commandFlusher() const { return mCommandFlusher; }
+
 
 	void resetFrameResources();
 	void recreateCommandPools();
-	void destroyCommandPools();
 
+	void destroy();
 
 private:
 	uint32_t mFrameId = 0;
+	uint32_t mImageIdx = 0;
 	double_t mTime = 0.0;
 	std::array<double_t, 3> mDeltaTimes = {};
 	double_t mDeltaTime = 1/30.0;
 	vkg::RenderContext* mRenderContext;
 
+	vkg::CommandFlusher mCommandFlusher;
 	vkg::RenderContext::CommandPools mPools;
+
+	void destroyCommandPools();
+
 };
 
 }

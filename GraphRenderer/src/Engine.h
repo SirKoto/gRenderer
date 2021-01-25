@@ -21,7 +21,7 @@ namespace gr
 		void run();
 
 	protected:
-		static constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 2;
+		static constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 3;
 
 		std::array<FrameContext, MAX_FRAMES_IN_FLIGHT> mContexts;
 		std::unique_ptr<vkg::RenderContext> pRenderContext;
@@ -30,6 +30,7 @@ namespace gr
 
 
 		std::vector<vk::Framebuffer> mPresentFramebuffers;
+		std::vector<vk::Framebuffer> mStageFramebufer;
 		vkg::RenderPass mRenderPass;
 
 		vk::PipelineLayout mPipLayout;
@@ -37,9 +38,10 @@ namespace gr
 		vk::Pipeline mGraphicsPipeline;
 
 		uint32_t mCurrentFrame = 0;
+		vk::Semaphore mFrameAvailableTimelineSemaphore;
 		std::array<vk::Semaphore, MAX_FRAMES_IN_FLIGHT> mImageAvailableSemaphores;
 		std::array<vk::Semaphore, MAX_FRAMES_IN_FLIGHT> mRenderingFinishedSemaphores;
-		std::array<vk::Fence, MAX_FRAMES_IN_FLIGHT> mInFlightFences;
+		std::array<uint64_t, MAX_FRAMES_IN_FLIGHT> mInFlightSemaphoreValues;
 		std::vector<vk::Fence> mImagesInFlightFences;
 
 		vkg::Buffer mVertexBuffer;
@@ -51,6 +53,8 @@ namespace gr
 		vkg::DescriptorManager mDescriptorManager;
 		vk::DescriptorSetLayout mDescriptorSetLayout;
 		std::vector<vk::DescriptorSet> mDescriptorSets;
+
+		uint32_t mCommandFlusherGraphicsBlock;
 
 		void draw(FrameContext& frameContext);
 

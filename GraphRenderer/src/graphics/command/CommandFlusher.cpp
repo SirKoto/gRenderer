@@ -1,69 +1,134 @@
 #include "CommandFlusher.h"
 
-#include "../../control/FrameContext.h"
-
 namespace gr
 {
 namespace vkg
 {
 
-void CommandFlusher::setNumControls(
-	const RenderContext& rc, 
-	uint32_t num)
+uint32_t CommandFlusher::createNewBlock(Type type)
 {
-	mNumControls = num;
-	uint32_t actualSize = static_cast<uint32_t>(mSemaphores.size());
-	if (num > actualSize) {
-		mSemaphores.resize(num);
-		for (uint32_t i = actualSize; i < num; ++i) {
-			mSemaphores[i] = rc.createSemaphore();
-		}
-	}
-	else {
-		// not implemented yet
+	uint32_t idx = std::numeric_limits<uint32_t>::max();
+	switch (type)
+	{
+	case gr::vkg::CommandFlusher::Type::eGRAPHICS:
+		mGraphicsBlocks.push_back({});
+		idx = static_cast<uint32_t>(mGraphicsBlocks.size() - 1);
+		break;
+	case gr::vkg::CommandFlusher::Type::eTRANSFER:
+		mTransferBlocks.push_back({});
+		idx = static_cast<uint32_t>(mTransferBlocks.size() - 1);
+		break;
+	default:
 		assert(false);
 	}
+	return idx;
 }
-
-void CommandFlusher::flush(const FrameContext& fc, vk::Fence graphicsSignalFence)
+void CommandFlusher::flush(vk::Fence graphicsSignalFence)
 {
-	vk::SubmitInfo info(
-		0, nullptr, nullptr,
-		static_cast<uint32_t>(transfer.size()),
-		transfer.data(),
-		1, mSemaphores.data() + fc.getImageIdx()
-	);
+	struct SubmitInfo {
+		vk::SubmitInfo info;
+		vk::TimelineSemaphoreSubmitInfo semaphoreInfo;
+	};
+	std::vector<vk::SubmitInfo> submits;
+	std::vector<vk::TimelineSemaphoreSubmitInfo> semaphoreInfo;
 
-	fc.rc().getTransferQueue().submit({ info }, nullptr);
-	
-	mExternalGraphicsWaitSemaphores.push_back(mSemaphores[fc.getImageIdx()]);
-	mExternalGraphicsWaitStage.push_back(vk::PipelineStageFlagBits::eTopOfPipe);
-
-	info = vk::SubmitInfo  (
-		static_cast<uint32_t>(mExternalGraphicsWaitSemaphores.size()),
-		mExternalGraphicsWaitSemaphores.data(), mExternalGraphicsWaitStage.data(),
-		static_cast<uint32_t>(graphics.size()),
-		graphics.data(),
-		static_cast<uint32_t>(mExternalGraphicsSignalSemaphore.size()),
-		mExternalGraphicsSignalSemaphore.data()
-	);
-
-	fc.rc().getGraphicsQueue().submit({ info }, graphicsSignalFence);
+	submits.reserve(std::max(mTransferBlocks.size(), mGraphicsBlocks.size()));
+	semaphoreInfo.reserve(std::max(mTransferBlocks.size(), mGraphicsBlocks.size()));
 
 
-	graphics.clear();
-	transfer.clear();
-	mExternalGraphicsWaitSemaphores.clear();
-	mExternalGraphicsWaitStage.clear();
-	mExternalGraphicsSignalSemaphore.clear();
-}
+	for (const FlushBlock& blk : mTransferBlocks) {
 
-void CommandFlusher::destroy(const RenderContext& rc)
-{
-	for (vk::Semaphore s : mSemaphores) {
-		rc.destroy(s);
+		semaphoreInfo.push_back(
+		vk::TimelineSemaphoreSubmitInfo(
+			blk.waitValues,
+			blk.signalValues)
+		);
+
+		submits.push_back(
+			vk::SubmitInfo(
+				blk.waitSemaphores,
+				blk.waitStages,
+				blk.commands,
+				blk.signalSemaphores
+			));
+		submits.back().setPNext(&semaphoreInfo.back());
 	}
-	mSemaphores.clear();
+
+
+	mTransferQueue.submit(submits, nullptr);
+
+	submits.clear();
+	semaphoreInfo.clear();
+
+	for (const FlushBlock& blk : mGraphicsBlocks) {
+
+		semaphoreInfo.push_back(
+			vk::TimelineSemaphoreSubmitInfo(
+				blk.waitValues,
+				blk.signalValues)
+		);
+
+		submits.push_back(
+			vk::SubmitInfo(
+				blk.waitSemaphores,
+				blk.waitStages,
+				blk.commands,
+				blk.signalSemaphores
+			));
+		submits.back().setPNext(&semaphoreInfo.back());
+	}
+
+	mGraphicsQueue.submit(submits, graphicsSignalFence);
+
+	for (FlushBlock& blk : mTransferBlocks) {
+		blk.clear();
+	}
+	for (FlushBlock& blk : mGraphicsBlocks) {
+		blk.clear();
+	}
+}
+
+void CommandFlusher::pushCB(Type type, uint32_t block, vk::CommandBuffer cmd)
+{
+	FlushBlock* pBlk = getBlock(type, block);
+	pBlk->commands.push_back(cmd);
+}
+
+void CommandFlusher::pushWait(const Type type, const uint32_t block, const vk::Semaphore waitSemaphore, const vk::PipelineStageFlags waitStage, const uint64_t waitValue)
+{
+	FlushBlock* pBlk = getBlock(type, block);
+	pBlk->waitSemaphores.push_back(waitSemaphore);
+	pBlk->waitStages.push_back(waitStage);
+	pBlk->waitValues.push_back(waitValue);
+}
+
+void CommandFlusher::pushSignal(const Type type, const uint32_t block, const vk::Semaphore signalSemaphore, const uint64_t signalValue)
+{
+	FlushBlock* pBlk = getBlock(type, block);
+	pBlk->signalSemaphores.push_back(signalSemaphore);
+	pBlk->signalValues.push_back(signalValue);
+}
+
+
+CommandFlusher::FlushBlock* CommandFlusher::getBlock(const Type type, const uint32_t block)
+{
+	FlushBlock* pBlk = nullptr;
+
+	switch (type)
+	{
+	case gr::vkg::CommandFlusher::Type::eGRAPHICS:
+		assert(block < static_cast<uint32_t>(mGraphicsBlocks.size()));
+		pBlk = mGraphicsBlocks.data() + block;
+		break;
+	case gr::vkg::CommandFlusher::Type::eTRANSFER:
+		assert(block < static_cast<uint32_t>(mTransferBlocks.size()));
+		pBlk = mTransferBlocks.data() + block;
+		break;
+	default:
+		assert(false);
+	}
+
+	return pBlk;
 }
 
 } // namespace vkg

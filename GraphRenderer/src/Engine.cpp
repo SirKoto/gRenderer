@@ -72,13 +72,17 @@ namespace gr
 
 		createSyncObjects();
 
-		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+		/*for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
 			mContexts[i] = FrameContext(i, pRenderContext.get());
 			mContexts[i].recreateCommandPools();
 			mContexts[i].commandFlusher().setNumControls(*pRenderContext, mSwapChain.getNumImages());
+		}*/
+		{
+			std::vector<FrameContext> v = FrameContext::createContexts(MAX_FRAMES_IN_FLIGHT, pRenderContext.get());
+			std::copy_n(std::make_move_iterator(v.begin()), MAX_FRAMES_IN_FLIGHT, mContexts.begin());
+			mCommandFlusherGraphicsBlock = pRenderContext->getCommandFlusher()->createNewBlock(CommandFlusher::Type::eGRAPHICS);
 		}
 
-		
 		createRenderPass();
 		mPresentFramebuffers = mSwapChain.createFramebuffersOfSwapImages(mRenderPass);
 
@@ -101,13 +105,26 @@ namespace gr
 
 		pRenderContext->waitIdle();
 
+		// init to start with frame zero
+		mCurrentFrame = MAX_FRAMES_IN_FLIGHT - 1;
+
 		while (!mWindow.windowShouldClose()) {
 			// advance frame
 			mCurrentFrame = (mCurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+			mContexts[mCurrentFrame].advanceFrameCount();
 
 			// Wait for current frame, if it was still being executed
 			{
-				vk::Result res = pRenderContext->getDevice().waitForFences(1, mInFlightFences.data() + mCurrentFrame, true, UINT64_MAX);
+				//vk::Result res2 = pRenderContext->getDevice().waitForFences(1, mInFlightFences.data() + mCurrentFrame, true, UINT64_MAX);
+				
+				uint64_t waitValue = mContexts[mCurrentFrame].getFrameCount();
+				vk::SemaphoreWaitInfo waitInfo(
+					vk::SemaphoreWaitFlags{},
+					1, &mFrameAvailableTimelineSemaphore,
+					&waitValue
+				);
+				vk::Result res = pRenderContext->getDevice().waitSemaphores(waitInfo, UINT64_MAX);
+				
 				assert(res == vk::Result::eSuccess);
 			}
 
@@ -152,24 +169,31 @@ namespace gr
 			return;
 		}
 
-		frameContext.commandFlusher().pushGraphicsCB(createAndRecordGraphicCommandBuffers(mContexts.data() + mCurrentFrame));
-		frameContext.commandFlusher().pushExternalGraphicsWait(mImageAvailableSemaphores[frameContext.getIdx()], vk::PipelineStageFlagBits::eColorAttachmentOutput);
-		frameContext.commandFlusher().pushExternalGraphicsSignal(mRenderingFinishedSemaphores[frameContext.getIdx()]);
+		frameContext.rc().getCommandFlusher()->pushGraphicsCB(mCommandFlusherGraphicsBlock, createAndRecordGraphicCommandBuffers(mContexts.data() + frameContext.getIdx()));
+		frameContext.rc().getCommandFlusher()->pushWait(vkg::CommandFlusher::Type::eGRAPHICS, mCommandFlusherGraphicsBlock,
+			mImageAvailableSemaphores[frameContext.getIdx()], vk::PipelineStageFlagBits::eColorAttachmentOutput);
+		frameContext.rc().getCommandFlusher()->pushSignal(vkg::CommandFlusher::Type::eGRAPHICS, mCommandFlusherGraphicsBlock,
+			mRenderingFinishedSemaphores[frameContext.getIdx()]);
+		frameContext.rc().getCommandFlusher()->pushSignal(vkg::CommandFlusher::Type::eGRAPHICS, mCommandFlusherGraphicsBlock,
+			mFrameAvailableTimelineSemaphore, frameContext.getNextFrameCount());
 
-		// maybe out of order next image, thus wait also for next image
-		if (mImagesInFlightFences[imageIdx]) {
-			res = pRenderContext->getDevice().waitForFences(1, mImagesInFlightFences.data() + imageIdx, true, UINT64_MAX);
+
+		// maybe out of order next image, thus wait also for next image 
+		{
+			vk::SemaphoreWaitInfo waitInfo(
+				vk::SemaphoreWaitFlags{}, 1,
+				&mFrameAvailableTimelineSemaphore,		// semaphore to wait
+				&mInFlightSemaphoreValues[imageIdx]);	// value to wait
+
+			res = pRenderContext->getDevice().waitSemaphores(waitInfo, UINT64_MAX);
 			assert(res == vk::Result::eSuccess);
+			// update in flight image
+			mInFlightSemaphoreValues[imageIdx] = frameContext.getNextFrameCount();
 		}
-		// update in flight image
-		mImagesInFlightFences[imageIdx] = mInFlightFences[frameContext.getIdx()];
 
-		pRenderContext->getDevice().resetFences(1, mInFlightFences.data() + frameContext.getIdx());
-
-		updateUBO(frameContext, imageIdx);
-
+		updateUBO(frameContext, frameContext.getIdx());
 		
-		frameContext.commandFlusher().flush(frameContext, mInFlightFences[frameContext.getIdx()]);
+		frameContext.rc().getCommandFlusher()->flush();
 
 		bool swapChainNeedsRecreation = 
 			!frameContext.presentPool().submitPresentationImage(
@@ -293,7 +317,7 @@ namespace gr
 		buff.bindDescriptorSets(
 			vk::PipelineBindPoint::eGraphics,
 			mPipLayout,
-			0, 1, &mDescriptorSets[frame->getImageIdx()],	// first set, descriptors sets
+			0, 1, &mDescriptorSets[frame->getIdx()],	// first set, descriptors sets
 			0, nullptr					// dynamic offsets
 		);
 
@@ -353,16 +377,16 @@ namespace gr
 
 	void Engine::createDescriptorSets()
 	{
-		mDescriptorSets.resize(mSwapChain.getNumImages());
+		mDescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
 
 		mDescriptorManager.allocateDescriptorSets(
 			*pRenderContext,
-			mSwapChain.getNumImages(),
+			MAX_FRAMES_IN_FLIGHT,
 			mDescriptorSetLayout,
 			mDescriptorSets.data()
 		);
 
-		for (uint32_t i = 0; i < mSwapChain.getNumImages(); ++i) {
+		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
 			vk::DescriptorBufferInfo buffInfo(
 				mUbos[i].getVkBuffer(), // buffer
 				0, sizeof(UBO) // offset and range
@@ -447,10 +471,12 @@ namespace gr
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
 			mImageAvailableSemaphores[i] = pRenderContext->createSemaphore();
 			mRenderingFinishedSemaphores[i] = pRenderContext->createSemaphore();
-			mInFlightFences[i] = pRenderContext->createFence(true);
 		}
 
+		mInFlightSemaphoreValues.fill(0);
 		mImagesInFlightFences.resize(mSwapChain.getNumImages());
+
+		mFrameAvailableTimelineSemaphore = pRenderContext->createTimelineSemaphore(2 * mContexts.size() - 1);
 	}
 
 	void Engine::createBuffers()
@@ -494,8 +520,8 @@ namespace gr
 	void Engine::createUniformBuffers()
 	{
 		// Create uniform buffer objects
-		mUbos.resize(mSwapChain.getNumImages());
-		for (uint32_t i = 0; i < mSwapChain.getNumImages(); ++i) {
+		mUbos.resize(MAX_FRAMES_IN_FLIGHT);
+		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
 			mUbos[i] = pRenderContext->createUniformBuffer(sizeof(UBO));
 		}
 	}
@@ -623,8 +649,8 @@ namespace gr
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
 			pRenderContext->destroy(mImageAvailableSemaphores[i]);
 			pRenderContext->destroy(mRenderingFinishedSemaphores[i]);
-			pRenderContext->destroy(mInFlightFences[i]);
 		}
+		pRenderContext->destroy(mFrameAvailableTimelineSemaphore);
 
 		cleanupSwapChainDependantObjs();
 		

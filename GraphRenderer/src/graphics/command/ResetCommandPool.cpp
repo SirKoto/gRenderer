@@ -120,11 +120,11 @@ void ResetCommandPool::submitCommandBuffer(
 bool ResetCommandPool::submitPresentationImage(
 	const vk::SwapchainKHR swapChain,
 	const uint32_t imageIdx,
-	const vk::Semaphore* semaphoreToSignal) const
+	const vk::Semaphore* semaphoreToWait) const
 {
 	vk::PresentInfoKHR presentInfo = vk::PresentInfoKHR(
-		semaphoreToSignal != nullptr,	// num semaphores to wait
-		semaphoreToSignal,				// semaphores to wait
+		semaphoreToWait != nullptr,	// num semaphores to wait
+		semaphoreToWait,				// semaphores to wait
 		1,								// num of swap chains where to present
 		&swapChain,						// swap chains
 		&imageIdx,						// image idx for each swap chain

@@ -1,10 +1,9 @@
 #pragma once
 
-#include "../RenderContext.h"
+#include <vulkan/vulkan.hpp>
 
 namespace gr
 {
-class FrameContext;
 
 namespace vkg
 {
@@ -12,40 +11,58 @@ namespace vkg
 class CommandFlusher
 {
 public:
+	CommandFlusher() = default;
+	CommandFlusher(vk::Queue graphicsQueue, vk::Queue transferQueue) : mGraphicsQueue(graphicsQueue), mTransferQueue(transferQueue) {}
 
-	void setNumControls(const RenderContext& rc, uint32_t num);
-
-	void flush(const FrameContext& rc, vk::Fence graphicsSignalFence);
-
-	void pushGraphicsCB(vk::CommandBuffer cmd) { graphics.push_back(cmd); }
-	void pushTransferCB(vk::CommandBuffer cmd) { transfer.push_back(cmd); }
-
-	void pushExternalGraphicsWait(
-		const vk::Semaphore semaphores,
-		const vk::PipelineStageFlags waitStages) {
-			mExternalGraphicsWaitSemaphores.push_back(semaphores); mExternalGraphicsWaitStage.push_back(waitStages);
+	enum class Type {
+		eGRAPHICS,
+		eTRANSFER
 	};
 
-	void pushExternalGraphicsSignal(
-		const vk::Semaphore semaphore
-	) {
-		mExternalGraphicsSignalSemaphore.push_back(semaphore);
-	}
+	uint32_t createNewBlock(Type type);
 
-	void destroy(const RenderContext& rc);
+	void flush(vk::Fence graphicsSignalFence = nullptr);
+
+	void pushGraphicsCB(const uint32_t block, const vk::CommandBuffer cmd) { pushCB(Type::eGRAPHICS, block, cmd); }
+	void pushTransferCB(const uint32_t block, const vk::CommandBuffer cmd) { pushCB(Type::eTRANSFER, block, cmd); }
+
+	void pushCB(const Type type, const uint32_t block, const vk::CommandBuffer cmd);
+	void pushWait(
+		const Type type, const uint32_t block, const vk::Semaphore waitSemaphore,
+		const vk::PipelineStageFlags waitStage, const uint64_t waitValue = 0);
+	void pushSignal(
+		const Type type, const uint32_t block, const vk::Semaphore signalSemaphore, const uint64_t signalValue = 0);
+
 
 protected:
 
-	uint32_t mNumControls;
+	struct FlushBlock {
+		std::vector<vk::CommandBuffer> commands;
+		std::vector<vk::Semaphore> waitSemaphores;
+		std::vector<vk::PipelineStageFlags> waitStages;
+		std::vector<uint64_t> waitValues;
+		std::vector<vk::Semaphore> signalSemaphores;
+		std::vector<uint64_t> signalValues;
+
+		void clear() {
+			this->commands.clear();
+			this->signalSemaphores.clear();
+			this->signalValues.clear();
+			this->waitSemaphores.clear();
+			this->waitStages.clear();
+			this->waitValues.clear();
+		}
+	};
+
+	std::vector<FlushBlock> mTransferBlocks;
+	std::vector<FlushBlock> mGraphicsBlocks;
+
+	vk::Queue mTransferQueue;
+	vk::Queue mGraphicsQueue;
 
 
-	std::vector<vk::CommandBuffer> transfer;
-	std::vector<vk::CommandBuffer> graphics;
+	FlushBlock* getBlock(const Type type, const uint32_t block);
 
-	std::vector<vk::Semaphore> mSemaphores;
-	std::vector<vk::PipelineStageFlags> mExternalGraphicsWaitStage;
-	std::vector<vk::Semaphore> mExternalGraphicsWaitSemaphores;
-	std::vector<vk::Semaphore> mExternalGraphicsSignalSemaphore;
 };
 
 

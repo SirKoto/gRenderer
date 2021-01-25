@@ -1,6 +1,5 @@
 #pragma once
 #include "../graphics/RenderContext.h"
-#include "../graphics/command/CommandFlusher.h"
 
 namespace gr
 {
@@ -8,21 +7,22 @@ namespace gr
 class FrameContext
 {
 public:
-	FrameContext() { mDeltaTimes.fill(1 / 30.0); };
-	FrameContext(uint32_t id, vkg::RenderContext* rc) : mFrameId(id), mRenderContext(rc) {
-		mDeltaTimes.fill(1 / 30.0); 
-	}
-	FrameContext(vkg::RenderContext* rc) : mFrameId(0), mRenderContext(rc) { 
-		mDeltaTimes.fill(1 / 30.0); 
-	}
+
+	static std::vector<FrameContext> createContexts(uint32_t num, vkg::RenderContext* rc);
+
+	FrameContext() = default;
 
 	FrameContext(const FrameContext& o) = default;
 
 	vkg::RenderContext& rc() { return *mRenderContext; }
 	const vkg::RenderContext& rc() const { return *mRenderContext; }
 
-	void setFrameId(uint32_t id) { mFrameId = id; }
+	// From 0 to MAX_FRAMES_IN_FLIGHT
 	uint32_t getIdx() const { return mFrameId; }
+	uint32_t getNumConcurrentFrames() const { return CONCURRENT_FRAMES; }
+	void advanceFrameCount() { mFrameCount += CONCURRENT_FRAMES; }
+	uint64_t getFrameCount() const { return mFrameCount; }
+	uint64_t getNextFrameCount() const { return mFrameCount + CONCURRENT_FRAMES; }
 	void setImageIdx(uint32_t idx) { mImageIdx = idx; }
 	uint32_t getImageIdx() const { return mImageIdx; }
 
@@ -40,27 +40,35 @@ public:
 	vkg::ResetCommandPool& transferPool() { return mPools.transferTransientPool; };
 	const vkg::ResetCommandPool& transferPool() const { return mPools.transferTransientPool; };
 
-	vkg::CommandFlusher& commandFlusher() { return mCommandFlusher; }
-	const vkg::CommandFlusher& commandFlusher() const { return mCommandFlusher; }
-
-
 	void resetFrameResources();
 	void recreateCommandPools();
 
 	void destroy();
 
 private:
+	uint32_t CONCURRENT_FRAMES = 0;
 	uint32_t mFrameId = 0;
+	uint64_t mFrameCount = 0;
 	uint32_t mImageIdx = 0;
 	double_t mTime = 0.0;
-	std::array<double_t, 3> mDeltaTimes = {};
 	double_t mDeltaTime = 1/30.0;
 	vkg::RenderContext* mRenderContext;
 
-	vkg::CommandFlusher mCommandFlusher;
 	vkg::RenderContext::CommandPools mPools;
 
+	struct TimeHandler {
+		double_t globalTime = 0.0;
+		std::array<double_t, 3> deltaTimes;
+		TimeHandler() { deltaTimes.fill(1 / 30.0); }
+	};
+
+	std::shared_ptr<TimeHandler> mTimeHandler;
+
+
 	void destroyCommandPools();
+
+	FrameContext(uint32_t numMax, uint32_t id, vkg::RenderContext* rc, const std::shared_ptr<TimeHandler>& timeHandler) :
+		CONCURRENT_FRAMES(numMax), mFrameId(id), mFrameCount(id), mRenderContext(rc), mTimeHandler(timeHandler) {}
 
 };
 

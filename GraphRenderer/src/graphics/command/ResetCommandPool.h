@@ -28,7 +28,7 @@ namespace vkg
 		bool submitPresentationImage(
 			const vk::SwapchainKHR swapChain,
 			const uint32_t imageIdx,
-			const vk::Semaphore* semaphoreToSignal) const;
+			const vk::Semaphore* semaphoreToWait) const;
 
 		void reset(bool release = false);
 

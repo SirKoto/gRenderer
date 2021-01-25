@@ -6,6 +6,7 @@
 #include "present/SwapChain.h"
 #include "resources/Image2D.h"
 #include "resources/Buffer.h"
+#include "command/CommandFlusher.h"
 
 #include <optional>
 #include <set>
@@ -60,6 +61,7 @@ namespace vkg
 
 
 		vk::Semaphore createSemaphore() const;
+		vk::Semaphore createTimelineSemaphore(uint64_t initialValue = 0) const;
 
 		vk::Fence createFence(bool signaled) const;
 
@@ -91,6 +93,7 @@ namespace vkg
 		bool isPresentQueueCreated() const { return mPresentQueueRequested; }
 
 		vk::SampleCountFlagBits getMsaaSampleCount() const { return mMsaaSamples; }
+		CommandFlusher* getCommandFlusher() { return &mCommandFlusher; }
 
 		void destroy(const vk::RenderPass renderPass) const;
 
@@ -111,6 +114,7 @@ namespace vkg
 		vk::PhysicalDevice mPhysicalDevice;
 		vk::Device mDevice;
 		MemoryManager mMemManager;
+		CommandFlusher mCommandFlusher;
 
 		// Device members
 		vk::Queue mGraphicsQueue;

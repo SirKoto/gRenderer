@@ -270,6 +270,19 @@ void RenderContext::createDevice(bool enableAnisotropySampler,
 		return getDevice().createSemaphore(createInfo);
 	}
 
+	vk::Semaphore RenderContext::createTimelineSemaphore(uint64_t initialValue) const
+	{
+		vk::SemaphoreTypeCreateInfo typeInfo(
+			vk::SemaphoreType::eTimeline,	// Semaphore Type
+			initialValue					// Initial value
+		);
+
+		vk::SemaphoreCreateInfo createInfo;
+		createInfo.setPNext(&typeInfo);
+
+		return getDevice().createSemaphore(createInfo);
+	}
+
 	vk::Fence RenderContext::createFence(bool signaled) const
 	{
 		vk::FenceCreateInfo createInfo(
@@ -482,6 +495,8 @@ void RenderContext::createDevice(bool enableAnisotropySampler,
 		if (mPresentQueueRequested) {
 			mPresentQueue = mDevice.getQueue(mPresentFamilyIdx, 0);
 		}
+
+		mCommandFlusher = CommandFlusher(mGraphicsQueue, mTransferQueue);
 	}
 
 	bool RenderContext::isDeviceSuitable(vk::PhysicalDevice physicalDevice,

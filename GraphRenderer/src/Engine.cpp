@@ -63,6 +63,7 @@ namespace gr
 		using namespace vkg;
 
 		pRenderContext = std::make_unique<vkg::RenderContext>();
+		pRenderContext->createInstance({}, true);
 
 		mWindow.createVkSurface(pRenderContext->getInstance());
 

@@ -9,9 +9,13 @@ namespace gr
 namespace vkg
 {
 
-AppInstance::AppInstance(const std::vector<const char*>& extensionsToLoad, 
+void AppInstance::create(const std::vector<const char*>& extensionsToLoad,
 	bool loadGLFWextensions)
 {
+	if (mInstance) {
+		destroy();
+	}
+
 	if (DebugVk::validationLayersVkEnabled) {
 		bool validationLayersExist = DebugVk::checkValidationLayersSupport();
 		if (!validationLayersExist) {
@@ -70,6 +74,7 @@ void AppInstance::destroy()
 		DebugVk::DestroyDebugUtilsMessengerEXT(mInstance, mDebugMessenger, nullptr);
 	}
 	mInstance.destroy();
+	mInstance = nullptr;
 }
 
 }; // namespace vkg

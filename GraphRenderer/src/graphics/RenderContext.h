@@ -20,10 +20,12 @@ namespace vkg
 	{
 	public:
 
-		RenderContext(std::vector<const char*> extensions = {},
-			bool loadGLFWextensions = true);
+		RenderContext() = default;
 
 		RenderContext(const RenderContext& o) = default;
+
+		void createInstance(std::vector<const char*> extensions = {},
+			bool loadGLFWextensions = true);
 
 		void createDevice(
 			bool enableAnisotropySampler = true,

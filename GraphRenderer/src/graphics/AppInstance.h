@@ -10,8 +10,9 @@ namespace vkg
 	class AppInstance
 	{
 	public:
-		AppInstance(const std::vector<const char*>& extensionsToLoad = {}, bool loadGLFWextensions = true);
+		AppInstance() = default;
 
+		void create(const std::vector<const char*>& extensionsToLoad = {}, bool loadGLFWextensions = true);
 
 		// Cast to instance
 		operator const vk::Instance () const { return mInstance; }

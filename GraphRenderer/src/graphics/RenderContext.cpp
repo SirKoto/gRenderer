@@ -10,9 +10,10 @@ namespace gr
 namespace vkg
 {
 
-RenderContext::RenderContext(std::vector<const char*> extensions, bool loadGLFWextensions)
-	: mInstance(extensions, loadGLFWextensions), mMemManager()
-{ }
+void RenderContext::createInstance(std::vector<const char*> extensions, bool loadGLFWextensions)
+{ 
+	mInstance.create(extensions, loadGLFWextensions);
+}
 
 void RenderContext::createDevice(bool enableAnisotropySampler,
 	const vk::SurfaceKHR* surfaceToRequestSwapChain)

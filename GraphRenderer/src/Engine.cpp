@@ -134,6 +134,8 @@ namespace gr
 
 			draw(mContexts[mCurrentFrame]);
 
+			pRenderContext->flushData();
+
 			Window::pollEvents();
 		}
 
@@ -193,6 +195,16 @@ namespace gr
 		}
 
 		updateUBO(frameContext, frameContext.getIdx());
+
+		// Push wait for transfers
+		{
+			vk::Semaphore sem;
+			uint64_t value;
+			pRenderContext->getTransferer()->updateAndFlushTransfers(
+				pRenderContext.get(), &sem, &value);
+			frameContext.rc().getCommandFlusher()->pushWait(vkg::CommandFlusher::Type::eGRAPHICS, mCommandFlusherGraphicsBlock,
+				sem, vk::PipelineStageFlagBits::eTopOfPipe, value);
+		}
 		
 		frameContext.rc().getCommandFlusher()->flush();
 
@@ -486,35 +498,11 @@ namespace gr
 		size_t IBsize = sizeof(indices[0]) * indices.size();
 		mVertexBuffer = pRenderContext->createVertexBuffer(VBsize);
 		mIndexBuffer = pRenderContext->createIndexBuffer(IBsize);
-		vkg::Buffer stageBuffer = pRenderContext->createStagingBuffer(VBsize + IBsize);
 
-		std::array<const void*, 2> datas = { vertices.data(), indices.data() };
-		std::array<size_t, 2> sizes = { VBsize, IBsize };
-		pRenderContext->transferDataToGPU(stageBuffer, 2, datas.data(), sizes.data());
-
-		vk::CommandBuffer copyCommand = mContexts.front().transferPool().newCommandBuffer();
-
-		copyCommand.begin({ vk::CommandBufferUsageFlagBits::eOneTimeSubmit });
-
-		vk::BufferCopy buffercopy(
-			0, 0, // src and dst offsets
-			VBsize // bytes to copy
-		);
-		copyCommand.copyBuffer(stageBuffer.getVkBuffer(), mVertexBuffer.getVkBuffer(), 1, &buffercopy);
-		buffercopy = vk::BufferCopy(
-			VBsize, 0, // src and dst offsets
-			IBsize // bytes to copy
-		);
-		copyCommand.copyBuffer(stageBuffer.getVkBuffer(), mIndexBuffer.getVkBuffer(), 1, &buffercopy);
-
-		copyCommand.end();
-
-		vk::Fence fence = pRenderContext->createFence(false);
-		mContexts.front().transferPool().submitCommandBuffer(copyCommand, nullptr, {}, nullptr, fence);
-		vk::Result res = pRenderContext->getDevice().waitForFences(1, &fence, true, UINT64_MAX);
-		assert(res == vk::Result::eSuccess);
-		pRenderContext->destroy(fence);
-		pRenderContext->safeDestroyBuffer(stageBuffer);
+		pRenderContext->getTransferer()->transferToBuffer(*pRenderContext,
+			vertices.data(), VBsize, mVertexBuffer);
+		pRenderContext->getTransferer()->transferToBuffer(*pRenderContext,
+			indices.data(), IBsize, mIndexBuffer);
 
 	}
 
@@ -540,11 +528,6 @@ namespace gr
 			throw std::runtime_error("Error: Image can't be loaded!!");
 		}
 
-		// Transfer to GPU
-		vkg::Buffer staging = pRenderContext->createStagingBuffer(imSize);
-		pRenderContext->transferDataToGPU(staging, pix, imSize);
-
-		stbi_image_free(pix);
 
 		mTexture = pRenderContext->createTexture2D(
 			{ static_cast<vk::DeviceSize>(width),
@@ -554,94 +537,23 @@ namespace gr
 			vk::ImageAspectFlagBits::eColor
 		);
 
-		vk::CommandBuffer cmd = mContexts.front().transferPool().newCommandBuffer();
-
-		cmd.begin({ vk::CommandBufferUsageFlagBits::eOneTimeSubmit });
-
-		// First transition image to dstOptimal
-		vk::ImageMemoryBarrier barrier(
-			vk::AccessFlags{}, // src AccessMask
-			vk::AccessFlagBits::eTransferWrite, // dst AccessMask
-			vk::ImageLayout::eUndefined,// old layout
-			vk::ImageLayout::eTransferDstOptimal,// new layout
-			VK_QUEUE_FAMILY_IGNORED,	// src queue family
-			VK_QUEUE_FAMILY_IGNORED,	// dst queue family
-			mTexture.getVkImage(),	// image
-			vk::ImageSubresourceRange( // range
-				vk::ImageAspectFlagBits::eColor,
-				0, 1, 0, 1 // base mip, level count, base array, layer count
-			)
-		);
-
-		cmd.pipelineBarrier(
-			vk::PipelineStageFlagBits::eTopOfPipe, // src stage mask
-			vk::PipelineStageFlagBits::eTransfer, // dst stage mask
-			vk::DependencyFlagBits{},
-			0, nullptr, 0, nullptr, // buffer and memory barrier
-			1, &barrier				// image memory barrier
-		);
-
-		// Copy into image
-
-		vk::BufferImageCopy regionInfo(
-			0, 0u, 0u,	// offset, row length, image height
+		pRenderContext->getTransferer()->transferToImage(
+			*pRenderContext, pix,	// rc and data ptr
+			imSize, mTexture,		// bytes, Image2D
 			vk::ImageSubresourceLayers(
 				vk::ImageAspectFlagBits::eColor,
 				0, 0, 1 // mip level, base array, layer count
-			),		// subresource range
-			vk::Offset3D(0),
-			vk::Extent3D{ mTexture.getExtent(), 1 }
+			),
+			vk::AccessFlagBits::eShaderRead, // dst Access Mask
+			vk::ImageLayout::eShaderReadOnlyOptimal, // dst Image Layout
+			vk::PipelineStageFlagBits::eFragmentShader, // dstStage
+			true
 		);
 
-		cmd.copyBufferToImage(
-			staging.getVkBuffer(), mTexture.getVkImage(),	// src and dst buffer / image
-			vk::ImageLayout::eTransferDstOptimal,			// dst image layout
-			1, &regionInfo									// regions
-		);
-
-		// Transition into shader access
-		barrier.setSrcAccessMask(vk::AccessFlagBits::eTransferWrite);
-		barrier.setDstAccessMask(vk::AccessFlagBits::eShaderRead);
-		barrier.setOldLayout(vk::ImageLayout::eTransferDstOptimal);
-		barrier.setNewLayout(vk::ImageLayout::eShaderReadOnlyOptimal);
-		barrier.setSrcQueueFamilyIndex(pRenderContext->getTransferFamilyIdx());
-		barrier.setDstQueueFamilyIndex(pRenderContext->getGraphicsFamilyIdx());
-
-		cmd.pipelineBarrier(
-			vk::PipelineStageFlagBits::eTransfer, // src stage mask
-			vk::PipelineStageFlagBits::eFragmentShader, // dst stage mask
-			vk::DependencyFlagBits{},
-			0, nullptr, 0, nullptr, // buffer and memory barrier
-			1, &barrier				// image memory barrier
-		);
-
-		cmd.end();
-
-
-		vk::Fence fence = pRenderContext->createFence(false);
-		mContexts.front().transferPool().submitCommandBuffer(cmd, nullptr, {}, nullptr, fence);
+		stbi_image_free(pix);
 
 		// create sampler
 		mTexSampler = pRenderContext->createSampler(vk::SamplerAddressMode::eRepeat);
-
-		vk::Result res = pRenderContext->getDevice().waitForFences(1, &fence, true, UINT64_MAX);
-		assert(res == vk::Result::eSuccess);
-		pRenderContext->destroy(fence);
-
-		pRenderContext->safeDestroyBuffer(staging);
-
-		// because of ownership transfer we need to do transition on graphics
-		cmd = mContexts.front().graphicsPool().newCommandBuffer();
-		cmd.begin({ vk::CommandBufferUsageFlagBits::eOneTimeSubmit });
-		cmd.pipelineBarrier(
-			vk::PipelineStageFlagBits::eTransfer, // src stage mask
-			vk::PipelineStageFlagBits::eFragmentShader, // dst stage mask
-			vk::DependencyFlagBits{},
-			0, nullptr, 0, nullptr, // buffer and memory barrier
-			1, &barrier				// image memory barrier
-		);
-		cmd.end();
-		mContexts.front().graphicsPool().submitCommandBuffer(cmd, nullptr, {}, nullptr);
 	}
 
 	void Engine::cleanup()

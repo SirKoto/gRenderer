@@ -25,6 +25,14 @@ void RenderContext::createDevice(bool enableAnisotropySampler,
 	createQueues();
 
 	mMemManager = MemoryManager(mInstance, mPhysicalDevice, mDevice);
+
+	mGraphicsBufferTransferer.setUpTransferBlocks(this);
+}
+
+void RenderContext::flushData()
+{
+	mGraphicsCommandPool.flushFrees();
+	mTransferCommandPool.flushFrees();
 }
 
 
@@ -218,7 +226,7 @@ void RenderContext::createDevice(bool enableAnisotropySampler,
 	}
 
 
-	void RenderContext::safeDestroyBuffer(Buffer& buffer)
+	void RenderContext::safeDestroyBuffer(Buffer& buffer) const
 	{
 		if (buffer.getAllocation() != nullptr) {
 			mMemManager.freeAllocation(buffer.getAllocation());
@@ -228,6 +236,12 @@ void RenderContext::createDevice(bool enableAnisotropySampler,
 			getDevice().destroyBuffer(buffer.getVkBuffer());
 			buffer.setVkBuffer(nullptr);
 		}
+	}
+
+	void RenderContext::destroy(Buffer& buffer) const
+	{
+		mMemManager.freeAllocation(buffer.getAllocation());
+		getDevice().destroyBuffer(buffer.getVkBuffer());
 	}
 
 	void RenderContext::transferDataToGPU(const Allocatable& allocatable, const void* data, size_t numBytes) const
@@ -260,6 +274,20 @@ void RenderContext::createDevice(bool enableAnisotropySampler,
 
 		mMemManager.unmapMemory(allocatable.getAllocation());
 
+	}
+
+	void RenderContext::mapAllocatable(const Allocatable& allocatable, void** ptr) const
+	{
+		// Check that the allocation is cpu mappable
+		if (!mMemManager.isMemoryMappable(allocatable.getAllocation())) {
+			throw std::logic_error("Trying to map on unmappable memory!!!");
+		}
+		*ptr = mMemManager.mapMemory(allocatable.getAllocation());
+	}
+
+	void RenderContext::unmapAllocatable(const Allocatable& allocatable) const
+	{
+		mMemManager.unmapMemory(allocatable.getAllocation());
 	}
 
 
@@ -351,12 +379,18 @@ void RenderContext::createDevice(bool enableAnisotropySampler,
 
 	void RenderContext::destroy()
 	{
+		mGraphicsBufferTransferer.destroy(this);
+
+
+		mGraphicsCommandPool.destroy();
+		mTransferCommandPool.destroy();
+
 		mMemManager.destroy();
 		mDevice.destroy();
 		mInstance.destroy();
 	}
 
-	RenderContext::CommandPools RenderContext::createCommandPools() const
+	RenderContext::FrameCommandPools RenderContext::createCommandPools() const
 	{
 		ResetCommandPool gp(getGraphicsFamilyIdx(), {}, getDevice());
 
@@ -379,7 +413,7 @@ void RenderContext::createDevice(bool enableAnisotropySampler,
 			vk::CommandPoolCreateFlagBits::eTransient,
 			getDevice());
 
-		CommandPools pools;
+		FrameCommandPools pools;
 		pools.graphicsPool = gp;
 		pools.presentPool = pp;
 		pools.transferTransientPool = tp;
@@ -388,7 +422,7 @@ void RenderContext::createDevice(bool enableAnisotropySampler,
 
 	}
 
-	void RenderContext::destroyCommandPools(CommandPools* pools) const
+	void RenderContext::destroyCommandPools(FrameCommandPools* pools) const
 	{
 		std::set<vk::CommandPool> alreadyDestroyed;
 		alreadyDestroyed.insert(pools->graphicsPool.get());
@@ -498,6 +532,10 @@ void RenderContext::createDevice(bool enableAnisotropySampler,
 		}
 
 		mCommandFlusher = CommandFlusher(mGraphicsQueue, mTransferQueue);
+
+		mGraphicsCommandPool = FreeCommandPool(mGraphicsFamilyIdx, {}, getDevice());
+		mTransferCommandPool = FreeCommandPool(mTransferFamilyIdx, {}, getDevice());
+
 	}
 
 	bool RenderContext::isDeviceSuitable(vk::PhysicalDevice physicalDevice,

@@ -162,6 +162,8 @@
     <ClCompile Include="src\dependencies\stbi_image.cpp" />
     <ClCompile Include="src\Engine.cpp" />
     <ClCompile Include="src\graphics\command\CommandFlusher.cpp" />
+    <ClCompile Include="src\graphics\command\FreeCommandPool.cpp" />
+    <ClCompile Include="src\graphics\memory\BufferTransferer.cpp" />
     <ClCompile Include="src\graphics\RenderContext.cpp" />
     <ClCompile Include="src\graphics\AppInstance.cpp" />
     <ClCompile Include="src\graphics\command\ResetCommandPool.cpp" />
@@ -199,6 +201,8 @@
     <ClInclude Include="src\control\FrameContext.h" />
     <ClInclude Include="src\Engine.h" />
     <ClInclude Include="src\graphics\command\CommandFlusher.h" />
+    <ClInclude Include="src\graphics\command\FreeCommandPool.h" />
+    <ClInclude Include="src\graphics\memory\BufferTransferer.h" />
     <ClInclude Include="src\graphics\RenderContext.h" />
     <ClInclude Include="src\graphics\AppInstance.h" />
     <ClInclude Include="src\graphics\command\ResetCommandPool.h" />

@@ -54,7 +54,7 @@ private:
 	double_t mDeltaTime = 1/30.0;
 	vkg::RenderContext* mRenderContext;
 
-	vkg::RenderContext::CommandPools mPools;
+	vkg::RenderContext::FrameCommandPools mPools;
 
 	struct TimeHandler {
 		double_t globalTime = 0.0;

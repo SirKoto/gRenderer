@@ -150,6 +150,12 @@
     <ClCompile Include="src\graphics\command\CommandFlusher.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\graphics\memory\BufferTransferer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\command\FreeCommandPool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engine.h">
@@ -260,8 +266,14 @@
     <ClInclude Include="src\graphics\command\ResetCommandPool.h">
       <Filter>Header Files\vkg\commands</Filter>
     </ClInclude>
+    <ClInclude Include="src\graphics\command\FreeCommandPool.h">
+      <Filter>Header Files\vkg\commands</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\memory\BufferTransferer.h">
+      <Filter>Header Files\vkg\resources</Filter>
+    </ClInclude>
     <ClInclude Include="src\graphics\command\CommandFlusher.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\vkg\commands</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

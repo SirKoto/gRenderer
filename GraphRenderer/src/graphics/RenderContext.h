@@ -2,7 +2,10 @@
 
 #include "AppInstance.h"
 #include "memory/MemoryManager.h"
+#include "memory/BufferTransferer.h"
 #include "command/ResetCommandPool.h"
+#include "command/FreeCommandPool.h"
+
 #include "present/SwapChain.h"
 #include "resources/Image2D.h"
 #include "resources/Buffer.h"
@@ -32,6 +35,8 @@ namespace vkg
 			const vk::SurfaceKHR* surfaceToRequestSwapChain = nullptr
 		);
 
+		void flushData();
+
 
 		const vk::PhysicalDevice &getPhysicalDevice() const { return mPhysicalDevice; }
 		const vk::Device &getDevice() const { return mDevice; }
@@ -55,12 +60,14 @@ namespace vkg
 		Buffer createStagingBuffer(size_t sizeInBytes) const;
 		Buffer createUniformBuffer(size_t sizeInBytes) const;
 
-		void safeDestroyBuffer(Buffer& buffer);
+
 
 		void transferDataToGPU(const Allocatable& allocatable, const void* data, size_t numBytes) const;
 		// Transfer sequentaly multiple pointers to the same allocatable resource
 		void transferDataToGPU(const Allocatable& allocatable, uint32_t numDatas, const void** datas, size_t* numBytes) const;
 
+		void mapAllocatable(const Allocatable& allocatable, void** ptr) const;
+		void unmapAllocatable(const Allocatable& allocatable) const;
 
 		vk::Semaphore createSemaphore() const;
 		vk::Semaphore createTimelineSemaphore(uint64_t initialValue = 0) const;
@@ -71,15 +78,18 @@ namespace vkg
 
 		void waitIdle() const;
 
-		struct CommandPools
+		struct FrameCommandPools
 		{
 			ResetCommandPool graphicsPool;
 			ResetCommandPool presentPool;
 			ResetCommandPool transferTransientPool;
 		};
 
-		CommandPools createCommandPools() const;
-		void destroyCommandPools(CommandPools* pools) const;
+		FrameCommandPools createCommandPools() const;
+		void destroyCommandPools(FrameCommandPools* pools) const;
+
+		FreeCommandPool* getGraphicsFreeCommandPool() { return &mGraphicsCommandPool; }
+		FreeCommandPool* getTransferFreeCommandPool() { return &mTransferCommandPool; }
 
 
 		vk::Queue getGraphicsQueue() const { return mGraphicsQueue; }
@@ -92,10 +102,17 @@ namespace vkg
 		uint32_t getTransferFamilyIdx() const { return mTransferFamilyIdx; }
 		uint32_t getPresentFamilyIdx() const { return mPresentFamilyIdx; }
 
+		BufferTransferer* getTransferer() {
+			return &mGraphicsBufferTransferer;
+		}
+
 		bool isPresentQueueCreated() const { return mPresentQueueRequested; }
 
 		vk::SampleCountFlagBits getMsaaSampleCount() const { return mMsaaSamples; }
 		CommandFlusher* getCommandFlusher() { return &mCommandFlusher; }
+
+		void safeDestroyBuffer(Buffer& buffer) const;
+		void destroy(Buffer& buffer) const;
 
 		void destroy(const vk::RenderPass renderPass) const;
 
@@ -118,11 +135,16 @@ namespace vkg
 		MemoryManager mMemManager;
 		CommandFlusher mCommandFlusher;
 
+		BufferTransferer mGraphicsBufferTransferer;
+
 		// Device members
 		vk::Queue mGraphicsQueue;
 		vk::Queue mComputeQueue;
 		vk::Queue mTransferQueue;
 		vk::Queue mPresentQueue;
+
+		FreeCommandPool mGraphicsCommandPool;
+		FreeCommandPool mTransferCommandPool;
 
 
 		uint32_t mGraphicsFamilyIdx, mComputeFamilyIdx, mTransferFamilyIdx, mPresentFamilyIdx;

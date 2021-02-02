@@ -13,7 +13,8 @@ ResetCommandPool::ResetCommandPool(uint32_t familyIdx, vk::CommandPoolCreateFlag
 	mCommandSpaces(grjob::getNumThreads()), mDevice(device)
 {
 	vk::CommandPoolCreateInfo createInfo(
-		flags | vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+		flags | vk::CommandPoolCreateFlagBits::eResetCommandBuffer
+			  | vk::CommandPoolCreateFlagBits::eTransient,
 		familyIdx);
 
 	for (uint32_t i = 0; i < static_cast<uint32_t>(mCommandSpaces.size()); ++i) {
@@ -160,6 +161,8 @@ void ResetCommandPool::destroy()
 		mDevice.destroyCommandPool(poolS.pool);
 		poolS.pool = nullptr;
 	}
+
+	mCommandSpaces.clear();
 }
 
 ResetCommandPool::operator vk::CommandPool() const

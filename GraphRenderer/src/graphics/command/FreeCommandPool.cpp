@@ -81,7 +81,7 @@ FreeCommandPool::FreeCommandBuffer FreeCommandPool::newCommandBuffer()
 
 void FreeCommandPool::flushFrees()
 {
-	for (CommandPoolSpace poolS : mCommandSpace) {
+	for (CommandPoolSpace& poolS : mCommandSpace) {
 		mDevice.freeCommandBuffers(poolS.pool, poolS.toFree);
 		poolS.toFree.clear();
 	}

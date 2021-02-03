@@ -25,10 +25,7 @@ uint32_t CommandFlusher::createNewBlock(Type type)
 }
 void CommandFlusher::flush(vk::Fence graphicsSignalFence)
 {
-	struct SubmitInfo {
-		vk::SubmitInfo info;
-		vk::TimelineSemaphoreSubmitInfo semaphoreInfo;
-	};
+	
 	std::vector<vk::SubmitInfo> submits;
 	std::vector<vk::TimelineSemaphoreSubmitInfo> semaphoreInfo;
 

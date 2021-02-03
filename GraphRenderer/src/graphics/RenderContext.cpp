@@ -501,6 +501,8 @@ void RenderContext::flushData()
 
 		vk::PhysicalDeviceFeatures features;
 		features.samplerAnisotropy = mAnisotropySamplerEnabled;
+		vk::PhysicalDeviceVulkan12Features features12;
+		features12.timelineSemaphore = true;
 
 		std::vector<const char*> deviceExtensions;
 		if (mPresentQueueRequested) {
@@ -513,6 +515,7 @@ void RenderContext::flushData()
 		createInfo.pEnabledFeatures = &features;
 		createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
 		createInfo.ppEnabledExtensionNames = deviceExtensions.data();
+		createInfo.setPNext(&features12);
 
 		if (DebugVk::validationLayersVkEnabled) {
 			createInfo.enabledLayerCount = static_cast<uint32_t>(DebugVk::validationLayersArray.size());

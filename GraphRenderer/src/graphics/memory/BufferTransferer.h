@@ -102,6 +102,8 @@ protected:
 
 		void reset(RenderContext* rc);
 
+		bool empty() const;
+
 		TransferSpace(vk::Semaphore s) : semaphore(s) {}
 	};
 	

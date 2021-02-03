@@ -163,7 +163,7 @@ void BufferTransferer::updateAndFlushTransfers(
 				mGraphicsBlock, ts.semaphore, ts.value);
 			rc->getCommandFlusher()->pushWait(CommandFlusher::Type::eGRAPHICS,
 				mGraphicsBlock, ts.semaphore,
-				vk::PipelineStageFlagBits::eFragmentShader, transferSignalValue);
+				vk::PipelineStageFlagBits::eTransfer, transferSignalValue);
 		}
 	}
 
@@ -174,26 +174,36 @@ void BufferTransferer::updateAndFlushTransfers(
 
 	this->updateTransferStates(rc);
 
-
 }
 
 
 
 void BufferTransferer::updateTransferStates(RenderContext* rc)
 {
-	
+
 	for (TransferSpace& ts : mTransferSpaces) {
 		if (ts.inUse) {
-			bool finished =
-				rc->getDevice().getSemaphoreCounterValue(ts.semaphore) >= ts.value;
-			if (finished) {
-				for (const TransferOp& op : ts.bufferTransferOps) {
-					mStagingBuffers[op.stageBuffIdx].free(op.srcOffset);
-				}
+			if (ts.empty()) {
 				ts.reset(rc);
+			}
+			else {
+				uint64_t value = rc->getDevice().getSemaphoreCounterValue(ts.semaphore);
+				bool finished = value >= ts.value;
+				if (finished) {
+					for (const TransferOp& op : ts.bufferTransferOps) {
+						mStagingBuffers[op.stageBuffIdx].free(op.srcOffset);
+					}
+					for (const ImageTransferOp& op : ts.imageTransfersFragmentOps) {
+						mStagingBuffers[op.stageBuffIdx].free(op.srcOffset);
+					}
+					ts.reset(rc);
+				}
 			}
 		}
 	}
+
+	mCurrentSpace = findOrCreateTransferSpace(*rc);
+
 }
 
 void BufferTransferer::transferToBuffer(
@@ -346,13 +356,18 @@ void BufferTransferer::TransferSpace::reset(RenderContext* rc)
 		rc->getGraphicsFreeCommandPool()->freeCommandBuffer(this->graphicsCmd);
 	}
 	if (this->transferCmd) {
-		rc->getTransferFreeCommandPool()->freeCommandBuffer(transferCmd);
+		rc->getTransferFreeCommandPool()->freeCommandBuffer(this->transferCmd);
 	}
 	this->graphicsCmd = nullptr;
 	this->transferCmd = nullptr;
 
 	this->bufferTransferOps.clear();
 	this->imageTransfersFragmentOps.clear();
+}
+
+bool BufferTransferer::TransferSpace::empty() const
+{
+	return this->bufferTransferOps.empty() && this->imageTransfersFragmentOps.empty();
 }
 
 } // namespace vkg

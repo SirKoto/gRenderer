@@ -159,6 +159,7 @@
     <ClCompile Include="imgui\imgui_tables.cpp" />
     <ClCompile Include="imgui\imgui_widgets.cpp" />
     <ClCompile Include="src\control\FrameContext.cpp" />
+    <ClCompile Include="src\control\GlobalContext.cpp" />
     <ClCompile Include="src\dependencies\stbi_image.cpp" />
     <ClCompile Include="src\Engine.cpp" />
     <ClCompile Include="src\graphics\command\CommandFlusher.cpp" />
@@ -199,6 +200,7 @@
     <ClInclude Include="imgui\imstb_textedit.h" />
     <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="src\control\FrameContext.h" />
+    <ClInclude Include="src\control\GlobalContext.h" />
     <ClInclude Include="src\Engine.h" />
     <ClInclude Include="src\graphics\command\CommandFlusher.h" />
     <ClInclude Include="src\graphics\command\FreeCommandPool.h" />

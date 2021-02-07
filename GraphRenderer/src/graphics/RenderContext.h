@@ -85,7 +85,7 @@ namespace vkg
 			ResetCommandPool transferTransientPool;
 		};
 
-		FrameCommandPools createCommandPools() const;
+		void createCommandPools(FrameCommandPools* pools) const;
 		void destroyCommandPools(FrameCommandPools* pools) const;
 
 		FreeCommandPool* getGraphicsFreeCommandPool() { return &mGraphicsCommandPool; }

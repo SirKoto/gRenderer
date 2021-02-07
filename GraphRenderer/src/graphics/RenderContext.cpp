@@ -390,19 +390,19 @@ void RenderContext::flushData()
 		mInstance.destroy();
 	}
 
-	RenderContext::FrameCommandPools RenderContext::createCommandPools() const
+	void RenderContext::createCommandPools(RenderContext::FrameCommandPools* pools) const
 	{
 		ResetCommandPool gp(getGraphicsFamilyIdx(), {}, getDevice());
 
 		ResetCommandPool pp;
 
-		if (getPresentFamilyIdx() == getGraphicsFamilyIdx())
-		{
-			pp = gp;
-		}
-		else {
+		//if (getPresentFamilyIdx() == getGraphicsFamilyIdx())
+		//{
+		//	pp = std::move(gp);
+		//}
+		//else {
 			pp = ResetCommandPool(getPresentFamilyIdx(), {}, getDevice());
-		}
+		//}
 
 		if (getGraphicsFamilyIdx() == getTransferFamilyIdx()) {
 			throw std::runtime_error("Graphics family is the same as the transfer family!!");
@@ -413,13 +413,9 @@ void RenderContext::flushData()
 			vk::CommandPoolCreateFlagBits::eTransient,
 			getDevice());
 
-		FrameCommandPools pools;
-		pools.graphicsPool = gp;
-		pools.presentPool = pp;
-		pools.transferTransientPool = tp;
-
-		return pools;
-
+		pools->graphicsPool = std::move(gp);
+		pools->presentPool = std::move(pp);
+		pools->transferTransientPool = std::move(tp);
 	}
 
 	void RenderContext::destroyCommandPools(FrameCommandPools* pools) const

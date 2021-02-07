@@ -62,7 +62,7 @@ namespace gr
 	{
 		using namespace vkg;
 
-		pRenderContext = std::make_unique<vkg::RenderContext>();
+		vkg::RenderContext* pRenderContext = &mGlobalContext.rc();
 		pRenderContext->createInstance({}, true);
 
 		mWindow.createVkSurface(pRenderContext->getInstance());
@@ -79,7 +79,7 @@ namespace gr
 			mContexts[i].commandFlusher().setNumControls(*pRenderContext, mSwapChain.getNumImages());
 		}*/
 		{
-			std::vector<FrameContext> v = FrameContext::createContexts(MAX_FRAMES_IN_FLIGHT, pRenderContext.get());
+			std::vector<FrameContext> v = FrameContext::createContexts(MAX_FRAMES_IN_FLIGHT, &mGlobalContext);
 			std::copy_n(std::make_move_iterator(v.begin()), MAX_FRAMES_IN_FLIGHT, mContexts.begin());
 			mCommandFlusherGraphicsBlock = pRenderContext->getCommandFlusher()->createNewBlock(CommandFlusher::Type::eGRAPHICS);
 		}
@@ -188,7 +188,7 @@ namespace gr
 				&mFrameAvailableTimelineSemaphore,		// semaphore to wait
 				&mInFlightSemaphoreValues[imageIdx]);	// value to wait
 
-			res = pRenderContext->getDevice().waitSemaphores(waitInfo, UINT64_MAX);
+			res = mGlobalContext.rc().getDevice().waitSemaphores(waitInfo, UINT64_MAX);
 			assert(res == vk::Result::eSuccess);
 			// update in flight image
 			mInFlightSemaphoreValues[imageIdx] = frameContext.getNextFrameCount();
@@ -200,8 +200,8 @@ namespace gr
 		{
 			vk::Semaphore sem;
 			uint64_t value;
-			pRenderContext->getTransferer()->updateAndFlushTransfers(
-				pRenderContext.get(), &sem, &value);
+			mGlobalContext.rc().getTransferer()->updateAndFlushTransfers(
+				&mGlobalContext.rc(), &sem, &value);
 			frameContext.rc().getCommandFlusher()->pushWait(vkg::CommandFlusher::Type::eGRAPHICS, mCommandFlusherGraphicsBlock,
 				sem, vk::PipelineStageFlagBits::eTopOfPipe, value);
 		}
@@ -234,7 +234,7 @@ namespace gr
 			0.1f, 10.0f);
 		ubo.P[1][1] *= -1.0;
 
-		pRenderContext->transferDataToGPU(mUbos[currentImage], &ubo, sizeof(ubo));
+		mGlobalContext.rc().transferDataToGPU(mUbos[currentImage], &ubo, sizeof(ubo));
 	}
 
 	void Engine::createRenderPass()
@@ -269,7 +269,7 @@ namespace gr
 
 		builder.pushSubpassDependency(dependency);
 
-		mRenderPass =  builder.buildRenderPass(*pRenderContext);
+		mRenderPass =  builder.buildRenderPass(mGlobalContext.rc());
 	}
 
 
@@ -280,11 +280,11 @@ namespace gr
 			mWindow.waitEvents();
 		}
 
-		pRenderContext->waitIdle();
+		mGlobalContext.rc().waitIdle();
 
 		cleanupSwapChainDependantObjs();
 
-		mSwapChain.recreateSwapChain(*pRenderContext, mWindow);
+		mSwapChain.recreateSwapChain(mGlobalContext.rc(), mWindow);
 
 		createRenderPass();
 
@@ -302,7 +302,7 @@ namespace gr
 		vk::CommandBuffer buff = cmdPool.newCommandBuffer();
 
 
-		const uint32_t graphicsQueueFamilyIdx = pRenderContext->getGraphicsFamilyIdx();
+		const uint32_t graphicsQueueFamilyIdx = mGlobalContext.rc().getGraphicsFamilyIdx();
 
 		vk::CommandBufferBeginInfo beginInfo = {};
 
@@ -351,8 +351,8 @@ namespace gr
 	{
 		{
 			grjob::Job jobs[2];
-			jobs[0] = grjob::Job(&vkg::RenderContext::createShaderModule, pRenderContext.get(), "resources/shaders/SPIR-V/sampler.vert.spv", mShaderModules + 0);
-			jobs[1] = grjob::Job(&vkg::RenderContext::createShaderModule, pRenderContext.get(), "resources/shaders/SPIR-V/sampler.frag.spv", mShaderModules + 1);
+			jobs[0] = grjob::Job(&vkg::RenderContext::createShaderModule, &mGlobalContext.rc(), "resources/shaders/SPIR-V/sampler.vert.spv", mShaderModules + 0);
+			jobs[1] = grjob::Job(&vkg::RenderContext::createShaderModule, &mGlobalContext.rc(), "resources/shaders/SPIR-V/sampler.frag.spv", mShaderModules + 1);
 			grjob::Counter* c = nullptr;
 
 			grjob::runJobBatch(gr::grjob::Priority::eMid, jobs, 2, &c);
@@ -384,7 +384,7 @@ namespace gr
 			bindings
 		);
 
-		mDescriptorSetLayout = pRenderContext->getDevice().createDescriptorSetLayout(createInfo);
+		mDescriptorSetLayout = mGlobalContext.rc().getDevice().createDescriptorSetLayout(createInfo);
 
 	}
 
@@ -393,7 +393,7 @@ namespace gr
 		mDescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
 
 		mDescriptorManager.allocateDescriptorSets(
-			*pRenderContext,
+			mGlobalContext.rc(),
 			MAX_FRAMES_IN_FLIGHT,
 			mDescriptorSetLayout,
 			mDescriptorSets.data()
@@ -434,7 +434,7 @@ namespace gr
 				nullptr // texel buffer view
 			);
 
-			pRenderContext->getDevice().updateDescriptorSets(
+			mGlobalContext.rc().getDevice().updateDescriptorSets(
 				static_cast<uint32_t>(writeDesc.size()),
 					writeDesc.data(),	// write descriptions
 				0, nullptr		// copy descriptions
@@ -450,7 +450,7 @@ namespace gr
 			0, nullptr // push constants
 		);
 
-		mPipLayout = pRenderContext->getDevice().createPipelineLayout(createInfo);
+		mPipLayout = mGlobalContext.rc().getDevice().createPipelineLayout(createInfo);
 	}
 
 	void Engine::createGraphicsPipeline()
@@ -476,32 +476,32 @@ namespace gr
 		builder.setColorBlendAttachmentStd();
 		builder.setPipelineLayout(mPipLayout);
 
-		mGraphicsPipeline = builder.createPipeline(pRenderContext->getDevice(), mRenderPass, 0);
+		mGraphicsPipeline = builder.createPipeline(mGlobalContext.rc().getDevice(), mRenderPass, 0);
 	}
 
 	void Engine::createSyncObjects()
 	{
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
-			mImageAvailableSemaphores[i] = pRenderContext->createSemaphore();
-			mRenderingFinishedSemaphores[i] = pRenderContext->createSemaphore();
+			mImageAvailableSemaphores[i] = mGlobalContext.rc().createSemaphore();
+			mRenderingFinishedSemaphores[i] = mGlobalContext.rc().createSemaphore();
 		}
 
 		mInFlightSemaphoreValues.fill(0);
 		mImagesInFlightFences.resize(mSwapChain.getNumImages());
 
-		mFrameAvailableTimelineSemaphore = pRenderContext->createTimelineSemaphore(2 * mContexts.size() - 1);
+		mFrameAvailableTimelineSemaphore = mGlobalContext.rc().createTimelineSemaphore(2 * mContexts.size() - 1);
 	}
 
 	void Engine::createBuffers()
 	{
 		size_t VBsize = sizeof(vertices[0]) * vertices.size();
 		size_t IBsize = sizeof(indices[0]) * indices.size();
-		mVertexBuffer = pRenderContext->createVertexBuffer(VBsize);
-		mIndexBuffer = pRenderContext->createIndexBuffer(IBsize);
+		mVertexBuffer = mGlobalContext.rc().createVertexBuffer(VBsize);
+		mIndexBuffer = mGlobalContext.rc().createIndexBuffer(IBsize);
 
-		pRenderContext->getTransferer()->transferToBuffer(*pRenderContext,
+		mGlobalContext.rc().getTransferer()->transferToBuffer(mGlobalContext.rc(),
 			vertices.data(), VBsize, mVertexBuffer);
-		pRenderContext->getTransferer()->transferToBuffer(*pRenderContext,
+		mGlobalContext.rc().getTransferer()->transferToBuffer(mGlobalContext.rc(),
 			indices.data(), IBsize, mIndexBuffer);
 
 	}
@@ -511,7 +511,7 @@ namespace gr
 		// Create uniform buffer objects
 		mUbos.resize(MAX_FRAMES_IN_FLIGHT);
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
-			mUbos[i] = pRenderContext->createUniformBuffer(sizeof(UBO));
+			mUbos[i] = mGlobalContext.rc().createUniformBuffer(sizeof(UBO));
 		}
 	}
 
@@ -529,7 +529,7 @@ namespace gr
 		}
 
 
-		mTexture = pRenderContext->createTexture2D(
+		mTexture = mGlobalContext.rc().createTexture2D(
 			{ static_cast<vk::DeviceSize>(width),
 				static_cast<vk::DeviceSize>(height)}, // extent
 			1, vk::SampleCountFlagBits::e1, // mip levels and samples
@@ -537,8 +537,8 @@ namespace gr
 			vk::ImageAspectFlagBits::eColor
 		);
 
-		pRenderContext->getTransferer()->transferToImage(
-			*pRenderContext, pix,	// rc and data ptr
+		mGlobalContext.rc().getTransferer()->transferToImage(
+			mGlobalContext.rc(), pix,	// rc and data ptr
 			imSize, mTexture,		// bytes, Image2D
 			vk::ImageSubresourceLayers(
 				vk::ImageAspectFlagBits::eColor,
@@ -553,47 +553,47 @@ namespace gr
 		stbi_image_free(pix);
 
 		// create sampler
-		mTexSampler = pRenderContext->createSampler(vk::SamplerAddressMode::eRepeat);
+		mTexSampler = mGlobalContext.rc().createSampler(vk::SamplerAddressMode::eRepeat);
 	}
 
 	void Engine::cleanup()
 	{
 		// destroy sync objects
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
-			pRenderContext->destroy(mImageAvailableSemaphores[i]);
-			pRenderContext->destroy(mRenderingFinishedSemaphores[i]);
+			mGlobalContext.rc().destroy(mImageAvailableSemaphores[i]);
+			mGlobalContext.rc().destroy(mRenderingFinishedSemaphores[i]);
 		}
-		pRenderContext->destroy(mFrameAvailableTimelineSemaphore);
+		mGlobalContext.rc().destroy(mFrameAvailableTimelineSemaphore);
 
 		cleanupSwapChainDependantObjs();
 		
 		// Destroy Buffers
-		pRenderContext->safeDestroyBuffer(mVertexBuffer);
-		pRenderContext->safeDestroyBuffer(mIndexBuffer);
+		mGlobalContext.rc().safeDestroyBuffer(mVertexBuffer);
+		mGlobalContext.rc().safeDestroyBuffer(mIndexBuffer);
 		
-		pRenderContext->safeDestroyImage(mTexture);
+		mGlobalContext.rc().safeDestroyImage(mTexture);
 
-		pRenderContext->destroy(mTexSampler);
+		mGlobalContext.rc().destroy(mTexSampler);
 
 		// layout
-		pRenderContext->getDevice().destroyDescriptorSetLayout(mDescriptorSetLayout);
+		mGlobalContext.rc().getDevice().destroyDescriptorSetLayout(mDescriptorSetLayout);
 
-		pRenderContext->getDevice().destroyPipelineLayout(mPipLayout);
+		mGlobalContext.rc().getDevice().destroyPipelineLayout(mPipLayout);
 
-		pRenderContext->destroy(mShaderModules[0]);
-		pRenderContext->destroy(mShaderModules[1]);
+		mGlobalContext.rc().destroy(mShaderModules[0]);
+		mGlobalContext.rc().destroy(mShaderModules[1]);
 
-		mDescriptorManager.destroy(*pRenderContext);
+		mDescriptorManager.destroy(mGlobalContext.rc());
 	}
 
 	void Engine::cleanupSwapChainDependantObjs()
 	{
 		for (vk::Framebuffer frambuffer : mPresentFramebuffers) {
-			pRenderContext->destroy(frambuffer);
+			mGlobalContext.rc().destroy(frambuffer);
 		}
 
 		for (vkg::Buffer& b : mUbos) {
-			pRenderContext->safeDestroyBuffer(b);
+			mGlobalContext.rc().safeDestroyBuffer(b);
 		}
 
 		// free descriptor sets
@@ -601,8 +601,8 @@ namespace gr
 			mDescriptorManager.freeDescriptorSet(set, mDescriptorSetLayout);
 		}
 
-		pRenderContext->getDevice().destroyPipeline(mGraphicsPipeline);
-		pRenderContext->destroy(mRenderPass);
+		mGlobalContext.rc().getDevice().destroyPipeline(mGraphicsPipeline);
+		mGlobalContext.rc().destroy(mRenderPass);
 	}
 
 }; // namespace gr

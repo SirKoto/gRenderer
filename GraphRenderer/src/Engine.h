@@ -23,8 +23,10 @@ namespace gr
 	protected:
 		static constexpr uint32_t MAX_FRAMES_IN_FLIGHT = 3;
 
+		GlobalContext mGlobalContext;
+
 		std::array<FrameContext, MAX_FRAMES_IN_FLIGHT> mContexts;
-		std::unique_ptr<vkg::RenderContext> pRenderContext;
+		
 		vkg::SwapChain mSwapChain;
 		vkg::Window mWindow = vkg::Window(1280, 1024, "Test");
 

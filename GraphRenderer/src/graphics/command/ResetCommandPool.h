@@ -12,7 +12,12 @@ namespace vkg
 	{
 	public:
 		ResetCommandPool();
+		ResetCommandPool(ResetCommandPool&& o) = default;
 		ResetCommandPool(uint32_t familyIdx, vk::CommandPoolCreateFlags flags, vk::Device device);
+
+		ResetCommandPool& operator=(const ResetCommandPool& o) = delete;
+		ResetCommandPool& operator=(ResetCommandPool&& o) = default;
+
 
 		// num must be different from zero
 		std::vector<vk::CommandBuffer> newCommandBuffers(const uint32_t num);

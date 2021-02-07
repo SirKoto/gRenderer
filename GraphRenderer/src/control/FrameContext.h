@@ -1,5 +1,5 @@
 #pragma once
-#include "../graphics/RenderContext.h"
+#include "GlobalContext.h"
 
 namespace gr
 {
@@ -8,14 +8,18 @@ class FrameContext
 {
 public:
 
-	static std::vector<FrameContext> createContexts(uint32_t num, vkg::RenderContext* rc);
+	static std::vector<FrameContext> createContexts(
+		uint32_t num, GlobalContext* globalContext);
 
 	FrameContext() = default;
+	FrameContext(FrameContext&&) = default;
+	FrameContext& operator=(const FrameContext&) = delete;
+	FrameContext& operator=(FrameContext&&) = default;
 
-	FrameContext(const FrameContext& o) = default;
 
-	vkg::RenderContext& rc() { return *mRenderContext; }
-	const vkg::RenderContext& rc() const { return *mRenderContext; }
+
+	vkg::RenderContext& rc() { return mGlobalContext->rc(); }
+	const vkg::RenderContext& rc() const { return mGlobalContext->rc(); }
 
 	// From 0 to MAX_FRAMES_IN_FLIGHT
 	uint32_t getIdx() const { return mFrameId; }
@@ -52,23 +56,17 @@ private:
 	uint32_t mImageIdx = 0;
 	double_t mTime = 0.0;
 	double_t mDeltaTime = 1/30.0;
-	vkg::RenderContext* mRenderContext;
 
 	vkg::RenderContext::FrameCommandPools mPools;
 
-	struct TimeHandler {
-		double_t globalTime = 0.0;
-		std::array<double_t, 3> deltaTimes;
-		TimeHandler() { deltaTimes.fill(1 / 30.0); }
-	};
+	GlobalContext* mGlobalContext;
 
-	std::shared_ptr<TimeHandler> mTimeHandler;
 
 
 	void destroyCommandPools();
 
-	FrameContext(uint32_t numMax, uint32_t id, vkg::RenderContext* rc, const std::shared_ptr<TimeHandler>& timeHandler) :
-		CONCURRENT_FRAMES(numMax), mFrameId(id), mFrameCount(id), mRenderContext(rc), mTimeHandler(timeHandler) {}
+	FrameContext(uint32_t numMax, uint32_t id, GlobalContext* globalContext) :
+		CONCURRENT_FRAMES(numMax), mFrameId(id), mFrameCount(id), mGlobalContext(globalContext) {}
 
 };
 

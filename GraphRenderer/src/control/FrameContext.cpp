@@ -1,38 +1,34 @@
 #include "FrameContext.h"
 
 
-std::vector<gr::FrameContext> gr::FrameContext::createContexts(uint32_t num, gr::vkg::RenderContext* rc)
+std::vector<gr::FrameContext> gr::FrameContext::createContexts(
+	uint32_t num, GlobalContext* globalContext)
 {
-	assert(rc);
-	if (!rc->getDevice()) {
+	assert(globalContext);
+	if (!globalContext->rc().getDevice()) {
 		throw std::logic_error("Device not created in contexts creation!!");
 	}
 
-	std::shared_ptr<TimeHandler> timeHandler = std::make_shared<TimeHandler>();
 
 	std::vector<FrameContext> contexts;
 	contexts.reserve(num);
 	for (uint32_t i = 0; i < num; ++i) {
-		contexts.push_back(FrameContext{ num, i, rc, timeHandler });
+		contexts.emplace_back(FrameContext{ num, i, globalContext });
 		contexts.back().recreateCommandPools();
 	}
 
 	return contexts;
 }
 
+
+
 void gr::FrameContext::updateTime(double_t newTime)
 {
-	double_t dt = newTime - mTimeHandler->globalTime;
-	mTimeHandler->globalTime = newTime;
+	mGlobalContext->setTime(newTime);
 	mTime = newTime;
 
-	mDeltaTime = 0.0f;
-	for (uint32_t i = 0; i < static_cast<uint32_t>(mTimeHandler->deltaTimes.size()) - 1; ++i) {
-		mDeltaTime += mTimeHandler->deltaTimes[i + 1];
-		mTimeHandler->deltaTimes[i] = mTimeHandler->deltaTimes[i + 1];
-	}
-	mTimeHandler->deltaTimes.back() = dt;
-	mDeltaTime = (mDeltaTime + dt) / mTimeHandler->deltaTimes.size();
+	
+	mDeltaTime = mGlobalContext->computeDeltaTime();
 }
 
 void gr::FrameContext::resetFrameResources()
@@ -45,7 +41,7 @@ void gr::FrameContext::resetFrameResources()
 void gr::FrameContext::recreateCommandPools()
 {
 	destroyCommandPools();
-	mPools = rc().createCommandPools();
+	rc().createCommandPools(&mPools);
 }
 
 void gr::FrameContext::destroy()

@@ -156,6 +156,9 @@
     <ClCompile Include="src\graphics\command\FreeCommandPool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\control\GlobalContext.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engine.h">
@@ -274,6 +277,9 @@
     </ClInclude>
     <ClInclude Include="src\graphics\command\CommandFlusher.h">
       <Filter>Header Files\vkg\commands</Filter>
+    </ClInclude>
+    <ClInclude Include="src\control\GlobalContext.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

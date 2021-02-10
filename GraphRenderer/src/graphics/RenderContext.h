@@ -9,6 +9,8 @@
 #include "present/SwapChain.h"
 #include "resources/Image2D.h"
 #include "resources/Buffer.h"
+#include "resources/DescriptorManager.h"
+
 #include "command/CommandFlusher.h"
 
 #include <optional>
@@ -51,7 +53,10 @@ namespace vkg
 			vk::Format format,
 			vk::ImageAspectFlags ImageAspect = vk::ImageAspectFlagBits::eColor);
 
-		void safeDestroyImage(Image& image);
+		Image2D createImage2DColorAttachment(const vk::Extent2D& extent,
+			uint32_t mipLevels,
+			vk::SampleCountFlagBits numSamples,
+			vk::Format format);
 
 		vk::Sampler createSampler(vk::SamplerAddressMode addressMode) const;
 
@@ -59,7 +64,7 @@ namespace vkg
 		Buffer createIndexBuffer(size_t sizeInBytes) const;
 		Buffer createStagingBuffer(size_t sizeInBytes) const;
 		Buffer createUniformBuffer(size_t sizeInBytes) const;
-
+		Buffer createCpuVisibleBuffer(size_t sizeInBytes, vk::BufferUsageFlags usageFlags) const;
 
 
 		void transferDataToGPU(const Allocatable& allocatable, const void* data, size_t numBytes) const;
@@ -68,6 +73,7 @@ namespace vkg
 
 		void mapAllocatable(const Allocatable& allocatable, void** ptr) const;
 		void unmapAllocatable(const Allocatable& allocatable) const;
+		void flushAllocations(const VmaAllocation* allocations, uint32_t num);
 
 		vk::Semaphore createSemaphore() const;
 		vk::Semaphore createTimelineSemaphore(uint64_t initialValue = 0) const;
@@ -111,8 +117,24 @@ namespace vkg
 		vk::SampleCountFlagBits getMsaaSampleCount() const { return mMsaaSamples; }
 		CommandFlusher* getCommandFlusher() { return &mCommandFlusher; }
 
+		DescriptorManager& getDescriptorManager() { return mDescriptorManager; }
+		const DescriptorManager& getDescriptorManager() const { return mDescriptorManager; }
+
+		void allocateDescriptorSet(uint32_t num,
+			const vk::DescriptorSetLayout layout,
+			vk::DescriptorSet* outLayouts) {
+			return mDescriptorManager.allocateDescriptorSets(*this, num, layout, outLayouts);
+		}
+
+		void freeDescriptorSet(vk::DescriptorSet set, vk::DescriptorSetLayout layout) {
+			getDescriptorManager().freeDescriptorSet(set, layout);
+		}
+
 		void safeDestroyBuffer(Buffer& buffer) const;
-		void destroy(Buffer& buffer) const;
+		void destroy(const Buffer& buffer) const;
+
+		void safeDestroyImage(Image& image) const;
+		void destroy(const Image& image) const;
 
 		void destroy(const vk::RenderPass renderPass) const;
 
@@ -126,6 +148,12 @@ namespace vkg
 
 		void destroy(vk::Sampler sampler) const;
 
+		void destroy(vk::Pipeline pip) const { mDevice.destroyPipeline(pip); }
+		
+		void destroy(vk::PipelineLayout pipLayout) const { mDevice.destroyPipelineLayout(pipLayout); }
+
+		void destroy(vk::DescriptorSetLayout setLayout) const { mDevice.destroyDescriptorSetLayout(setLayout); }
+		
 		void destroy();
 
 	protected:
@@ -136,6 +164,7 @@ namespace vkg
 		CommandFlusher mCommandFlusher;
 
 		BufferTransferer mGraphicsBufferTransferer;
+		DescriptorManager mDescriptorManager;
 
 		// Device members
 		vk::Queue mGraphicsQueue;

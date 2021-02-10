@@ -2,9 +2,8 @@
 
 #include "control/FrameContext.h"
 #include "graphics/present/SwapChain.h"
-#include "graphics/Window.h"
 #include "graphics/render/RenderPass.h"
-#include "graphics/resources/DescriptorManager.h"
+#include "gui/Gui.h"
 
 namespace gr
 {
@@ -28,11 +27,11 @@ namespace gr
 		std::array<FrameContext, MAX_FRAMES_IN_FLIGHT> mContexts;
 		
 		vkg::SwapChain mSwapChain;
-		vkg::Window mWindow = vkg::Window(1280, 1024, "Test");
 
+		Gui mGui;
 
 		std::vector<vk::Framebuffer> mPresentFramebuffers;
-		std::vector<vk::Framebuffer> mStageFramebufer;
+		vkg::Image2D mColorImage;
 		vkg::RenderPass mRenderPass;
 
 		vk::PipelineLayout mPipLayout;
@@ -52,7 +51,6 @@ namespace gr
 		vkg::Image2D mTexture;
 		vk::Sampler mTexSampler;
 
-		vkg::DescriptorManager mDescriptorManager;
 		vk::DescriptorSetLayout mDescriptorSetLayout;
 		std::vector<vk::DescriptorSet> mDescriptorSets;
 
@@ -79,6 +77,7 @@ namespace gr
 
 		void createSyncObjects();
 
+		void createFrameBufferObjects();
 
 		void createBuffers();
 		void createUniformBuffers();

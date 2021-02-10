@@ -2,9 +2,56 @@
 
 #include <algorithm>
 
-gr::vkg::VertexInputDescription::Binding& gr::vkg::VertexInputDescription::Binding::addAttribute(uint32_t location, uint32_t numFloats, uint32_t offset)
+gr::vkg::VertexInputDescription::Binding& gr::vkg::VertexInputDescription::Binding::addAttributeFloat(uint32_t location, uint32_t numFloats, uint32_t offset)
 {
-	mAttributes.emplace_back(location, numFloats, offset);
+
+	vk::Format format;
+	switch (numFloats)
+	{
+	case 1:
+		format = vk::Format::eR32Sfloat;
+		break;
+	case 2:
+		format = vk::Format::eR32G32Sfloat;
+		break;
+	case 3:
+		format = vk::Format::eR32G32B32Sfloat;
+		break;
+	case 4:
+		format = vk::Format::eR32G32B32A32Sfloat;
+		break;
+	default:
+		throw std::runtime_error("Binding attribute with non supported format");
+		break;
+	}
+
+	mAttributes.emplace_back(location, format, offset);
+	return *this;
+}
+
+gr::vkg::VertexInputDescription::Binding& gr::vkg::VertexInputDescription::Binding::addAttribute8UNORM(uint32_t location, uint32_t numUnsigned, uint32_t offset)
+{
+	vk::Format format;
+	switch (numUnsigned)
+	{
+	case 1:
+		format = vk::Format::eR8Unorm;
+		break;
+	case 2:
+		format = vk::Format::eR8G8Unorm;
+		break;
+	case 3:
+		format = vk::Format::eR8G8B8Unorm;
+		break;
+	case 4:
+		format = vk::Format::eR8G8B8A8Unorm;
+		break;
+	default:
+		throw std::runtime_error("Binding attribute with non supported format");
+		break;
+	}
+
+	mAttributes.emplace_back(location, format, offset);
 	return *this;
 }
 
@@ -47,28 +94,10 @@ std::vector<vk::VertexInputAttributeDescription> gr::vkg::VertexInputDescription
 	for (const Binding& bind : mBindings) {
 		for (const Attribute& attrib : bind.getAttributes()) {
 
-			vk::Format format;
-			switch (attrib.getNumFloats())
-			{
-			case 1:
-				format = vk::Format::eR32Sfloat;
-				break;
-			case 2:
-				format = vk::Format::eR32G32Sfloat;
-				break;
-			case 3:
-				format = vk::Format::eR32G32B32Sfloat;
-				break;
-			case 4:
-				format = vk::Format::eR32G32B32A32Sfloat;
-				break;
-			default:
-				throw std::runtime_error("Binding attribute with non supported format");
-				break;
-			}
+			
 
 			attribDesc[numAttribs] = vk::VertexInputAttributeDescription(
-				attrib.getLocation(), bind.getBindId(), format, attrib.getOffset()
+				attrib.getLocation(), bind.getBindId(), attrib.getFormat(), attrib.getOffset()
 			);
 
 			numAttribs += 1;

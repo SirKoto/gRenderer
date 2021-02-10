@@ -8,14 +8,18 @@ namespace gr
 namespace vkg
 {
 
-Window::Window(int width, int heigth, const std::string& windowTitle) : 
-	mWidth(width), mHeight(heigth)
+void Window::initialize(int width, int heigth, const std::string& windowTitle)
 {
+	assert(width > 0 && heigth > 0);
+	mWidth = width;
+	mHeight = heigth;
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
 	mWindow = glfwCreateWindow(width, heigth, windowTitle.c_str(), nullptr, nullptr);
 }
+
+
 
 
 

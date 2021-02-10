@@ -13,8 +13,8 @@ namespace vkg
 	class Window
 	{
 	public:
-		Window() = delete;
-		Window(int width, int heigth, const std::string& windowTitle);
+
+		void initialize(int width, int heigth, const std::string& windowTitle);
 
 		int getWidth() const { return mWidth; }
 		int getHeigth() const {	return mHeight; }
@@ -41,7 +41,7 @@ namespace vkg
 
 	private:
 
-		const int mWidth, mHeight;
+		int mWidth, mHeight;
 		void* mWindow;
 		vk::SurfaceKHR mSurface;
 

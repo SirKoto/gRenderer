@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../RenderContext.h"
+#include <vulkan/vulkan.hpp>
 
 #include <unordered_map>
 
@@ -11,12 +11,16 @@ namespace vkg
 {
 
 
-
+class RenderContext;
 class DescriptorManager
 {
 public:
 	DescriptorManager() = default;
 	DescriptorManager(const RenderContext& context);
+
+
+	DescriptorManager& operator=(const DescriptorManager& o) = delete;
+
 	void initialize(const RenderContext& context);
 
 	void destroy(const RenderContext& context);

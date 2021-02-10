@@ -44,8 +44,15 @@ public:
 	// RGBA, no blending
 	void setColorBlendAttachmentStd();
 
+	void setColorBlendAttachmentAlphaBlending();
+
 	// Pipeline Layout
 	void setPipelineLayout(vk::PipelineLayout layout);
+
+	// Dynamic State
+	void addDynamicState(vk::DynamicState state);
+
+	void setFrontFace(vk::FrontFace frontFace) { mRasterizationState.setFrontFace(frontFace); }
 
 	vk::Pipeline createPipeline(vk::Device device, vk::RenderPass renderPass, uint32_t subpass) const;
 
@@ -57,6 +64,9 @@ protected:
 	// Pipeline Vertex Input State
 	std::vector<vk::VertexInputBindingDescription> mVertInBindings;
 	std::vector<vk::VertexInputAttributeDescription> mVertInAttributes;
+
+	// Dynamic States
+	std::vector<vk::DynamicState> mDynamicStates;
 
 	// PipelineInputAssemblyState
 	vk::PrimitiveTopology mTopology = vk::PrimitiveTopology::eTriangleList;

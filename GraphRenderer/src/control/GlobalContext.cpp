@@ -19,3 +19,9 @@ double_t gr::GlobalContext::computeDeltaTime() const
 	}
     return dt;
 }
+
+void gr::GlobalContext::destroy()
+{
+	mWindow.destroy(mRenderContext.getInstance());
+	mRenderContext.destroy();
+}

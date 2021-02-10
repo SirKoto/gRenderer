@@ -23,20 +23,20 @@ public:
 	{
 	public:
 		Attribute() = default;
-		Attribute(uint32_t location, uint32_t numFloats, uint32_t offset) :
-		 mLocation(location), mNumFloats(numFloats), mOffset(offset) {}
+		Attribute(uint32_t location, vk::Format format, uint32_t offset) :
+		 mLocation(location), mFormat(format), mOffset(offset) {}
 
 		void setLocation(uint32_t location) { mLocation = location; }
-		void setNumFloats(uint32_t numFloats) { mNumFloats = numFloats; }
+		void setFormat(vk::Format format) { mFormat = format; }
 		void setOffset(uint32_t offset) { mOffset = offset; }
 
 		const uint32_t& getLocation() const { return mLocation; }
-		const uint32_t& getNumFloats() const { return mNumFloats; }
+		const vk::Format& getFormat() const { return mFormat; }
 		const uint32_t& getOffset() const { return mOffset; }
 
 	private:
 		uint32_t mLocation;
-		uint32_t mNumFloats;
+		vk::Format mFormat;
 		uint32_t mOffset;
 	};
 
@@ -54,7 +54,8 @@ public:
 		const uint32_t& getStride() const { return mStride; }
 		const std::vector<Attribute>& getAttributes() const { return mAttributes; }
 
-		Binding& addAttribute(uint32_t location, uint32_t numFloats, uint32_t offset);
+		Binding& addAttributeFloat(uint32_t location, uint32_t numFloats, uint32_t offset);
+		Binding& addAttribute8UNORM(uint32_t location, uint32_t numUnsigned, uint32_t offset);
 
 	private:
 		uint32_t mBindId;

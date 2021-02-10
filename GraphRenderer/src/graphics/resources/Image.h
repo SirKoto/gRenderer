@@ -16,6 +16,8 @@ namespace vkg
 		vk::Image getVkImage() const { return mImage; }
 		vk::ImageView getVkImageview() const { return mImageView; }
 
+		operator bool() const { return mImage; }
+
 	protected:
 		vk::Image mImage;
 		vk::ImageView mImageView;

@@ -43,6 +43,8 @@ namespace vkg
 		
 		void unmapMemory(VmaAllocation allocation) const;
 
+		void flushAllocations(const VmaAllocation* allocations, uint32_t num) const;
+
 		void destroy();
 
 	private:

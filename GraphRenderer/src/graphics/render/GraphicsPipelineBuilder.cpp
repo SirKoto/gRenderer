@@ -89,9 +89,31 @@ void GraphicsPipelineBuilder::setColorBlendAttachmentStd()
 				vk::ColorComponentFlagBits::eA);
 }
 
+void GraphicsPipelineBuilder::setColorBlendAttachmentAlphaBlending()
+{
+	mColorBlendAttachment =
+		vk::PipelineColorBlendAttachmentState(
+			true,									// active blend
+			vk::BlendFactor::eSrcAlpha,				// srcColorBlendFactor
+			vk::BlendFactor::eOneMinusSrcAlpha,		// dstColorBlendFactor
+			vk::BlendOp::eAdd,						// colorBlendOp
+			vk::BlendFactor::eOne,					// srcAlphaBlendFactor
+			vk::BlendFactor::eZero,					// dstAlphaBlendFactor
+			vk::BlendOp::eAdd,						// alphaBlendOp
+			vk::ColorComponentFlagBits::eR |		// colorWriteMask
+			vk::ColorComponentFlagBits::eG |
+			vk::ColorComponentFlagBits::eB |
+			vk::ColorComponentFlagBits::eA);
+}
+
 void GraphicsPipelineBuilder::setPipelineLayout(vk::PipelineLayout layout)
 {
 	mPipLayout = layout;
+}
+
+void GraphicsPipelineBuilder::addDynamicState(vk::DynamicState state)
+{
+	mDynamicStates.push_back(state);
 }
 
 vk::Pipeline GraphicsPipelineBuilder::createPipeline(
@@ -148,6 +170,10 @@ vk::Pipeline GraphicsPipelineBuilder::createPipeline(
 		{}			// blendConstants
 	);
 
+	vk::PipelineDynamicStateCreateInfo dynamicState(
+		{}, mDynamicStates
+	);
+
 	vk::GraphicsPipelineCreateInfo createInfo(
 		{}, // flags
 		shaderStages, // shader stages
@@ -159,7 +185,7 @@ vk::Pipeline GraphicsPipelineBuilder::createPipeline(
 		&multisampleState,
 		nullptr, // depth stencil
 		&colorBlendState,
-		nullptr, // dynamic state
+		&dynamicState, // dynamic state
 		mPipLayout,
 		renderPass,
 		subpass

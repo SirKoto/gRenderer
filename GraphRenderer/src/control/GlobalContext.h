@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../graphics/RenderContext.h"
+#include "../graphics/Window.h"
 
 namespace gr
 {
@@ -13,16 +14,21 @@ public:
 
 	vkg::RenderContext& rc() { return mRenderContext; }
 	const vkg::RenderContext& rc() const { return mRenderContext; }
+	vkg::Window& getWindow() { return mWindow; }
+	const vkg::Window& getWindow() const { return mWindow; }
 
 	double_t getTime() const { return mGlobalTime; }
 	void setTime(double_t newTime);
 	double_t computeDeltaTime() const;
+
+	void destroy();
 
 private:
 	double_t mGlobalTime = 0.0;
 	std::array<double_t, 3> mDeltaTimes;
 
 	vkg::RenderContext mRenderContext;
+	vkg::Window mWindow;
 };
 
 } // namespace gr

@@ -170,12 +170,20 @@ bool SwapChain::acquireNextImageBlock(const vk::Semaphore semaphore, uint32_t* i
 	return result.result != vk::Result::eErrorOutOfDateKHR;
 }
 
-std::vector<vk::Framebuffer> SwapChain::createFramebuffersOfSwapImages(const vk::RenderPass renderPass) const
+std::vector<vk::Framebuffer> SwapChain::createFramebuffersOfSwapImages(
+	const vk::RenderPass renderPass,
+	const uint32_t numAttachments,
+	const vk::ImageView* attachments_) const
 {
+	std::vector<vk::ImageView> attachments(numAttachments + 1);
+	for (uint32_t i = 0; i < numAttachments; ++i) {
+		attachments[i] = attachments_[i];
+	}
 	vk::FramebufferCreateInfo createInfo = vk::FramebufferCreateInfo(
 		{},			// flags
 		renderPass,
-		1, nullptr,
+		numAttachments + 1,
+		attachments.data(),
 		mExtent.width,
 		mExtent.height,
 		1
@@ -186,7 +194,7 @@ std::vector<vk::Framebuffer> SwapChain::createFramebuffersOfSwapImages(const vk:
 	std::vector<vk::Framebuffer> framebuffers(size);
 
 	for (uint32_t i = 0; i < size; ++i) {
-		createInfo.setPAttachments(mImageViews.data() + i);
+		attachments.back() = mImageViews[i];
 
 		framebuffers[i] = mDevice.createFramebuffer(createInfo);
 	}

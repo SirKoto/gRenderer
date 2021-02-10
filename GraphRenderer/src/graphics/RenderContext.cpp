@@ -27,6 +27,8 @@ void RenderContext::createDevice(bool enableAnisotropySampler,
 	mMemManager = MemoryManager(mInstance, mPhysicalDevice, mDevice);
 
 	mGraphicsBufferTransferer.setUpTransferBlocks(this);
+
+	mDescriptorManager.initialize(*this);
 }
 
 void RenderContext::flushData()
@@ -43,8 +45,6 @@ void RenderContext::flushData()
 		vk::Format format,
 		vk::ImageAspectFlags imageAspect)
 	{
-
-
 		vk::ImageCreateInfo createInfo(
 			{},							// flags
 			vk::ImageType::e2D,			// Image Type
@@ -97,7 +97,65 @@ void RenderContext::flushData()
 		return r_image;
 	}
 
-	void RenderContext::safeDestroyImage(Image& image)
+	Image2D RenderContext::createImage2DColorAttachment(
+		const vk::Extent2D& extent,
+		uint32_t mipLevels, 
+		vk::SampleCountFlagBits numSamples,
+		vk::Format format)
+	{
+		vk::ImageCreateInfo createInfo(
+			{},							// flags
+			vk::ImageType::e2D,			// Image Type
+			format,						// Format
+			vk::Extent3D(extent, 1),	// Extent
+			mipLevels,					// Mip levels
+			1,							// Array layers
+			numSamples,					// SampleCount
+			vk::ImageTiling::eOptimal,	// Image Tiling
+			vk::ImageUsageFlagBits::eColorAttachment |
+			vk::ImageUsageFlagBits::eTransientAttachment,	// Image usage
+			vk::SharingMode::eExclusive,
+			0, nullptr, // concurrent families
+			vk::ImageLayout::eUndefined	// initial layout
+		);
+
+		vk::Image image;
+		VmaAllocation alloc;
+
+		mMemManager.createImageAllocation(createInfo,
+			vk::MemoryPropertyFlagBits::eDeviceLocal,
+			vk::MemoryPropertyFlagBits::eDeviceLocal,
+			&image,
+			&alloc);
+
+		vk::ImageViewCreateInfo ivCreateInfo(
+			{},						// flags
+			image,					// image
+			vk::ImageViewType::e2D, // image view type
+			format,					// format
+			{},						// no component mapping
+			vk::ImageSubresourceRange(
+				vk::ImageAspectFlagBits::eColor,			// aspect
+				0,						// base mip level
+				mipLevels,				// level count
+				0,						// base array layer
+				1						// layer count
+			)
+		);
+		vk::ImageView imageView =
+			getDevice().createImageView(ivCreateInfo);
+
+
+		Image2D r_image;
+		r_image.setExtent(extent);
+		r_image.setImage(image);
+		r_image.setAllocation(alloc);
+		r_image.setImageView(imageView);
+
+		return r_image;
+	}
+
+	void RenderContext::safeDestroyImage(Image& image) const
 	{
 		if (image.getAllocation() != nullptr) {
 			mMemManager.freeAllocation(image.getAllocation());
@@ -113,12 +171,19 @@ void RenderContext::flushData()
 		}
 	}
 
+	void RenderContext::destroy(const Image& image) const
+	{
+		mMemManager.freeAllocation(image.getAllocation());
+		getDevice().destroyImage(image.getVkImage());
+		getDevice().destroyImageView(image.getVkImageview());
+	}
+
 	vk::Sampler RenderContext::createSampler(vk::SamplerAddressMode addressMode) const
 	{
 		vk::SamplerCreateInfo createInfo(
 			vk::SamplerCreateFlags{},					// flags
 			vk::Filter::eLinear, vk::Filter::eLinear,   // mag&min filter
-			vk::SamplerMipmapMode::eNearest,			// mip map
+			vk::SamplerMipmapMode::eLinear,				// mip map
 			addressMode, addressMode, addressMode,		// address mode uvw
 			0,											// mip bias
 			true, 16									// anisotropy
@@ -149,7 +214,7 @@ void RenderContext::flushData()
 			&alloc);
 
 
-		return Buffer(buffer, alloc);
+		return Buffer(buffer, alloc, sizeInBytes);
 	}
 
 	Buffer RenderContext::createVertexBuffer(size_t sizeInBytes) const
@@ -173,7 +238,7 @@ void RenderContext::flushData()
 			&alloc);
 
 
-		return Buffer(buffer, alloc);
+		return Buffer(buffer, alloc, sizeInBytes);
 	}
 
 	Buffer RenderContext::createStagingBuffer(size_t sizeInBytes) const
@@ -196,7 +261,7 @@ void RenderContext::flushData()
 			&alloc);
 
 
-		return Buffer(buffer, alloc);
+		return Buffer(buffer, alloc, sizeInBytes);
 	}
 
 	Buffer RenderContext::createUniformBuffer(size_t sizeInBytes) const
@@ -222,12 +287,38 @@ void RenderContext::flushData()
 			&alloc);
 
 
-		return Buffer(buffer, alloc);
+		return Buffer(buffer, alloc, sizeInBytes);
+	}
+
+	Buffer RenderContext::createCpuVisibleBuffer(
+		size_t sizeInBytes, vk::BufferUsageFlags usageFlags) const
+	{
+		vk::BufferCreateInfo createInfo(
+			vk::BufferCreateFlagBits(),	// flags
+			sizeInBytes,				// size of buffer
+			usageFlags,
+			vk::SharingMode::eExclusive, // To use with graphics and transfer queue
+			0, nullptr					// family sharing
+		);
+
+		vk::Buffer buffer;
+		VmaAllocation alloc;
+
+		mMemManager.createBufferAllocation(createInfo,
+			vk::MemoryPropertyFlagBits::eHostVisible,
+			vk::MemoryPropertyFlagBits::eHostVisible,
+			&buffer,
+			&alloc);
+
+
+		return Buffer(buffer, alloc, sizeInBytes);
 	}
 
 
 	void RenderContext::safeDestroyBuffer(Buffer& buffer) const
 	{
+		buffer.setSize(0);
+
 		if (buffer.getAllocation() != nullptr) {
 			mMemManager.freeAllocation(buffer.getAllocation());
 			buffer.setAllocation(nullptr);
@@ -238,7 +329,7 @@ void RenderContext::flushData()
 		}
 	}
 
-	void RenderContext::destroy(Buffer& buffer) const
+	void RenderContext::destroy(const Buffer& buffer) const
 	{
 		mMemManager.freeAllocation(buffer.getAllocation());
 		getDevice().destroyBuffer(buffer.getVkBuffer());
@@ -278,6 +369,7 @@ void RenderContext::flushData()
 
 	void RenderContext::mapAllocatable(const Allocatable& allocatable, void** ptr) const
 	{
+		assert(ptr != nullptr);
 		// Check that the allocation is cpu mappable
 		if (!mMemManager.isMemoryMappable(allocatable.getAllocation())) {
 			throw std::logic_error("Trying to map on unmappable memory!!!");
@@ -288,6 +380,11 @@ void RenderContext::flushData()
 	void RenderContext::unmapAllocatable(const Allocatable& allocatable) const
 	{
 		mMemManager.unmapMemory(allocatable.getAllocation());
+	}
+
+	void RenderContext::flushAllocations(const VmaAllocation* allocations, uint32_t num)
+	{
+		mMemManager.flushAllocations(allocations, num);
 	}
 
 
@@ -381,6 +478,7 @@ void RenderContext::flushData()
 	{
 		mGraphicsBufferTransferer.destroy(this);
 
+		mDescriptorManager.destroy(*this);
 
 		mGraphicsCommandPool.destroy();
 		mTransferCommandPool.destroy();

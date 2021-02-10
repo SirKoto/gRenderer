@@ -1,11 +1,12 @@
 #include "DescriptorManager.h"
 
+#include "../RenderContext.h"
+
+
 namespace gr
 {
 namespace vkg
 {
-
-
 
 DescriptorManager::DescriptorManager(const RenderContext& context)
 {

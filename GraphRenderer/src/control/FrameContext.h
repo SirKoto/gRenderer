@@ -20,6 +20,8 @@ public:
 
 	vkg::RenderContext& rc() { return mGlobalContext->rc(); }
 	const vkg::RenderContext& rc() const { return mGlobalContext->rc(); }
+	vkg::Window& getWindow() { return mGlobalContext->getWindow(); }
+	const vkg::Window& getWindow() const { return mGlobalContext->getWindow(); }
 
 	// From 0 to MAX_FRAMES_IN_FLIGHT
 	uint32_t getIdx() const { return mFrameId; }

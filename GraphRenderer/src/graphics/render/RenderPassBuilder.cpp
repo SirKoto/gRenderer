@@ -74,7 +74,7 @@ uint32_t RenderPassBuilder::pushGraphicsSubpassDescriptionSimple(
 		vk::SubpassDescription(
 			{},									// flags
 			vk::PipelineBindPoint::eGraphics,	// Bind point
-			0, nullptr,							// no imput attachments
+			0, nullptr,							// no input attachments
 			1, pColorAttachment,				// One color attachment
 			pResolveAttachment,					// Associated resolve attachment (may be null)
 			pDepthStencilAttachment,			// may also be null

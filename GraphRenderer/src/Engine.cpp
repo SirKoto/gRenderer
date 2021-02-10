@@ -64,12 +64,13 @@ namespace gr
 
 		vkg::RenderContext* pRenderContext = &mGlobalContext.rc();
 		pRenderContext->createInstance({}, true);
+		mGlobalContext.getWindow().initialize(1280, 1024, "Test");
 
-		mWindow.createVkSurface(pRenderContext->getInstance());
+		mGlobalContext.getWindow().createVkSurface(pRenderContext->getInstance());
 
-		pRenderContext->createDevice(true, &mWindow.getSurface());
+		pRenderContext->createDevice(true, &mGlobalContext.getWindow().getSurface());
 
-		mSwapChain = SwapChain(*pRenderContext, mWindow);
+		mSwapChain = SwapChain(*pRenderContext, mGlobalContext.getWindow());
 
 		createSyncObjects();
 
@@ -85,9 +86,7 @@ namespace gr
 		}
 
 		createRenderPass();
-		mPresentFramebuffers = mSwapChain.createFramebuffersOfSwapImages(mRenderPass);
-
-		mDescriptorManager.initialize(*pRenderContext);
+		createFrameBufferObjects();
 
 		std::array<grjob::Job, 5> jobs;
 		jobs[0] = grjob::Job(&Engine::createShaderModules, this);
@@ -104,12 +103,16 @@ namespace gr
 		createPipelineLayout();
 		createGraphicsPipeline();
 
+		mGui.init(&mGlobalContext);
+		mGui.updatePipelineState(&mGlobalContext.rc(), mRenderPass, 0);
+		mGui.uploadFontObjects(&mGlobalContext.rc());
+
 		pRenderContext->waitIdle();
 
 		// init to start with frame zero
 		mCurrentFrame = MAX_FRAMES_IN_FLIGHT - 1;
 
-		while (!mWindow.windowShouldClose()) {
+		while (!mGlobalContext.getWindow().windowShouldClose()) {
 			// advance frame
 			mCurrentFrame = (mCurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 			mContexts[mCurrentFrame].advanceFrameCount();
@@ -150,9 +153,9 @@ namespace gr
 			c.destroy();
 		}
 
+		mGui.destroy(mGlobalContext.rc());
 		mSwapChain.destroy();
-		mWindow.destroy(pRenderContext->getInstance());
-		pRenderContext->destroy();
+		mGlobalContext.destroy();
 	}
 
 	void Engine::draw(FrameContext& frameContext)
@@ -244,17 +247,26 @@ namespace gr
 		builder.reserveNumDependencies(1);
 		builder.reserveNumSubpassDescriptions(1);
 
-		vk::AttachmentReference presentRef = builder.pushColorAttachmentDescription(
+		vk::AttachmentReference colorRef = builder.pushColorAttachmentDescription(
+			mSwapChain.getFormat(),			// Format
+			mGlobalContext.rc().getMsaaSampleCount(),	// Sample Count per pixel
+			vk::AttachmentLoadOp::eClear,	// Load operation 
+			vk::AttachmentStoreOp::eStore,	// Store operaton
+			vk::ImageLayout::eUndefined,	// Initial layout
+			vk::ImageLayout::eColorAttachmentOptimal // Final layout
+		);
+
+		vk::AttachmentReference colorResolveRef = builder.pushColorAttachmentDescription(
 			mSwapChain.getFormat(),			// Format
 			vk::SampleCountFlagBits::e1,	// Sample Count per pixel
-			vk::AttachmentLoadOp::eClear,	// Load operation 
+			vk::AttachmentLoadOp::eDontCare,// Load operation 
 			vk::AttachmentStoreOp::eStore,	// Store operaton
 			vk::ImageLayout::eUndefined,	// Initial layout
 			vk::ImageLayout::ePresentSrcKHR // Final layout
 		);
 
 		uint32_t presentSubPass = builder.pushGraphicsSubpassDescriptionSimple(
-			&presentRef
+			&colorRef, nullptr, &colorResolveRef
 		);
 
 		assert(0 == presentSubPass);
@@ -276,19 +288,19 @@ namespace gr
 
 	void Engine::recreateSwapChain()
 	{
-		while (mWindow.isWindowMinimized()) {
-			mWindow.waitEvents();
+		while (mGlobalContext.getWindow().isWindowMinimized()) {
+			mGlobalContext.getWindow().waitEvents();
 		}
 
 		mGlobalContext.rc().waitIdle();
 
 		cleanupSwapChainDependantObjs();
 
-		mSwapChain.recreateSwapChain(mGlobalContext.rc(), mWindow);
+		mSwapChain.recreateSwapChain(mGlobalContext.rc(), mGlobalContext.getWindow());
 
 		createRenderPass();
 
-		mPresentFramebuffers = mSwapChain.createFramebuffersOfSwapImages(mRenderPass);
+		createFrameBufferObjects();
 
 		createUniformBuffers();
 		createDescriptorSets();
@@ -321,6 +333,7 @@ namespace gr
 
 		buff.beginRenderPass(passInfo, vk::SubpassContents::eInline);
 
+
 		buff.bindPipeline(vk::PipelineBindPoint::eGraphics, mGraphicsPipeline);
 
 		vk::DeviceSize offset = 0;
@@ -338,6 +351,8 @@ namespace gr
 			static_cast<uint32_t>(indices.size()), // index count
 			1, 0, 0, 0	// instance count, and offsets
 		);
+
+		mGui.render(frame, buff);
 
 		buff.endRenderPass();
 
@@ -392,7 +407,7 @@ namespace gr
 	{
 		mDescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
 
-		mDescriptorManager.allocateDescriptorSets(
+		mGlobalContext.rc().getDescriptorManager().allocateDescriptorSets(
 			mGlobalContext.rc(),
 			MAX_FRAMES_IN_FLIGHT,
 			mDescriptorSetLayout,
@@ -461,9 +476,9 @@ namespace gr
 		{
 			vkg::VertexInputDescription vid;
 			vid.addBinding(0, sizeof(Vertex))
-				.addAttribute(0, 2, offsetof(Vertex, Vertex::pos))
-				.addAttribute(1, 3, offsetof(Vertex, Vertex::color))
-				.addAttribute(2, 2, offsetof(Vertex, Vertex::texCoord));
+				.addAttributeFloat(0, 2, offsetof(Vertex, Vertex::pos))
+				.addAttributeFloat(1, 3, offsetof(Vertex, Vertex::color))
+				.addAttributeFloat(2, 2, offsetof(Vertex, Vertex::texCoord));
 
 			assert(vid.getBindingDescription().size() == 1);
 			builder.setVertexBindingDescriptions( vid.getBindingDescription() );
@@ -472,7 +487,7 @@ namespace gr
 		builder.setShaderStages(mShaderModules[0], mShaderModules[1]);
 		builder.setPrimitiveTopology(vk::PrimitiveTopology::eTriangleList);
 		builder.setViewportSize(mSwapChain.getExtent());
-		builder.setMultisampleCount(vk::SampleCountFlagBits::e1);
+		builder.setMultisampleCount(mGlobalContext.rc().getMsaaSampleCount());
 		builder.setColorBlendAttachmentStd();
 		builder.setPipelineLayout(mPipLayout);
 
@@ -490,6 +505,18 @@ namespace gr
 		mImagesInFlightFences.resize(mSwapChain.getNumImages());
 
 		mFrameAvailableTimelineSemaphore = mGlobalContext.rc().createTimelineSemaphore(2 * mContexts.size() - 1);
+	}
+
+	void Engine::createFrameBufferObjects()
+	{
+		mColorImage = mGlobalContext.rc().createImage2DColorAttachment(
+			mSwapChain.getExtent(),
+			1, mGlobalContext.rc().getMsaaSampleCount(),
+			mSwapChain.getFormat()
+		);
+
+		mPresentFramebuffers = mSwapChain.createFramebuffersOfSwapImages(
+			mRenderPass, 1, &mColorImage.getVkImageview());
 	}
 
 	void Engine::createBuffers()
@@ -582,8 +609,6 @@ namespace gr
 
 		mGlobalContext.rc().destroy(mShaderModules[0]);
 		mGlobalContext.rc().destroy(mShaderModules[1]);
-
-		mDescriptorManager.destroy(mGlobalContext.rc());
 	}
 
 	void Engine::cleanupSwapChainDependantObjs()
@@ -598,10 +623,12 @@ namespace gr
 
 		// free descriptor sets
 		for (vk::DescriptorSet set : mDescriptorSets) {
-			mDescriptorManager.freeDescriptorSet(set, mDescriptorSetLayout);
+			mGlobalContext.rc().freeDescriptorSet(set, mDescriptorSetLayout);
 		}
 
-		mGlobalContext.rc().getDevice().destroyPipeline(mGraphicsPipeline);
+		mGlobalContext.rc().safeDestroyImage(mColorImage);
+
+		mGlobalContext.rc().destroy(mGraphicsPipeline);
 		mGlobalContext.rc().destroy(mRenderPass);
 	}
 

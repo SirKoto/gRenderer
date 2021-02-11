@@ -16,6 +16,13 @@ void Window::s_mouseWheelCallback(void* window, double _, double yoffset)
 	w->mMouseWheel += yoffset;
 }
 
+void Window::s_charCallback(void* window, unsigned int c)
+{
+	GLFWwindow* glfwWin = reinterpret_cast<GLFWwindow*>(window);
+	Window* w = reinterpret_cast<Window*>(glfwGetWindowUserPointer(glfwWin));
+	w->mCharInput.push_back(c);
+}
+
 void Window::initialize(int width, int heigth, const std::string& windowTitle)
 {
 	assert(width > 0 && heigth > 0);
@@ -29,8 +36,12 @@ void Window::initialize(int width, int heigth, const std::string& windowTitle)
 	glfwSetWindowUserPointer(reinterpret_cast<GLFWwindow*>(mWindow), this);
 	glfwSetInputMode(reinterpret_cast<GLFWwindow*>(mWindow),
 		GLFW_STICKY_MOUSE_BUTTONS, GLFW_TRUE);
+	glfwSetInputMode(reinterpret_cast<GLFWwindow*>(mWindow),
+		GLFW_STICKY_KEYS, GLFW_TRUE);
 	glfwSetScrollCallback(reinterpret_cast<GLFWwindow*>(mWindow), 
 		reinterpret_cast<GLFWscrollfun>(s_mouseWheelCallback));
+	glfwSetCharCallback(reinterpret_cast<GLFWwindow*>(mWindow),
+		reinterpret_cast<GLFWcharfun>(s_charCallback));
 }
 
 void Window::createVkSurface(const vk::Instance& instance)
@@ -70,45 +81,65 @@ void Window::update()
 {
 #define d_cast(x) static_cast<uint32_t>(Input::x)
 	GLFWwindow* w = reinterpret_cast<GLFWwindow*>(mWindow);
-	// get mouse inputs
+	auto updateState = [&](uint32_t id, int state) {
+		if (mInputState[id].justPressed) {
+			mInputState[id].justPressed = 0;
+			if (state == GLFW_PRESS) {
+				mInputState[id].pressed = 1;
+			}
+		}
+		else if (mInputState[id].pressed) {
+			if (state != GLFW_PRESS) {
+				mInputState[id].pressed = 0;
+			}
+		}
+		else if (state == GLFW_PRESS) {
+			mInputState[id].justPressed = 1;
+		}
+	};
+	// get mouse and key inputs
 	{
 		int state = glfwGetMouseButton(w, GLFW_MOUSE_BUTTON_1);
-		if (mInputState[d_cast(MouseLeft)].justPressed) {
-			mInputState[d_cast(MouseLeft)].justPressed = 0;
-			if (state == GLFW_PRESS) {
-				mInputState[d_cast(MouseLeft)].pressed = 1;
-			}
-		}
-		else if (mInputState[d_cast(MouseLeft)].pressed) {
-			if (state != GLFW_PRESS) {
-				mInputState[d_cast(MouseLeft)].pressed = 0;
-			}
-		}
-		else if (state == GLFW_PRESS) {
-			mInputState[d_cast(MouseLeft)].justPressed = 1;
-		}
+		updateState(d_cast(MouseLeft), state);
 
 		state = glfwGetMouseButton(w, GLFW_MOUSE_BUTTON_2);
-		if (mInputState[d_cast(MouseRight)].justPressed) {
-			mInputState[d_cast(MouseRight)].justPressed = 0;
-			if (state == GLFW_PRESS) {
-				mInputState[d_cast(MouseRight)].pressed = 1;
-			}
-		}
-		else if (mInputState[d_cast(MouseRight)].pressed) {
-			if (state != GLFW_PRESS) {
-				mInputState[d_cast(MouseRight)].pressed = 0;
-			}
-		}
-		else if (state == GLFW_PRESS) {
-			mInputState[d_cast(MouseLeft)].justPressed = 1;
-		}
+		updateState(d_cast(MouseRight), state);
+
+		state = glfwGetKey(w, GLFW_KEY_BACKSPACE);
+		updateState(d_cast(KeyBackspace), state);
+
+		state = glfwGetKey(w, GLFW_KEY_A);
+		updateState(d_cast(KeyA), state);
+		state = glfwGetKey(w, GLFW_KEY_S);
+		updateState(d_cast(KeyS), state);
+		state = glfwGetKey(w, GLFW_KEY_D);
+		updateState(d_cast(KeyD), state);
+		state = glfwGetKey(w, GLFW_KEY_W);
+		updateState(d_cast(KeyW), state);
+
+		state = glfwGetKey(w, GLFW_KEY_LEFT);
+		updateState(d_cast(ArrowLeft), state);
+		state = glfwGetKey(w, GLFW_KEY_DOWN);
+		updateState(d_cast(ArrowDown), state);
+		state = glfwGetKey(w, GLFW_KEY_RIGHT);
+		updateState(d_cast(ArrowRight), state);
+		state = glfwGetKey(w, GLFW_KEY_UP);
+		updateState(d_cast(ArrowUp), state);
+
+		state = glfwGetKey(w, GLFW_KEY_DELETE);
+		updateState(d_cast(KeyDelete), state);
 	}
 
 	// flip mouse wheel buffers
 	{
 		mMouseWheelBuff = mMouseWheel;
 		mMouseWheel = 0;
+	}
+
+	// flip char input buffers
+	{
+		mCharInput.swap(mCharInputBuff);
+		mCharInput.clear();
 	}
 
 #undef d_cast

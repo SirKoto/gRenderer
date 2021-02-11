@@ -134,7 +134,18 @@ void Gui::init(GlobalContext* gc)
     // set ImGui input mapping
     {
          ImGuiIO& io = ImGui::GetIO();
+#define conv(x) static_cast<uint32_t>(vkg::Window::Input::x)
+         io.KeyMap[ImGuiKey_Backspace] = conv(KeyBackspace);
+         io.KeyMap[ImGuiKey_Delete] = conv(KeyDelete);
 
+         io.KeyMap[ImGuiKey_A] = conv(KeyA);
+
+         io.KeyMap[ImGuiKey_UpArrow] = conv(ArrowUp);
+         io.KeyMap[ImGuiKey_LeftArrow] = conv(ArrowLeft);
+         io.KeyMap[ImGuiKey_DownArrow] = conv(ArrowDown);
+         io.KeyMap[ImGuiKey_RightArrow] = conv(ArrowRight);
+
+#undef con
     }
 
     // font sampler
@@ -297,6 +308,16 @@ void Gui::updatePreFrame(FrameContext* fc)
     io.MousePos = ImVec2((float)mousePos[0], (float)mousePos[1]);
 
     io.MouseWheel += (float)fc->getWindow().getMouseWheelOffset();
+
+    for (uint32_t c : fc->getWindow().getInputCharsUTF()) {
+        io.AddInputCharacter(c);
+    }
+
+    for (uint32_t k = static_cast<uint32_t>(vkg::Window::Input::KeyA);
+        k < static_cast<uint32_t>(vkg::Window::Input::InputCOUNT);
+        ++k) {
+        io.KeysDown[k] = fc->getWindow().isDown(static_cast<vkg::Window::Input>(k));
+    }
 
     ImGui::NewFrame();
 

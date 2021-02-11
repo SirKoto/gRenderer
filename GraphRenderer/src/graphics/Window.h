@@ -47,6 +47,16 @@ namespace vkg
 		enum class Input {
 			MouseLeft,
 			MouseRight,
+			KeyA,
+			KeyS,
+			KeyD,
+			KeyW,
+			ArrowLeft,
+			ArrowDown,
+			ArrowRight,
+			ArrowUp,
+			KeyBackspace,
+			KeyDelete,
 			InputCOUNT
 		};
 
@@ -57,6 +67,8 @@ namespace vkg
 		double getMouseWheelOffset() const { return mMouseWheelBuff; }
 
 		void getMousePosition(std::array<double, 2>* pos) const;
+
+		const std::vector<uint32_t>& getInputCharsUTF() const { return mCharInputBuff; }
 
 	private:
 
@@ -73,8 +85,10 @@ namespace vkg
 
 		std::array<InputState, static_cast<size_t>(Input::InputCOUNT)> mInputState;
 		double mMouseWheel = 0, mMouseWheelBuff;
+		std::vector<uint32_t> mCharInput, mCharInputBuff;
 
 		static void s_mouseWheelCallback(void*, double, double);
+		static void s_charCallback(void*, unsigned int);
 
 	};
 

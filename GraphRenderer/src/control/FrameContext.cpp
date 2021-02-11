@@ -31,11 +31,22 @@ void gr::FrameContext::updateTime(double_t newTime)
 	mDeltaTime = mGlobalContext->computeDeltaTime();
 }
 
+void gr::FrameContext::scheduleToDelete(const vkg::Buffer buffer)
+{
+	mBuffersToDelete.push_back(buffer);
+}
+
 void gr::FrameContext::resetFrameResources()
 {
 	graphicsPool().reset();
 	presentPool().reset();
 	transferPool().reset();
+
+	for (const vkg::Buffer buffer : mBuffersToDelete) {
+		rc().destroy(buffer);
+	}
+
+	mBuffersToDelete.clear();
 }
 
 void gr::FrameContext::recreateCommandPools()

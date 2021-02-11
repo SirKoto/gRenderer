@@ -19,7 +19,11 @@ public:
 		vk::RenderPass renderPass,
 		uint32_t subpass);
 
+	void updatePreFrame(FrameContext* fc);
+
 	void render(FrameContext* fc, vk::CommandBuffer cmd);
+
+	void addFont(const char* filename);
 
 	void uploadFontObjects(vkg::RenderContext* rc);
 
@@ -37,8 +41,6 @@ protected:
 	vk::PipelineLayout mPipelineLayout;
 
 	vk::Sampler mTexSampler;
-
-	bool mNewFrameStarted = false;
 
 };
 

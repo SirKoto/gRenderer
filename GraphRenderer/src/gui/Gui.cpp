@@ -129,7 +129,13 @@ void Gui::init(GlobalContext* gc)
     ImGui::GetIO().DisplaySize = 
         ImVec2(static_cast<float>(gc->getWindow().getWidth()),
             static_cast<float>(gc->getWindow().getHeigth()));
+    ImGui::GetIO().BackendPlatformName = "gr_vulkan_glfw";
 
+    // set ImGui input mapping
+    {
+         ImGuiIO& io = ImGui::GetIO();
+
+    }
 
     // font sampler
     {
@@ -214,8 +220,6 @@ void Gui::destroy(const vkg::RenderContext& rc)
     rc.destroy(mTexSampler);
 
     ImGui::DestroyContext();
-
-    mNewFrameStarted = false;
 }
 
 void Gui::updatePipelineState(
@@ -273,7 +277,7 @@ void Gui::updatePipelineState(
 
 }
 
-void Gui::render(FrameContext* fc, vk::CommandBuffer cmd)
+void Gui::updatePreFrame(FrameContext* fc)
 {
     ImGuiIO& io = ImGui::GetIO();
     IM_ASSERT(io.Fonts->IsBuilt());
@@ -283,6 +287,27 @@ void Gui::render(FrameContext* fc, vk::CommandBuffer cmd)
     io.DisplaySize =
         ImVec2(static_cast<float>(fc->getWindow().getWidth()),
             static_cast<float>(fc->getWindow().getHeigth()));
+
+    // set mouse buttons
+    io.MouseDown[ImGuiMouseButton_Left] = fc->getWindow().isDown(vkg::Window::Input::MouseLeft);
+    io.MouseDown[ImGuiMouseButton_Right] = fc->getWindow().isDown(vkg::Window::Input::MouseRight);
+
+    std::array<double, 2> mousePos;
+    fc->getWindow().getMousePosition(&mousePos);
+    io.MousePos = ImVec2((float)mousePos[0], (float)mousePos[1]);
+
+    io.MouseWheel += (float)fc->getWindow().getMouseWheelOffset();
+
+    ImGui::NewFrame();
+
+}
+
+
+void Gui::render(FrameContext* fc, vk::CommandBuffer cmd)
+{
+    ImGuiIO& io = ImGui::GetIO();
+    IM_ASSERT(io.Fonts->IsBuilt());
+
 
     ImGui::ShowDemoWindow();
 
@@ -300,7 +325,7 @@ void Gui::render(FrameContext* fc, vk::CommandBuffer cmd)
                 fc->rc().unmapAllocatable(mVertexBuffer);
                 mVertPtrMap = nullptr;
             }
-            fc->rc().safeDestroyBuffer(mVertexBuffer);
+            fc->scheduleToDelete(mVertexBuffer);
             mVertexBuffer = fc->rc().createCpuVisibleBuffer(vertexSize,
                 vk::BufferUsageFlagBits::eVertexBuffer);
             fc->rc().mapAllocatable(mVertexBuffer, 
@@ -311,7 +336,7 @@ void Gui::render(FrameContext* fc, vk::CommandBuffer cmd)
                 fc->rc().unmapAllocatable(mIndexBuffer);
                 mIdxPtrMap = nullptr;
             }
-            fc->rc().safeDestroyBuffer(mIndexBuffer);
+            fc->scheduleToDelete(mIndexBuffer);
             mIndexBuffer = fc->rc().createCpuVisibleBuffer(indexSize,
                 vk::BufferUsageFlagBits::eIndexBuffer);
             fc->rc().mapAllocatable(mIndexBuffer, 
@@ -339,7 +364,6 @@ void Gui::render(FrameContext* fc, vk::CommandBuffer cmd)
         fc->rc().flushAllocations(allocs.data(), static_cast<uint32_t>(allocs.size()));
     }
     else {
-        ImGui::NewFrame();
         return;
     }
 
@@ -415,7 +439,18 @@ void Gui::render(FrameContext* fc, vk::CommandBuffer cmd)
         vertOffset += list->VtxBuffer.Size;
     }
     
-    ImGui::NewFrame();
+}
+
+void Gui::addFont(const char* filename)
+{
+    ImGuiIO& io = ImGui::GetIO();
+
+    io.Fonts->AddFontFromFileTTF(filename, 18);
+
+    io.Fonts->AddFontFromFileTTF(filename, 16);
+
+    io.Fonts->AddFontFromFileTTF(filename, 21);
+
 }
 
 void Gui::uploadFontObjects(vkg::RenderContext* rc)
@@ -465,10 +500,6 @@ void Gui::uploadFontObjects(vkg::RenderContext* rc)
     // the identifier as to be stored
     io.Fonts->TexID = mFontImage.getVkImage();
 
-    if (!mNewFrameStarted) {
-        mNewFrameStarted = true;
-        ImGui::NewFrame();
-    }
 
 }
 

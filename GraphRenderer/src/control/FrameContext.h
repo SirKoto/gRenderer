@@ -46,6 +46,8 @@ public:
 	vkg::ResetCommandPool& transferPool() { return mPools.transferTransientPool; };
 	const vkg::ResetCommandPool& transferPool() const { return mPools.transferTransientPool; };
 
+	void scheduleToDelete(const vkg::Buffer buffer);
+
 	void resetFrameResources();
 	void recreateCommandPools();
 
@@ -60,6 +62,7 @@ private:
 	double_t mDeltaTime = 1/30.0;
 
 	vkg::RenderContext::FrameCommandPools mPools;
+	std::vector<vkg::Buffer> mBuffersToDelete;
 
 	GlobalContext* mGlobalContext;
 

@@ -105,6 +105,7 @@ namespace gr
 
 		mGui.init(&mGlobalContext);
 		mGui.updatePipelineState(&mGlobalContext.rc(), mRenderPass, 0);
+		mGui.addFont("resources/fonts/ProggyCleanTT.ttf");
 		mGui.uploadFontObjects(&mGlobalContext.rc());
 
 		pRenderContext->waitIdle();
@@ -135,11 +136,14 @@ namespace gr
 			mContexts[mCurrentFrame].updateTime(glfwGetTime());
 			mContexts[mCurrentFrame].resetFrameResources();
 
+			mGui.updatePreFrame(&mContexts[mCurrentFrame]);
+
 			draw(mContexts[mCurrentFrame]);
 
 			pRenderContext->flushData();
 
 			Window::pollEvents();
+			mGlobalContext.getWindow().update();
 		}
 
 		// Destroy everything

@@ -550,6 +550,11 @@ void RenderContext::flushData()
 				continue;
 			}
 
+			// assert version 1.2 at least
+			if (prop.apiVersion < VK_MAKE_VERSION(1, 2, 0)) {
+				continue;
+			}
+
 			if (isDeviceSuitable(device, deviceExtensions,
 				surf, mAnisotropySamplerEnabled)) 
 			{
@@ -560,7 +565,7 @@ void RenderContext::flushData()
 		}
 
 		if (!deviceChoosen) {
-			throw std::runtime_error("Cannot pick physical device!!!");
+			throw std::runtime_error("Cannot pick physical device!!! Update your drivers!!");
 		}
 
 		// if anisotropy, query max samples

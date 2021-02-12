@@ -105,17 +105,12 @@ void Window::update()
 		state = glfwGetMouseButton(w, GLFW_MOUSE_BUTTON_2);
 		updateState(d_cast(MouseRight), state);
 
-		state = glfwGetKey(w, GLFW_KEY_BACKSPACE);
-		updateState(d_cast(KeyBackspace), state);
-
-		state = glfwGetKey(w, GLFW_KEY_A);
-		updateState(d_cast(KeyA), state);
-		state = glfwGetKey(w, GLFW_KEY_S);
-		updateState(d_cast(KeyS), state);
-		state = glfwGetKey(w, GLFW_KEY_D);
-		updateState(d_cast(KeyD), state);
-		state = glfwGetKey(w, GLFW_KEY_W);
-		updateState(d_cast(KeyW), state);
+		for (uint32_t k = static_cast<uint32_t>(Input::KeyA), i = 0;
+			k <= static_cast<uint32_t>(Input::KeyZ);
+			++k) {
+			state = glfwGetKey(w, GLFW_KEY_A + i++);
+			updateState(k, state);
+		}
 
 		state = glfwGetKey(w, GLFW_KEY_LEFT);
 		updateState(d_cast(ArrowLeft), state);
@@ -126,8 +121,32 @@ void Window::update()
 		state = glfwGetKey(w, GLFW_KEY_UP);
 		updateState(d_cast(ArrowUp), state);
 
+
+		state = glfwGetKey(w, GLFW_KEY_BACKSPACE);
+		updateState(d_cast(KeyBackspace), state);
 		state = glfwGetKey(w, GLFW_KEY_DELETE);
 		updateState(d_cast(KeyDelete), state);
+		state = glfwGetKey(w, GLFW_KEY_TAB);
+		updateState(d_cast(KeyTab), state);
+		state = glfwGetKey(w, GLFW_KEY_HOME);
+		updateState(d_cast(KeyHome), state);
+		state = glfwGetKey(w, GLFW_KEY_END);
+		updateState(d_cast(KeyEnd), state);
+		state = glfwGetKey(w, GLFW_KEY_SPACE);
+		updateState(d_cast(KeySpace), state);
+		state = glfwGetKey(w, GLFW_KEY_ENTER);
+		updateState(d_cast(KeyEnter), state);
+		state = glfwGetKey(w, GLFW_KEY_KP_ENTER);
+		updateState(d_cast(KeyEnterKeyPad), state);
+		state = glfwGetKey(w, GLFW_KEY_ESCAPE);
+		updateState(d_cast(KeyEscape), state);
+		state = glfwGetKey(w, GLFW_KEY_LEFT_CONTROL) | glfwGetKey(w, GLFW_KEY_RIGHT_CONTROL);
+		updateState(d_cast(KeyCtrl), state);
+		state = glfwGetKey(w, GLFW_KEY_LEFT_ALT) | glfwGetKey(w, GLFW_KEY_RIGHT_ALT);
+		updateState(d_cast(KeyAlt), state);
+		state = glfwGetKey(w, GLFW_KEY_LEFT_SHIFT) | glfwGetKey(w, GLFW_KEY_RIGHT_SHIFT);
+		updateState(d_cast(KeyShift), state);
+
 	}
 
 	// flip mouse wheel buffers

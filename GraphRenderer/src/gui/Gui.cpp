@@ -137,8 +137,20 @@ void Gui::init(GlobalContext* gc)
 #define conv(x) static_cast<uint32_t>(vkg::Window::Input::x)
          io.KeyMap[ImGuiKey_Backspace] = conv(KeyBackspace);
          io.KeyMap[ImGuiKey_Delete] = conv(KeyDelete);
+         io.KeyMap[ImGuiKey_Tab] = conv(KeyTab);
+         io.KeyMap[ImGuiKey_Home] = conv(KeyHome);
+         io.KeyMap[ImGuiKey_End] = conv(KeyEnd);
+         io.KeyMap[ImGuiKey_Space] = conv(KeySpace);
+         io.KeyMap[ImGuiKey_Enter] = conv(KeyEnter);
+         io.KeyMap[ImGuiKey_KeyPadEnter] = conv(KeyEnterKeyPad);
+         io.KeyMap[ImGuiKey_Escape] = conv(KeyEscape);
 
          io.KeyMap[ImGuiKey_A] = conv(KeyA);
+         io.KeyMap[ImGuiKey_C] = conv(KeyC);
+         io.KeyMap[ImGuiKey_V] = conv(KeyV);
+         io.KeyMap[ImGuiKey_X] = conv(KeyX);
+         io.KeyMap[ImGuiKey_Y] = conv(KeyY);
+         io.KeyMap[ImGuiKey_Z] = conv(KeyZ);
 
          io.KeyMap[ImGuiKey_UpArrow] = conv(ArrowUp);
          io.KeyMap[ImGuiKey_LeftArrow] = conv(ArrowLeft);
@@ -318,6 +330,11 @@ void Gui::updatePreFrame(FrameContext* fc)
         ++k) {
         io.KeysDown[k] = fc->getWindow().isDown(static_cast<vkg::Window::Input>(k));
     }
+
+    io.KeyCtrl = io.KeysDown[static_cast<uint32_t>(vkg::Window::Input::KeyCtrl)];
+    io.KeyAlt = io.KeysDown[static_cast<uint32_t>(vkg::Window::Input::KeyAlt)];
+    io.KeyShift = io.KeysDown[static_cast<uint32_t>(vkg::Window::Input::KeyShift)];
+
 
     ImGui::NewFrame();
 

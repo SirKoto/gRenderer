@@ -58,6 +58,13 @@ namespace vkg
 			vk::SampleCountFlagBits numSamples,
 			vk::Format format);
 
+		Image2D create2DDepthAttachment(
+			const vk::Extent2D& extent,
+			vk::SampleCountFlagBits numSamples);
+
+		static vk::Format getDepthFormat() { return vk::Format::eD32Sfloat; }
+
+
 		vk::Sampler createSampler(vk::SamplerAddressMode addressMode) const;
 
 		Buffer createVertexBuffer(size_t sizeInBytes) const;
@@ -220,6 +227,15 @@ namespace vkg
 			const vk::SurfaceKHR* surf);
 
 		vk::SampleCountFlagBits getMaxUsableSampleCount() const;
+
+		void createImage2D(
+			const vk::Extent2D& extent,
+			uint32_t mipLevels,
+			vk::SampleCountFlagBits numSamples,
+			vk::Format format,
+			vk::ImageUsageFlags usage,
+			vk::Image* outImage,
+			VmaAllocation* outAlloc) const;
 
 
 	};

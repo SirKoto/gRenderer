@@ -13,8 +13,8 @@ namespace vkg
 		void setImage(vk::Image image) { mImage = image; }
 		void setImageView(vk::ImageView iv) { mImageView = iv; }
 
-		vk::Image getVkImage() const { return mImage; }
-		vk::ImageView getVkImageview() const { return mImageView; }
+		const vk::Image& getVkImage() const { return mImage; }
+		const vk::ImageView& getVkImageview() const { return mImageView; }
 
 		operator bool() const { return mImage; }
 

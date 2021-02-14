@@ -106,6 +106,14 @@ void GraphicsPipelineBuilder::setColorBlendAttachmentAlphaBlending()
 			vk::ColorComponentFlagBits::eA);
 }
 
+void GraphicsPipelineBuilder::setDepthState(bool testEnable, bool writeEnable, vk::CompareOp compareOp)
+{
+	mDepthStencilState
+		.setDepthTestEnable(testEnable)
+		.setDepthWriteEnable(writeEnable)
+		.setDepthCompareOp(compareOp);
+}
+
 void GraphicsPipelineBuilder::setPipelineLayout(vk::PipelineLayout layout)
 {
 	mPipLayout = layout;
@@ -183,7 +191,7 @@ vk::Pipeline GraphicsPipelineBuilder::createPipeline(
 		&viewportState,
 		&mRasterizationState,
 		&multisampleState,
-		nullptr, // depth stencil
+		&mDepthStencilState, // depth stencil
 		&colorBlendState,
 		&dynamicState, // dynamic state
 		mPipLayout,

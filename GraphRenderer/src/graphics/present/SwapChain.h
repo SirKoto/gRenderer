@@ -39,6 +39,7 @@ namespace vkg
 
 		bool acquireNextImageBlock(const vk::Semaphore semaphore, uint32_t* imageIdx) const;
 
+		// The first attachment of the renderpass must be the resolve color image
 		std::vector<vk::Framebuffer> createFramebuffersOfSwapImages(
 			const vk::RenderPass renderPass,
 			const uint32_t numAttachments = 0,

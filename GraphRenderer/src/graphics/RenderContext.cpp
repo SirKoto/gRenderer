@@ -10,32 +10,32 @@ namespace gr
 namespace vkg
 {
 
-void RenderContext::createInstance(std::vector<const char*> extensions, bool loadGLFWextensions)
-{ 
-	mInstance.create(extensions, loadGLFWextensions);
-}
+	void RenderContext::createInstance(std::vector<const char*> extensions, bool loadGLFWextensions)
+	{ 
+		mInstance.create(extensions, loadGLFWextensions);
+	}
 
-void RenderContext::createDevice(bool enableAnisotropySampler,
-	const vk::SurfaceKHR* surfaceToRequestSwapChain)
-{
-	mAnisotropySamplerEnabled = enableAnisotropySampler;
-	mPresentQueueRequested = surfaceToRequestSwapChain != nullptr;
-	pickAndCreatePysicalDevice(surfaceToRequestSwapChain);
-	createLogicalDevice(surfaceToRequestSwapChain);
-	createQueues();
+	void RenderContext::createDevice(bool enableAnisotropySampler,
+		const vk::SurfaceKHR* surfaceToRequestSwapChain)
+	{
+		mAnisotropySamplerEnabled = enableAnisotropySampler;
+		mPresentQueueRequested = surfaceToRequestSwapChain != nullptr;
+		pickAndCreatePysicalDevice(surfaceToRequestSwapChain);
+		createLogicalDevice(surfaceToRequestSwapChain);
+		createQueues();
 
-	mMemManager = MemoryManager(mInstance, mPhysicalDevice, mDevice);
+		mMemManager = MemoryManager(mInstance, mPhysicalDevice, mDevice);
 
-	mGraphicsBufferTransferer.setUpTransferBlocks(this);
+		mGraphicsBufferTransferer.setUpTransferBlocks(this);
 
-	mDescriptorManager.initialize(*this);
-}
+		mDescriptorManager.initialize(*this);
+	}
 
-void RenderContext::flushData()
-{
-	mGraphicsCommandPool.flushFrees();
-	mTransferCommandPool.flushFrees();
-}
+	void RenderContext::flushData()
+	{
+		mGraphicsCommandPool.flushFrees();
+		mTransferCommandPool.flushFrees();
+	}
 
 
 	Image2D RenderContext::createTexture2D(
@@ -45,30 +45,14 @@ void RenderContext::flushData()
 		vk::Format format,
 		vk::ImageAspectFlags imageAspect)
 	{
-		vk::ImageCreateInfo createInfo(
-			{},							// flags
-			vk::ImageType::e2D,			// Image Type
-			format,						// Format
-			vk::Extent3D(extent, 1),	// Extent
-			mipLevels,					// Mip levels
-			1,							// Array layers
-			numSamples,					// SampleCount
-			vk::ImageTiling::eOptimal,	// Image Tiling
-			vk::ImageUsageFlagBits::eTransferDst |
-			vk::ImageUsageFlagBits::eSampled,	// Image usage
-			vk::SharingMode::eExclusive,
-			0, nullptr, // concurrent families
-			vk::ImageLayout::eUndefined	// initial layout
-		);						
 
 		vk::Image image;
 		VmaAllocation alloc;
 
-		mMemManager.createImageAllocation(createInfo,
-			vk::MemoryPropertyFlagBits::eDeviceLocal,
-			vk::MemoryPropertyFlagBits::eDeviceLocal,
-			&image,
-			&alloc);
+		createImage2D(extent, mipLevels, numSamples, format,
+			vk::ImageUsageFlagBits::eTransferDst |
+			vk::ImageUsageFlagBits::eSampled,
+			&image, &alloc);
 
 		vk::ImageViewCreateInfo ivCreateInfo(
 			{},						// flags
@@ -78,6 +62,47 @@ void RenderContext::flushData()
 			{},						// no component mapping
 			vk::ImageSubresourceRange(
 				imageAspect,			// aspect
+				0,						// base mip level
+				mipLevels,				// level count
+				0,						// base array layer
+				1						// layer count
+			)
+		);
+		vk::ImageView imageView =
+			getDevice().createImageView(ivCreateInfo);
+
+		Image2D r_image;
+		r_image.setExtent(extent);
+		r_image.setImage(image);
+		r_image.setAllocation(alloc);
+		r_image.setImageView(imageView);
+
+		return r_image;
+	}
+
+	Image2D RenderContext::createImage2DColorAttachment(
+		const vk::Extent2D& extent,
+		uint32_t mipLevels, 
+		vk::SampleCountFlagBits numSamples,
+		vk::Format format)
+	{
+
+		vk::Image image;
+		VmaAllocation alloc;
+
+		createImage2D(extent, mipLevels, numSamples, format,
+			vk::ImageUsageFlagBits::eColorAttachment |
+			vk::ImageUsageFlagBits::eTransientAttachment,
+			&image, &alloc);
+
+		vk::ImageViewCreateInfo ivCreateInfo(
+			{},						// flags
+			image,					// image
+			vk::ImageViewType::e2D, // image view type
+			format,					// format
+			{},						// no component mapping
+			vk::ImageSubresourceRange(
+				vk::ImageAspectFlagBits::eColor,			// aspect
 				0,						// base mip level
 				mipLevels,				// level count
 				0,						// base array layer
@@ -97,54 +122,33 @@ void RenderContext::flushData()
 		return r_image;
 	}
 
-	Image2D RenderContext::createImage2DColorAttachment(
+	Image2D RenderContext::create2DDepthAttachment(
 		const vk::Extent2D& extent,
-		uint32_t mipLevels, 
-		vk::SampleCountFlagBits numSamples,
-		vk::Format format)
+		vk::SampleCountFlagBits numSamples)
 	{
-		vk::ImageCreateInfo createInfo(
-			{},							// flags
-			vk::ImageType::e2D,			// Image Type
-			format,						// Format
-			vk::Extent3D(extent, 1),	// Extent
-			mipLevels,					// Mip levels
-			1,							// Array layers
-			numSamples,					// SampleCount
-			vk::ImageTiling::eOptimal,	// Image Tiling
-			vk::ImageUsageFlagBits::eColorAttachment |
-			vk::ImageUsageFlagBits::eTransientAttachment,	// Image usage
-			vk::SharingMode::eExclusive,
-			0, nullptr, // concurrent families
-			vk::ImageLayout::eUndefined	// initial layout
-		);
-
 		vk::Image image;
 		VmaAllocation alloc;
-
-		mMemManager.createImageAllocation(createInfo,
-			vk::MemoryPropertyFlagBits::eDeviceLocal,
-			vk::MemoryPropertyFlagBits::eDeviceLocal,
-			&image,
-			&alloc);
+		createImage2D(extent, 1, numSamples, getDepthFormat(),
+			vk::ImageUsageFlagBits::eDepthStencilAttachment,
+			&image, &alloc);
 
 		vk::ImageViewCreateInfo ivCreateInfo(
 			{},						// flags
 			image,					// image
 			vk::ImageViewType::e2D, // image view type
-			format,					// format
+			getDepthFormat(),					// format
 			{},						// no component mapping
 			vk::ImageSubresourceRange(
-				vk::ImageAspectFlagBits::eColor,			// aspect
+				vk::ImageAspectFlagBits::eDepth,			// aspect
 				0,						// base mip level
-				mipLevels,				// level count
+				1,						// level count
 				0,						// base array layer
 				1						// layer count
 			)
 		);
+
 		vk::ImageView imageView =
 			getDevice().createImageView(ivCreateInfo);
-
 
 		Image2D r_image;
 		r_image.setExtent(extent);
@@ -766,6 +770,37 @@ void RenderContext::flushData()
 		if (counts & vk::SampleCountFlagBits::e2) { return vk::SampleCountFlagBits::e2; }
 
 		return vk::SampleCountFlagBits::e1;
+	}
+
+	void RenderContext::createImage2D(
+		const vk::Extent2D& extent,
+		uint32_t mipLevels,
+		vk::SampleCountFlagBits numSamples,
+		vk::Format format,
+		vk::ImageUsageFlags usage,
+		vk::Image* outImage,
+		VmaAllocation* outAlloc) const
+	{
+		vk::ImageCreateInfo createInfo(
+			{},							// flags
+			vk::ImageType::e2D,			// Image Type
+			format,						// Format
+			vk::Extent3D(extent, 1),	// Extent
+			mipLevels,					// Mip levels
+			1,							// Array layers
+			numSamples,					// SampleCount
+			vk::ImageTiling::eOptimal,	// Image Tiling
+			usage,	// Image usage
+			vk::SharingMode::eExclusive,
+			0, nullptr, // concurrent families
+			vk::ImageLayout::eUndefined	// initial layout
+		);
+
+		mMemManager.createImageAllocation(createInfo,
+			vk::MemoryPropertyFlagBits::eDeviceLocal,
+			vk::MemoryPropertyFlagBits::eDeviceLocal,
+			outImage,
+			outAlloc);
 	}
 
 }; // namespace vkg

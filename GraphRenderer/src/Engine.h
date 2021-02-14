@@ -31,7 +31,7 @@ namespace gr
 		Gui mGui;
 
 		std::vector<vk::Framebuffer> mPresentFramebuffers;
-		vkg::Image2D mColorImage;
+		vkg::Image2D mColorImage, mDepthImage;
 		vkg::RenderPass mRenderPass;
 
 		vk::PipelineLayout mPipLayout;

@@ -1,6 +1,7 @@
 #include "Engine.h"
 
 #define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 
 #ifdef _WIN32 // TO avoid APIENTRY redefinition warning
 #include <Windows.h>
@@ -28,19 +29,25 @@ namespace gr
 {
 
 	struct Vertex {
-		glm::vec2 pos;
+		glm::vec3 pos;
 		glm::vec3 color;
 		glm::vec2 texCoord;
 	};
 
 	const std::vector<Vertex> vertices = {
-	{ {-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f} },
-	{ {0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-	{ {0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-	{ {-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}}
+	{ {-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f} },
+	{ {0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
+	{ {0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
+	{ {-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
+
+	{ {-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f} },
+	{ {0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
+	{ {0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
+	{ {-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}}
 	};
 	const std::vector<uint16_t> indices = {
-		0, 1, 2, 2, 3, 0
+		0, 1, 2, 2, 3, 0,
+		4, 5, 6, 6, 7, 4
 	};
 
 	struct UBO {
@@ -119,6 +126,15 @@ namespace gr
 			mCurrentFrame = (mCurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 			mContexts[mCurrentFrame].advanceFrameCount();
 
+			Window::pollEvents();
+			mGlobalContext.getWindow().update();
+			// Check if minimized, and avoid creating any kind of buffers
+			if (mGlobalContext.getWindow().getFrameBufferWidth() == 0 ||
+				mGlobalContext.getWindow().getFrameBufferHeigth() == 0) {
+				recreateSwapChain();
+				continue;
+			}
+
 			// Wait for current frame, if it was still being executed
 			{
 				//vk::Result res2 = pRenderContext->getDevice().waitForFences(1, mInFlightFences.data() + mCurrentFrame, true, UINT64_MAX);
@@ -142,9 +158,6 @@ namespace gr
 			draw(mContexts[mCurrentFrame]);
 
 			pRenderContext->flushData();
-
-			Window::pollEvents();
-			mGlobalContext.getWindow().update();
 		}
 
 		// Destroy everything
@@ -248,18 +261,9 @@ namespace gr
 	void Engine::createRenderPass()
 	{
 		vkg::RenderPassBuilder builder;
-		builder.reserveNumAttachmentDescriptions(1);
+		builder.reserveNumAttachmentDescriptions(3);
 		builder.reserveNumDependencies(1);
 		builder.reserveNumSubpassDescriptions(1);
-
-		vk::AttachmentReference colorRef = builder.pushColorAttachmentDescription(
-			mSwapChain.getFormat(),			// Format
-			mGlobalContext.rc().getMsaaSampleCount(),	// Sample Count per pixel
-			vk::AttachmentLoadOp::eClear,	// Load operation 
-			vk::AttachmentStoreOp::eStore,	// Store operaton
-			vk::ImageLayout::eUndefined,	// Initial layout
-			vk::ImageLayout::eColorAttachmentOptimal // Final layout
-		);
 
 		vk::AttachmentReference colorResolveRef = builder.pushColorAttachmentDescription(
 			mSwapChain.getFormat(),			// Format
@@ -270,8 +274,28 @@ namespace gr
 			vk::ImageLayout::ePresentSrcKHR // Final layout
 		);
 
+		vk::AttachmentReference colorRef = builder.pushColorAttachmentDescription(
+			mSwapChain.getFormat(),			// Format
+			mGlobalContext.rc().getMsaaSampleCount(),	// Sample Count per pixel
+			vk::AttachmentLoadOp::eClear,	// Load operation 
+			vk::AttachmentStoreOp::eStore,	// Store operaton
+			vk::ImageLayout::eUndefined,	// Initial layout
+			vk::ImageLayout::eColorAttachmentOptimal // Final layout
+		);
+
+		vk::AttachmentReference depthRef = builder.pushDepthAttachmentDescription(
+			mGlobalContext.rc().getDepthFormat(),			// Format
+			mGlobalContext.rc().getMsaaSampleCount(),	// Sample Count per pixel
+			vk::AttachmentLoadOp::eClear,	// Load operation 
+			vk::AttachmentStoreOp::eDontCare,	// Store operaton
+			vk::ImageLayout::eUndefined,	// Initial layout
+			vk::ImageLayout::eDepthStencilAttachmentOptimal // Final layout
+		);
+
+
+
 		uint32_t presentSubPass = builder.pushGraphicsSubpassDescriptionSimple(
-			&colorRef, nullptr, &colorResolveRef
+			&colorRef, &depthRef, &colorResolveRef
 		);
 
 		assert(0 == presentSubPass);
@@ -325,8 +349,10 @@ namespace gr
 
 		buff.begin(beginInfo);
 
-		std::array<vk::ClearValue, 1> clearVal = {};
-		clearVal[0].color.setFloat32({ 0.0f, 0.0f, 0.0f, 1.0f });
+		// The first clear is ignored because is the resolve image
+		std::array<vk::ClearValue, 3> clearVal = {};
+		clearVal[1].color.setFloat32({ 0.0f, 0.0f, 0.0f, 1.0f });
+		clearVal[2].depthStencil.setDepth(1.0f).setStencil(0);
 
 		vk::RenderPassBeginInfo passInfo(
 			mRenderPass,
@@ -481,7 +507,7 @@ namespace gr
 		{
 			vkg::VertexInputDescription vid;
 			vid.addBinding(0, sizeof(Vertex))
-				.addAttributeFloat(0, 2, offsetof(Vertex, Vertex::pos))
+				.addAttributeFloat(0, 3, offsetof(Vertex, Vertex::pos))
 				.addAttributeFloat(1, 3, offsetof(Vertex, Vertex::color))
 				.addAttributeFloat(2, 2, offsetof(Vertex, Vertex::texCoord));
 
@@ -495,6 +521,7 @@ namespace gr
 		builder.setMultisampleCount(mGlobalContext.rc().getMsaaSampleCount());
 		builder.setColorBlendAttachmentStd();
 		builder.setPipelineLayout(mPipLayout);
+		builder.setDepthState(true, true, vk::CompareOp::eLess);
 
 		mGraphicsPipeline = builder.createPipeline(mGlobalContext.rc().getDevice(), mRenderPass, 0);
 	}
@@ -519,9 +546,16 @@ namespace gr
 			1, mGlobalContext.rc().getMsaaSampleCount(),
 			mSwapChain.getFormat()
 		);
+		mDepthImage = mGlobalContext.rc().create2DDepthAttachment(
+			mSwapChain.getExtent(), mGlobalContext.rc().getMsaaSampleCount()
+		);
+
+		std::array<vk::ImageView, 2> views = { mColorImage.getVkImageview(), mDepthImage.getVkImageview() };
 
 		mPresentFramebuffers = mSwapChain.createFramebuffersOfSwapImages(
-			mRenderPass, 1, &mColorImage.getVkImageview());
+			mRenderPass,
+			static_cast<uint32_t>(views.size()),
+			views.data());
 	}
 
 	void Engine::createBuffers()
@@ -632,6 +666,7 @@ namespace gr
 		}
 
 		mGlobalContext.rc().safeDestroyImage(mColorImage);
+		mGlobalContext.rc().safeDestroyImage(mDepthImage);
 
 		mGlobalContext.rc().destroy(mGraphicsPipeline);
 		mGlobalContext.rc().destroy(mRenderPass);

@@ -177,7 +177,7 @@ std::vector<vk::Framebuffer> SwapChain::createFramebuffersOfSwapImages(
 {
 	std::vector<vk::ImageView> attachments(numAttachments + 1);
 	for (uint32_t i = 0; i < numAttachments; ++i) {
-		attachments[i] = attachments_[i];
+		attachments[i+1] = attachments_[i];
 	}
 	vk::FramebufferCreateInfo createInfo = vk::FramebufferCreateInfo(
 		{},			// flags
@@ -194,7 +194,7 @@ std::vector<vk::Framebuffer> SwapChain::createFramebuffersOfSwapImages(
 	std::vector<vk::Framebuffer> framebuffers(size);
 
 	for (uint32_t i = 0; i < size; ++i) {
-		attachments.back() = mImageViews[i];
+		attachments.front() = mImageViews[i];
 
 		framebuffers[i] = mDevice.createFramebuffer(createInfo);
 	}

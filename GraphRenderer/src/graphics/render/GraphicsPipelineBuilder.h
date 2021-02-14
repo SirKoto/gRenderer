@@ -46,6 +46,12 @@ public:
 
 	void setColorBlendAttachmentAlphaBlending();
 
+	// DepthConfiguration
+	void setDepthState(
+		bool testEnable,
+		bool writeEnable,
+		vk::CompareOp compareOp);
+
 	// Pipeline Layout
 	void setPipelineLayout(vk::PipelineLayout layout);
 
@@ -77,6 +83,9 @@ protected:
 
 	// RasterizationState
 	vk::PipelineRasterizationStateCreateInfo mRasterizationState;
+
+	// DepthStencilState. Default all false
+	vk::PipelineDepthStencilStateCreateInfo mDepthStencilState;
 
 	// Multisampling
 	vk::SampleCountFlagBits mMultisampleCount = vk::SampleCountFlagBits::e1;

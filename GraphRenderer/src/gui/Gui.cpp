@@ -129,7 +129,11 @@ void Gui::init(GlobalContext* gc)
     ImGui::GetIO().DisplaySize = 
         ImVec2(static_cast<float>(gc->getWindow().getWidth()),
             static_cast<float>(gc->getWindow().getHeigth()));
+
     ImGui::GetIO().BackendPlatformName = "gr_vulkan_glfw";
+
+    // disable .ini file
+    ImGui::GetIO().IniFilename = nullptr;
 
     // set ImGui input mapping
     {
@@ -338,6 +342,7 @@ void Gui::updatePreFrame(FrameContext* fc)
 
     ImGui::NewFrame();
 
+    this->drawWindows(fc);
 }
 
 
@@ -540,5 +545,62 @@ void Gui::uploadFontObjects(vkg::RenderContext* rc)
 
 
 }
+
+void Gui::drawWindows(FrameContext* fc)
+{
+    drawMainMenuBar(fc);
+
+    if (mWindowImGuiMetricsOpen) {
+        ImGui::ShowMetricsWindow(&this->mWindowImGuiMetricsOpen);
+    }
+
+    if (mWindowStyleEditor) {
+        ImGui::Begin("Style Editor", &this->mWindowStyleEditor);
+        drawStyleWindow(fc);
+        ImGui::End();
+    }
+}
+
+void Gui::drawMainMenuBar(FrameContext* fc)
+{
+    if (ImGui::BeginMainMenuBar()) {
+
+        if (ImGui::BeginMenu("File")) {
+
+            if (ImGui::MenuItem("Quit", "Alt+F4")) {
+                mCloseAppFlag = true;
+            }
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("View")) {
+            ImGui::MenuItem("Metrics", nullptr, &this->mWindowImGuiMetricsOpen);
+            ImGui::MenuItem("Style", nullptr, &this->mWindowStyleEditor);
+
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMainMenuBar();
+    }
+}
+
+void Gui::drawStyleWindow(FrameContext* fc)
+{
+    ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.7f);
+    ImGuiIO& io = ImGui::GetIO();
+    ImFont* font_current = ImGui::GetFont();
+    if (ImGui::BeginCombo("Font##Selector", font_current->GetDebugName())) {
+        for (int i = 0; i < io.Fonts->Fonts.Size; i++)
+        {
+            ImFont* font = io.Fonts->Fonts[i];
+            ImGui::PushID((void*)font);
+            if (ImGui::Selectable(font->GetDebugName(), font == font_current))
+                io.FontDefault = font;
+            ImGui::PopID();
+        }
+        ImGui::EndCombo();
+    }
+}
+
 
 } // namespace gr

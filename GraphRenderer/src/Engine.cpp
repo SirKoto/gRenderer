@@ -64,7 +64,7 @@ namespace gr
 
 		vkg::RenderContext* pRenderContext = &mGlobalContext.rc();
 		pRenderContext->createInstance({}, true);
-		mGlobalContext.getWindow().initialize(1280, 1024, "Test");
+		mGlobalContext.getWindow().initialize(1280, 1024, {"Test", true});
 
 		mGlobalContext.getWindow().createVkSurface(pRenderContext->getInstance());
 
@@ -113,7 +113,8 @@ namespace gr
 		// init to start with frame zero
 		mCurrentFrame = MAX_FRAMES_IN_FLIGHT - 1;
 
-		while (!mGlobalContext.getWindow().windowShouldClose()) {
+		while (!mGlobalContext.getWindow().windowShouldClose() &&
+			!mGui.appShouldClose()) {
 			// advance frame
 			mCurrentFrame = (mCurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 			mContexts[mCurrentFrame].advanceFrameCount();

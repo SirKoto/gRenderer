@@ -23,15 +23,33 @@ void Window::s_charCallback(void* window, unsigned int c)
 	w->mCharInput.push_back(c);
 }
 
-void Window::initialize(int width, int heigth, const std::string& windowTitle)
+void Window::s_windowSizeCallback(void* window, int w, int h)
+{
+	GLFWwindow* glfwWin = reinterpret_cast<GLFWwindow*>(window);
+	Window* win = reinterpret_cast<Window*>(glfwGetWindowUserPointer(glfwWin));
+	win->mWidth = w;
+	win->mHeight = h;
+}
+
+void Window::s_windowFramebufferSizeCallback(void* window, int w, int h)
+{
+	GLFWwindow* glfwWin = reinterpret_cast<GLFWwindow*>(window);
+	Window* win = reinterpret_cast<Window*>(glfwGetWindowUserPointer(glfwWin));
+	win->mPixelWidth = w;
+	win->mPixelHeight = h;
+}
+
+
+void Window::initialize(int width, int heigth, const WindowConfig& config)
 {
 	assert(width > 0 && heigth > 0);
 	mWidth = width;
 	mHeight = heigth;
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+	glfwWindowHint(GLFW_RESIZABLE, config.resizableWindow ? GLFW_TRUE : GLFW_FALSE);
 
-	mWindow = glfwCreateWindow(width, heigth, windowTitle.c_str(), nullptr, nullptr);
+	mWindow = glfwCreateWindow(width, heigth, config.windowTitle, nullptr, nullptr);
+	glfwGetFramebufferSize(reinterpret_cast<GLFWwindow*>(mWindow), &mPixelWidth, &mPixelHeight);
 
 	glfwSetWindowUserPointer(reinterpret_cast<GLFWwindow*>(mWindow), this);
 	glfwSetInputMode(reinterpret_cast<GLFWwindow*>(mWindow),
@@ -42,6 +60,10 @@ void Window::initialize(int width, int heigth, const std::string& windowTitle)
 		reinterpret_cast<GLFWscrollfun>(s_mouseWheelCallback));
 	glfwSetCharCallback(reinterpret_cast<GLFWwindow*>(mWindow),
 		reinterpret_cast<GLFWcharfun>(s_charCallback));
+	glfwSetWindowSizeCallback(reinterpret_cast<GLFWwindow*>(mWindow),
+		reinterpret_cast<GLFWwindowsizefun>(s_windowSizeCallback));
+	glfwSetFramebufferSizeCallback(reinterpret_cast<GLFWwindow*>(mWindow),
+		reinterpret_cast<GLFWframebuffersizefun>(s_windowFramebufferSizeCallback));
 }
 
 void Window::createVkSurface(const vk::Instance& instance)

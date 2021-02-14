@@ -27,6 +27,8 @@ public:
 
 	void uploadFontObjects(vkg::RenderContext* rc);
 
+	bool appShouldClose() const { return mCloseAppFlag; }
+
 protected:
 
 	vk::Pipeline mPipeline;
@@ -42,6 +44,13 @@ protected:
 
 	vk::Sampler mTexSampler;
 
+	bool mCloseAppFlag = false;
+	bool mWindowImGuiMetricsOpen = false;
+	bool mWindowStyleEditor = false;
+
+	void drawWindows(FrameContext* fc);
+	void drawMainMenuBar(FrameContext* fc);
+	void drawStyleWindow(FrameContext* fc);
 };
 
 } // namespace gr

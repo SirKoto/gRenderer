@@ -17,10 +17,17 @@ namespace vkg
 		Window& operator=(const Window& w) = delete;
 		Window& operator=(Window&& w) = delete;
 
-		void initialize(int width, int heigth, const std::string& windowTitle);
+		struct WindowConfig {
+			const char* windowTitle = "";
+			bool resizableWindow = true;
+		};
 
-		int getWidth() const { return mWidth; }
-		int getHeigth() const {	return mHeight; }
+		void initialize(int width, int heigth, const WindowConfig& config);
+
+		int32_t getWidth() const { return mWidth; }
+		int32_t getHeigth() const {	return mHeight; }
+		int32_t getFrameBufferWidth() const { return mPixelWidth; }
+		int32_t getFrameBufferHeigth() const { return mPixelHeight; }
 
 		void createVkSurface(
 			const vk::Instance& instance
@@ -104,7 +111,8 @@ namespace vkg
 
 	private:
 
-		int mWidth, mHeight;
+		int32_t mWidth, mHeight;
+		int32_t mPixelWidth, mPixelHeight;
 		void* mWindow;
 		vk::SurfaceKHR mSurface;
 
@@ -121,6 +129,8 @@ namespace vkg
 
 		static void s_mouseWheelCallback(void*, double, double);
 		static void s_charCallback(void*, unsigned int);
+		static void s_windowSizeCallback(void*, int, int);
+		static void s_windowFramebufferSizeCallback(void*, int, int);
 
 	};
 

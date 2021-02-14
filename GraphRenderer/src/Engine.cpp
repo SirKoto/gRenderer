@@ -111,7 +111,7 @@ namespace gr
 		createGraphicsPipeline();
 
 		mGui.init(&mGlobalContext);
-		mGui.updatePipelineState(&mGlobalContext.rc(), mRenderPass, 0);
+		mGui.updatePipelineState(&mGlobalContext.rc(), mRenderPass, 1);
 		mGui.addFont("resources/fonts/ProggyCleanTT.ttf");
 		mGui.uploadFontObjects(&mGlobalContext.rc());
 
@@ -262,8 +262,8 @@ namespace gr
 	{
 		vkg::RenderPassBuilder builder;
 		builder.reserveNumAttachmentDescriptions(3);
-		builder.reserveNumDependencies(1);
-		builder.reserveNumSubpassDescriptions(1);
+		builder.reserveNumDependencies(2);
+		builder.reserveNumSubpassDescriptions(2);
 
 		vk::AttachmentReference colorResolveRef = builder.pushColorAttachmentDescription(
 			mSwapChain.getFormat(),			// Format
@@ -294,15 +294,29 @@ namespace gr
 
 
 
-		uint32_t presentSubPass = builder.pushGraphicsSubpassDescriptionSimple(
+		uint32_t graphicsSubPass = builder.pushGraphicsSubpassDescriptionSimple(
 			&colorRef, &depthRef, &colorResolveRef
 		);
 
-		assert(0 == presentSubPass);
+		uint32_t presentSubPass = builder.pushGraphicsSubpassDescriptionSimple(
+			&colorResolveRef);
+
+		assert(0 == graphicsSubPass);
+		assert(1 == presentSubPass);
 
 		vk::SubpassDependency dependency(
 			VK_SUBPASS_EXTERNAL,	// src Stage
 			0,			// dst Stage
+			vk::PipelineStageFlagBits::eColorAttachmentOutput, // src Stage Mask
+			vk::PipelineStageFlagBits::eColorAttachmentOutput, // dst Stage Mask
+			{}, vk::AccessFlagBits::eColorAttachmentWrite
+		);
+
+		builder.pushSubpassDependency(dependency);
+
+		dependency = vk::SubpassDependency(
+			0,			// src Stage
+			1,			// dst Stage
 			vk::PipelineStageFlagBits::eColorAttachmentOutput, // src Stage Mask
 			vk::PipelineStageFlagBits::eColorAttachmentOutput, // dst Stage Mask
 			{}, vk::AccessFlagBits::eColorAttachmentWrite
@@ -382,6 +396,8 @@ namespace gr
 			static_cast<uint32_t>(indices.size()), // index count
 			1, 0, 0, 0	// instance count, and offsets
 		);
+
+		buff.nextSubpass(vk::SubpassContents::eInline);
 
 		mGui.render(frame, buff);
 

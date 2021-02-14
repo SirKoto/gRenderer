@@ -290,7 +290,7 @@ void Gui::updatePipelineState(
         pipBuilder.setVertexBindingDescriptions(vertexIn.getBindingDescription());
         pipBuilder.setVertexAttirbuteDescriptions(vertexIn.getAttributeDescriptions());
     }
-    pipBuilder.setMultisampleCount(rc->getMsaaSampleCount());
+    pipBuilder.setMultisampleCount(vk::SampleCountFlagBits::e1);
     pipBuilder.setPrimitiveTopology(vk::PrimitiveTopology::eTriangleList);
     pipBuilder.setColorBlendAttachmentAlphaBlending();
     pipBuilder.setPipelineLayout(mPipelineLayout);

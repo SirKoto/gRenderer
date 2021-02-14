@@ -60,6 +60,11 @@ void GraphicsPipelineBuilder::setPrimitiveTopology(vk::PrimitiveTopology topolog
 	mTopology = topology;
 }
 
+void GraphicsPipelineBuilder::setPolygonMode(vk::PolygonMode polyMode)
+{
+	mRasterizationState.setPolygonMode(polyMode);
+}
+
 void GraphicsPipelineBuilder::setViewportSize(const vk::Extent2D& extent)
 {
 	mViewport.width = static_cast<float>(extent.width);

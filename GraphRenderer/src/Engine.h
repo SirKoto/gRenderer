@@ -36,7 +36,7 @@ namespace gr
 
 		vk::PipelineLayout mPipLayout;
 		vk::ShaderModule mShaderModules[2];
-		vk::Pipeline mGraphicsPipeline;
+		vk::Pipeline mGraphicsPipeline, mWireframePipeline;
 
 		uint32_t mCurrentFrame = 0;
 		vk::Semaphore mFrameAvailableTimelineSemaphore;

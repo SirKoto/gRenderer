@@ -573,6 +573,22 @@ void Gui::drawMainMenuBar(FrameContext* fc)
             ImGui::EndMenu();
         }
 
+        if (ImGui::BeginMenu("Render")) {
+            std::array<const char*, 2> sel =
+            { "Color", "Wireframe" };
+
+            if (ImGui::BeginCombo("Render type###Selector", sel[mWireframeModeEnabled])) {
+                if(ImGui::Selectable(sel[0], !mWireframeModeEnabled)) {
+                    mWireframeModeEnabled = false;
+                }
+                if(ImGui::Selectable(sel[1], mWireframeModeEnabled)) {
+                    mWireframeModeEnabled = true;
+                }
+                ImGui::EndCombo();
+            }
+            ImGui::EndMenu();
+        }
+
         if (ImGui::BeginMenu("View")) {
             ImGui::MenuItem("Metrics", nullptr, &this->mWindowImGuiMetricsOpen);
             ImGui::MenuItem("Style", nullptr, &this->mWindowStyleEditor);

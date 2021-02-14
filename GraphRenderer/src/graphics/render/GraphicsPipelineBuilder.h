@@ -26,6 +26,7 @@ public:
 
 	// PipelineInputAssemblyState
 	void setPrimitiveTopology(vk::PrimitiveTopology topology);
+	void setPolygonMode(vk::PolygonMode polyMode);
 
 	// ViewportStateCreateInfo
 	void setViewportSize(const vk::Extent2D& extent);

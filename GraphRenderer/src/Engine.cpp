@@ -378,8 +378,12 @@ namespace gr
 
 		buff.beginRenderPass(passInfo, vk::SubpassContents::eInline);
 
-
-		buff.bindPipeline(vk::PipelineBindPoint::eGraphics, mGraphicsPipeline);
+		if (mGui.isWireframeRenderModeEnabled()) {
+			buff.bindPipeline(vk::PipelineBindPoint::eGraphics, mWireframePipeline);
+		}
+		else {
+			buff.bindPipeline(vk::PipelineBindPoint::eGraphics, mGraphicsPipeline);
+		}
 
 		vk::DeviceSize offset = 0;
 		buff.bindVertexBuffers(0, 1, &mVertexBuffer.getVkBuffer(), &offset);
@@ -540,6 +544,10 @@ namespace gr
 		builder.setDepthState(true, true, vk::CompareOp::eLess);
 
 		mGraphicsPipeline = builder.createPipeline(mGlobalContext.rc().getDevice(), mRenderPass, 0);
+
+		builder.setPolygonMode(vk::PolygonMode::eLine);
+
+		mWireframePipeline = builder.createPipeline(mGlobalContext.rc().getDevice(), mRenderPass, 0);
 	}
 
 	void Engine::createSyncObjects()
@@ -685,6 +693,8 @@ namespace gr
 		mGlobalContext.rc().safeDestroyImage(mDepthImage);
 
 		mGlobalContext.rc().destroy(mGraphicsPipeline);
+		mGlobalContext.rc().destroy(mWireframePipeline);
+
 		mGlobalContext.rc().destroy(mRenderPass);
 	}
 

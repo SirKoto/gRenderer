@@ -29,6 +29,8 @@ public:
 
 	bool appShouldClose() const { return mCloseAppFlag; }
 
+	bool isWireframeRenderModeEnabled() const { return mWireframeModeEnabled; }
+
 protected:
 
 	vk::Pipeline mPipeline;
@@ -43,6 +45,8 @@ protected:
 	vk::PipelineLayout mPipelineLayout;
 
 	vk::Sampler mTexSampler;
+
+	bool mWireframeModeEnabled = false;
 
 	bool mCloseAppFlag = false;
 	bool mWindowImGuiMetricsOpen = false;

@@ -604,6 +604,7 @@ namespace vkg
 
 		vk::PhysicalDeviceFeatures features;
 		features.samplerAnisotropy = mAnisotropySamplerEnabled;
+		features.fillModeNonSolid = true;
 		vk::PhysicalDeviceVulkan12Features features12;
 		features12.timelineSemaphore = true;
 
@@ -675,6 +676,8 @@ namespace vkg
 		{
 			const vk::PhysicalDeviceFeatures features = physicalDevice.getFeatures();
 			if (requestAnisotropySampler && !features.samplerAnisotropy)
+				featureSupport = false;
+			if (!features.fillModeNonSolid)
 				featureSupport = false;
 		}
 

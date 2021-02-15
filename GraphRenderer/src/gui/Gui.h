@@ -31,6 +31,10 @@ public:
 
 	bool isWireframeRenderModeEnabled() const { return mWireframeModeEnabled; }
 
+	// returns true if there is a mesh pending to open
+	bool isMeshToOpen(const char* fileName = nullptr) const;
+	void setMeshOpened() { mIsMeshToOpen = false; }
+
 protected:
 
 	vk::Pipeline mPipeline;
@@ -48,13 +52,21 @@ protected:
 
 	bool mWireframeModeEnabled = false;
 
+	bool mFilePickerInUse = false;
+
 	bool mCloseAppFlag = false;
 	bool mWindowImGuiMetricsOpen = false;
 	bool mWindowStyleEditor = false;
 
+	std::string mMeshToOpenFileName;
+	bool mIsMeshToOpen = false;
+	
+
+
 	void drawWindows(FrameContext* fc);
 	void drawMainMenuBar(FrameContext* fc);
 	void drawStyleWindow(FrameContext* fc);
+	void drawFilePicker();
 };
 
 } // namespace gr

@@ -3,7 +3,9 @@
 #include "../graphics/render/GraphicsPipelineBuilder.h"
 #include "../graphics/shaders/VertexInputDescription.h"
 
-#include "imgui/imgui.h"
+#include "src_lib/imgui/imgui.h"
+#include "src_lib/ImGuiFileDialog/ImGuiFileDialog.h"
+#include <iostream>
 
 namespace gr
 {
@@ -118,6 +120,8 @@ static uint32_t __glsl_shader_frag_spv[] =
 };
 
 
+constexpr const char * IMPORT_MESH_STRING_KEY = "ImportMeshChooserKeyImGuiFileDialog";
+
 
 void Gui::init(GlobalContext* gc)
 {
@@ -134,7 +138,7 @@ void Gui::init(GlobalContext* gc)
 
     // disable .ini file
     ImGui::GetIO().IniFilename = nullptr;
-
+    ImGui::GetIO().FontAllowUserScaling = true; // zoom wiht ctrl + mouse wheel 
     // set ImGui input mapping
     {
          ImGuiIO& io = ImGui::GetIO();
@@ -546,6 +550,14 @@ void Gui::uploadFontObjects(vkg::RenderContext* rc)
 
 }
 
+bool Gui::isMeshToOpen(const char* fileName) const
+{
+    if (fileName) {
+        fileName = mMeshToOpenFileName.c_str();
+    }
+    return mIsMeshToOpen;
+}
+
 void Gui::drawWindows(FrameContext* fc)
 {
     drawMainMenuBar(fc);
@@ -559,6 +571,8 @@ void Gui::drawWindows(FrameContext* fc)
         drawStyleWindow(fc);
         ImGui::End();
     }
+
+    drawFilePicker();
 }
 
 void Gui::drawMainMenuBar(FrameContext* fc)
@@ -567,9 +581,24 @@ void Gui::drawMainMenuBar(FrameContext* fc)
 
         if (ImGui::BeginMenu("File")) {
 
+            if (ImGui::MenuItem("Import mesh", nullptr,
+                nullptr, !mFilePickerInUse)) {
+
+                mFilePickerInUse = true;
+                // open dialog
+                ImGuiFileDialog::Instance()->OpenDialog(
+                    IMPORT_MESH_STRING_KEY,
+                    "Choose mesh to load",
+                    ".*", // filter
+                    "." // directory
+                );
+
+            }
+
             if (ImGui::MenuItem("Quit", "Alt+F4")) {
                 mCloseAppFlag = true;
             }
+
             ImGui::EndMenu();
         }
 
@@ -615,6 +644,32 @@ void Gui::drawStyleWindow(FrameContext* fc)
             ImGui::PopID();
         }
         ImGui::EndCombo();
+    }
+}
+
+void Gui::drawFilePicker()
+{
+
+    if (ImGuiFileDialog::Instance()->Display(
+        IMPORT_MESH_STRING_KEY, // Key
+        ImGuiWindowFlags_NoCollapse,
+        ImVec2(0, 20 * ImGui::GetFontSize()) // minSize
+    )) {
+        assert(mFilePickerInUse);
+        mFilePickerInUse = false;
+        // action if OK
+        if (ImGuiFileDialog::Instance()->IsOk())
+        {
+
+            std::map<std::string, std::string> map = 
+                ImGuiFileDialog::Instance()->GetSelection();
+            assert(map.size() == 1);
+            mMeshToOpenFileName = map.begin()->second;
+            mIsMeshToOpen = true;
+        }
+
+        // close
+        ImGuiFileDialog::Instance()->Close();
     }
 }
 

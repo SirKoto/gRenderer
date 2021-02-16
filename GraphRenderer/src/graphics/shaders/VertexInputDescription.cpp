@@ -107,6 +107,18 @@ std::vector<vk::VertexInputAttributeDescription> gr::vkg::VertexInputDescription
 	return attribDesc;
 }
 
+bool gr::vkg::VertexInputDescription::existsBinding(uint32_t bindId) const
+{
+	const uint32_t size = static_cast<uint32_t>(mBindings.size());
+	for (uint32_t i = 0; i < size; ++i) {
+		if (mBindings[i].getBindId() == bindId) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 const gr::vkg::VertexInputDescription::Binding& gr::vkg::VertexInputDescription::findBinding(uint32_t bindId) const
 {
 	const uint32_t size = static_cast<uint32_t>(mBindings.size());

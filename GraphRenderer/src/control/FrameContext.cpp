@@ -33,7 +33,9 @@ void gr::FrameContext::updateTime(double_t newTime)
 
 void gr::FrameContext::scheduleToDelete(const vkg::Buffer buffer)
 {
-	mBuffersToDelete.push_back(buffer);
+	if (buffer) {
+		mBuffersToDelete.push_back(buffer);
+	}
 }
 
 void gr::FrameContext::resetFrameResources()

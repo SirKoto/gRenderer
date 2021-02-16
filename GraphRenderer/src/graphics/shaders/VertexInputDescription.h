@@ -19,6 +19,8 @@ public:
 
 	std::vector<vk::VertexInputAttributeDescription> getAttributeDescriptions() const;
 
+	bool existsBinding(uint32_t bindId) const;
+
 	class Attribute
 	{
 	public:

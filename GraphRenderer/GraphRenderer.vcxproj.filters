@@ -171,6 +171,12 @@
     <ClCompile Include="src_lib\ImGuiFileDialog\ImGuiFileDialog.cpp">
       <Filter>LibrariesSources\ImGuiFileDialog</Filter>
     </ClCompile>
+    <ClCompile Include="src\dependencies\tiny_obj_loader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\meshes\Mesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engine.h">
@@ -301,6 +307,9 @@
     </ClInclude>
     <ClInclude Include="src_lib\ImGuiFileDialog\dirent\dirent.h">
       <Filter>LibrariesSources\ImGuiFileDialog\dirent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\Mesh.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -3,8 +3,8 @@
 #include "../graphics/render/GraphicsPipelineBuilder.h"
 #include "../graphics/shaders/VertexInputDescription.h"
 
-#include "src_lib/imgui/imgui.h"
-#include "src_lib/ImGuiFileDialog/ImGuiFileDialog.h"
+#include <imgui/imgui.h>
+#include <ImGuiFileDialog/ImGuiFileDialog.h>
 #include <iostream>
 
 namespace gr
@@ -550,10 +550,10 @@ void Gui::uploadFontObjects(vkg::RenderContext* rc)
 
 }
 
-bool Gui::isMeshToOpen(const char* fileName) const
+bool Gui::isMeshToOpen(const char** fileName) const
 {
     if (fileName) {
-        fileName = mMeshToOpenFileName.c_str();
+        *fileName = mMeshToOpenFileName.c_str();
     }
     return mIsMeshToOpen;
 }

@@ -78,12 +78,12 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\Libraries\includes;.\;$(IncludePath)</IncludePath>
+    <IncludePath>.\src_lib;..\Libraries\includes;.\;$(IncludePath)</IncludePath>
     <LibraryPath>..\Libraries\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\Libraries\includes;.\;$(IncludePath)</IncludePath>
+    <IncludePath>.\src_lib;..\Libraries\includes;.\;$(IncludePath)</IncludePath>
     <LibraryPath>..\Libraries\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -118,7 +118,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;GLM_FORCE_RADIANS;GLM_FORCE_DEPTH_ZERO_TO_ONE;_CRT_SECURE_NO_WARNINGS_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>D:\Programs\Vulkan\1.2.162.1\Include</AdditionalIncludeDirectories>
@@ -136,7 +136,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_WARNINGSNDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;GLM_FORCE_RADIANS;GLM_FORCE_DEPTH_ZERO_TO_ONE;_CRT_SECURE_NO_WARNINGSNDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>D:\Programs\Vulkan\1.2.162.1\Include</AdditionalIncludeDirectories>
@@ -154,6 +154,7 @@
     <ClCompile Include="src\control\FrameContext.cpp" />
     <ClCompile Include="src\control\GlobalContext.cpp" />
     <ClCompile Include="src\dependencies\stbi_image.cpp" />
+    <ClCompile Include="src\dependencies\tiny_obj_loader.cpp" />
     <ClCompile Include="src\Engine.cpp" />
     <ClCompile Include="src\graphics\command\CommandFlusher.cpp" />
     <ClCompile Include="src\graphics\command\FreeCommandPool.cpp" />
@@ -176,6 +177,7 @@
     <ClCompile Include="src\graphics\Window.cpp" />
     <ClCompile Include="src\gui\Gui.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\meshes\Mesh.cpp" />
     <ClCompile Include="src\utils\Fibers\Counter.cpp" />
     <ClCompile Include="src\utils\Fibers\Fiber.cpp" />
     <ClCompile Include="src\utils\Fibers\FScheduler.cpp" />
@@ -216,6 +218,7 @@
     <ClInclude Include="src\graphics\shaders\VertexInputDescription.h" />
     <ClInclude Include="src\graphics\Window.h" />
     <ClInclude Include="src\gui\Gui.h" />
+    <ClInclude Include="src\meshes\Mesh.h" />
     <ClInclude Include="src\utils\ConstExprHelp.h" />
     <ClInclude Include="src\utils\Fibers\Counter.h" />
     <ClInclude Include="src\utils\Fibers\Fiber.h" />

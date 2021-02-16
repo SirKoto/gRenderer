@@ -4,6 +4,7 @@
 #include "graphics/present/SwapChain.h"
 #include "graphics/render/RenderPass.h"
 #include "gui/Gui.h"
+#include "meshes/Mesh.h"
 
 namespace gr
 {
@@ -45,8 +46,7 @@ namespace gr
 		std::array<uint64_t, MAX_FRAMES_IN_FLIGHT> mInFlightSemaphoreValues;
 		std::vector<vk::Fence> mImagesInFlightFences;
 
-		vkg::Buffer mVertexBuffer;
-		vkg::Buffer mIndexBuffer;
+		Mesh mMesh;
 		std::vector<vkg::Buffer> mUbos;
 		vkg::Image2D mTexture;
 		vk::Sampler mTexSampler;
@@ -79,9 +79,10 @@ namespace gr
 
 		void createFrameBufferObjects();
 
-		void createBuffers();
 		void createUniformBuffers();
 		void createTextureImage();
+
+		void tryLoadMesh();
 
 		void cleanup();
 		void cleanupSwapChainDependantObjs();

@@ -1,8 +1,5 @@
 #include "Engine.h"
 
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-
 #ifdef _WIN32 // TO avoid APIENTRY redefinition warning
 #include <Windows.h>
 #endif
@@ -27,28 +24,6 @@
 
 namespace gr
 {
-
-	struct Vertex {
-		glm::vec3 pos;
-		glm::vec3 color;
-		glm::vec2 texCoord;
-	};
-
-	const std::vector<Vertex> vertices = {
-	{ {-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f} },
-	{ {0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-	{ {0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-	{ {-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
-
-	{ {-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f} },
-	{ {0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-	{ {0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-	{ {-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}}
-	};
-	const std::vector<uint16_t> indices = {
-		0, 1, 2, 2, 3, 0,
-		4, 5, 6, 6, 7, 4
-	};
 
 	struct UBO {
 		glm::mat4 M, V, P;
@@ -95,12 +70,11 @@ namespace gr
 		createRenderPass();
 		createFrameBufferObjects();
 
-		std::array<grjob::Job, 5> jobs;
+		std::array<grjob::Job, 4> jobs;
 		jobs[0] = grjob::Job(&Engine::createShaderModules, this);
-		jobs[1] = grjob::Job(&Engine::createBuffers, this);
-		jobs[2] = grjob::Job(&Engine::createUniformBuffers, this);
-		jobs[3] = grjob::Job(&Engine::createTextureImage, this);
-		jobs[4] = grjob::Job(&Engine::createDescriptorSetLayout, this);
+		jobs[1] = grjob::Job(&Engine::createUniformBuffers, this);
+		jobs[2] = grjob::Job(&Engine::createTextureImage, this);
+		jobs[3] = grjob::Job(&Engine::createDescriptorSetLayout, this);
 
 		grjob::Counter* counter = nullptr;
 		grjob::runJobBatch(grjob::Priority::eMid, jobs.data(), static_cast<uint32_t>(jobs.size()), &counter);
@@ -154,6 +128,8 @@ namespace gr
 			mContexts[mCurrentFrame].resetFrameResources();
 
 			mGui.updatePreFrame(&mContexts[mCurrentFrame]);
+
+			tryLoadMesh();
 
 			draw(mContexts[mCurrentFrame]);
 
@@ -385,9 +361,6 @@ namespace gr
 			buff.bindPipeline(vk::PipelineBindPoint::eGraphics, mGraphicsPipeline);
 		}
 
-		vk::DeviceSize offset = 0;
-		buff.bindVertexBuffers(0, 1, &mVertexBuffer.getVkBuffer(), &offset);
-		buff.bindIndexBuffer(mIndexBuffer.getVkBuffer(), 0, vk::IndexType::eUint16);
 
 		buff.bindDescriptorSets(
 			vk::PipelineBindPoint::eGraphics,
@@ -396,10 +369,16 @@ namespace gr
 			0, nullptr					// dynamic offsets
 		);
 
-		buff.drawIndexed(
-			static_cast<uint32_t>(indices.size()), // index count
-			1, 0, 0, 0	// instance count, and offsets
-		);
+		if (mMesh) {
+			vk::DeviceSize offset = 0;
+			buff.bindVertexBuffers(0, 1, &mMesh.getVB(), &offset);
+			buff.bindIndexBuffer(mMesh.getIB(), 0, vk::IndexType::eUint32);
+
+			buff.drawIndexed(
+				mMesh.getNumIndices(), // index count
+				1, 0, 0, 0	// instance count, and offsets
+			);
+		}
 
 		buff.nextSubpass(vk::SubpassContents::eInline);
 
@@ -526,10 +505,7 @@ namespace gr
 		// Set Vertex Input descriptions
 		{
 			vkg::VertexInputDescription vid;
-			vid.addBinding(0, sizeof(Vertex))
-				.addAttributeFloat(0, 3, offsetof(Vertex, Vertex::pos))
-				.addAttributeFloat(1, 3, offsetof(Vertex, Vertex::color))
-				.addAttributeFloat(2, 2, offsetof(Vertex, Vertex::texCoord));
+			Mesh::addToVertexInputDescription(0, &vid);
 
 			assert(vid.getBindingDescription().size() == 1);
 			builder.setVertexBindingDescriptions( vid.getBindingDescription() );
@@ -582,20 +558,6 @@ namespace gr
 			views.data());
 	}
 
-	void Engine::createBuffers()
-	{
-		size_t VBsize = sizeof(vertices[0]) * vertices.size();
-		size_t IBsize = sizeof(indices[0]) * indices.size();
-		mVertexBuffer = mGlobalContext.rc().createVertexBuffer(VBsize);
-		mIndexBuffer = mGlobalContext.rc().createIndexBuffer(IBsize);
-
-		mGlobalContext.rc().getTransferer()->transferToBuffer(mGlobalContext.rc(),
-			vertices.data(), VBsize, mVertexBuffer);
-		mGlobalContext.rc().getTransferer()->transferToBuffer(mGlobalContext.rc(),
-			indices.data(), IBsize, mIndexBuffer);
-
-	}
-
 	void Engine::createUniformBuffers()
 	{
 		// Create uniform buffer objects
@@ -646,6 +608,20 @@ namespace gr
 		mTexSampler = mGlobalContext.rc().createSampler(vk::SamplerAddressMode::eRepeat);
 	}
 
+	void Engine::tryLoadMesh()
+	{
+		if (!mGui.isMeshToOpen()) {
+			return;
+		}
+
+		const char* fileName;
+		mGui.isMeshToOpen(&fileName);
+
+		mMesh.load(fileName, &mGlobalContext);
+
+		mGui.setMeshOpened();
+	}
+
 	void Engine::cleanup()
 	{
 		// destroy sync objects
@@ -658,8 +634,7 @@ namespace gr
 		cleanupSwapChainDependantObjs();
 		
 		// Destroy Buffers
-		mGlobalContext.rc().safeDestroyBuffer(mVertexBuffer);
-		mGlobalContext.rc().safeDestroyBuffer(mIndexBuffer);
+		mMesh.destroy(&mGlobalContext);
 		
 		mGlobalContext.rc().safeDestroyImage(mTexture);
 

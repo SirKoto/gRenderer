@@ -2,6 +2,7 @@
 
 #include "../graphics/RenderContext.h"
 #include "../graphics/Window.h"
+#include "../meshes/ResourceDictionary.h"
 
 namespace gr
 {
@@ -16,6 +17,8 @@ public:
 	const vkg::RenderContext& rc() const { return mRenderContext; }
 	vkg::Window& getWindow() { return mWindow; }
 	const vkg::Window& getWindow() const { return mWindow; }
+	const ResourceDictionary& getDict() const { return mDict; }
+	ResourceDictionary& getDict() { return mDict; }
 
 	double_t getTime() const { return mGlobalTime; }
 	void setTime(double_t newTime);
@@ -29,6 +32,7 @@ private:
 
 	vkg::RenderContext mRenderContext;
 	vkg::Window mWindow;
+	ResourceDictionary mDict;
 };
 
 } // namespace gr

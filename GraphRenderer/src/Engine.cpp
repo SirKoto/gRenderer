@@ -369,13 +369,14 @@ namespace gr
 			0, nullptr					// dynamic offsets
 		);
 
-		if (mMesh) {
+		if (!mMeshes.empty()) {
 			vk::DeviceSize offset = 0;
-			buff.bindVertexBuffers(0, 1, &mMesh.getVB(), &offset);
-			buff.bindIndexBuffer(mMesh.getIB(), 0, vk::IndexType::eUint32);
+			const Mesh& mesh = mGlobalContext.getDict().getMesh(mMeshes.front());
+			buff.bindVertexBuffers(0, 1, &mesh.getVB(), &offset);
+			buff.bindIndexBuffer(mesh.getIB(), 0, vk::IndexType::eUint32);
 
 			buff.drawIndexed(
-				mMesh.getNumIndices(), // index count
+				mesh.getNumIndices(), // index count
 				1, 0, 0, 0	// instance count, and offsets
 			);
 		}
@@ -614,10 +615,13 @@ namespace gr
 			return;
 		}
 
-		const char* fileName;
-		mGui.isMeshToOpen(&fileName);
+		const char* fileName, *filePath;
+		mGui.isMeshToOpen(&filePath, &fileName);
 
-		mMesh.load(fileName, &mGlobalContext);
+		Mesh mesh;
+		mesh.load(&mGlobalContext, filePath, fileName);
+		
+		mMeshes.push_back(mGlobalContext.getDict().addMesh(std::move(mesh)));
 
 		mGui.setMeshOpened();
 	}
@@ -634,7 +638,9 @@ namespace gr
 		cleanupSwapChainDependantObjs();
 		
 		// Destroy Buffers
-		mMesh.destroy(&mGlobalContext);
+		for (ResourceDictionary::ResId id : mMeshes) {
+			mGlobalContext.getDict().getMesh(id).destroy(&mGlobalContext);
+		}
 		
 		mGlobalContext.rc().safeDestroyImage(mTexture);
 

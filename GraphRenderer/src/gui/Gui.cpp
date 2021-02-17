@@ -550,11 +550,16 @@ void Gui::uploadFontObjects(vkg::RenderContext* rc)
 
 }
 
-bool Gui::isMeshToOpen(const char** fileName) const
+bool Gui::isMeshToOpen(const char** filePath,
+    const char** fileName) const
 {
+    if (filePath) {
+        *filePath = mMeshToOpenFilePath.c_str();
+    }
     if (fileName) {
         *fileName = mMeshToOpenFileName.c_str();
     }
+
     return mIsMeshToOpen;
 }
 
@@ -664,7 +669,8 @@ void Gui::drawFilePicker()
             std::map<std::string, std::string> map = 
                 ImGuiFileDialog::Instance()->GetSelection();
             assert(map.size() == 1);
-            mMeshToOpenFileName = map.begin()->second;
+            mMeshToOpenFileName = map.begin()->first;
+            mMeshToOpenFilePath = map.begin()->second;
             mIsMeshToOpen = true;
         }
 

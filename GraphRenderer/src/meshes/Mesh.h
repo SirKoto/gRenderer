@@ -3,24 +3,27 @@
 #include <glm/glm.hpp>
 #include <vector>
 
-#include "../control/FrameContext.h"
 #include "../graphics/resources/Buffer.h"
 #include "../graphics/shaders/VertexInputDescription.h"
+#include "IObject.h"
 
 namespace gr
 {
-class Mesh
+
+class GlobalContext;
+class Mesh : public IObject
 {
 public:
 
 	Mesh() = default;
-	Mesh(const Mesh&) = delete;
+	Mesh(const Mesh&) = default;
 	Mesh(Mesh&&) = default;
-	Mesh& operator=(const Mesh&) = delete;
+	Mesh& operator=(const Mesh&) = default;
 	Mesh& operator=(Mesh&&) = default;
 
-	void load(const char* fileName,
-		GlobalContext* gc);
+	void load(GlobalContext* gc,
+		const char* filePath,
+		const char* fileName = "");
 
 	void destroy(GlobalContext* gc);
 
@@ -59,6 +62,8 @@ protected:
 	uint32_t mNumVertices = 0;
 	vk::DeviceSize mVertexBufferSize = 0;
 	vk::DeviceSize mIndexBufferSize = 0;
+
+	std::string mPath;
 
 };
 

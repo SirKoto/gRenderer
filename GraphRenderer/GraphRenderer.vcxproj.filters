@@ -52,6 +52,9 @@
     <Filter Include="LibrariesSources\ImGuiFileDialog\dirent">
       <UniqueIdentifier>{702b9be7-f2bf-46ba-b1ef-51e15259c055}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\meshes">
+      <UniqueIdentifier>{dd99a38c-59fb-400c-b542-3af3ad40f502}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -175,6 +178,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\meshes\Mesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\meshes\ResourceDictionary.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -309,6 +315,12 @@
       <Filter>LibrariesSources\ImGuiFileDialog\dirent</Filter>
     </ClInclude>
     <ClInclude Include="src\meshes\Mesh.h">
+      <Filter>Header Files\meshes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\ResourceDictionary.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\IObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

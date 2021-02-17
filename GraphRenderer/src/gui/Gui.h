@@ -32,7 +32,8 @@ public:
 	bool isWireframeRenderModeEnabled() const { return mWireframeModeEnabled; }
 
 	// returns true if there is a mesh pending to open
-	bool isMeshToOpen(const char** fileName = nullptr) const;
+	bool isMeshToOpen(const char** filePath = nullptr,
+		const char** fileName = nullptr) const;
 	void setMeshOpened() { mIsMeshToOpen = false; }
 
 protected:
@@ -58,7 +59,9 @@ protected:
 	bool mWindowImGuiMetricsOpen = false;
 	bool mWindowStyleEditor = false;
 
+	std::string mMeshToOpenFilePath;
 	std::string mMeshToOpenFileName;
+
 	bool mIsMeshToOpen = false;
 	
 

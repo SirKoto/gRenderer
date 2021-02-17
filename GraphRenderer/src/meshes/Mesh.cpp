@@ -3,6 +3,7 @@
 #include <glm/gtx/hash.hpp>
 
 #include "Mesh.h"
+#include "../control/GlobalContext.h"
 
 #include <tiny_obj_loader/tiny_obj_loader.h>
 #include<unordered_map>
@@ -12,9 +13,14 @@ namespace gr
 
 
 
-void Mesh::load(const char* fileName,
-	GlobalContext* gc)
+void Mesh::load(GlobalContext* gc,
+	const char* filePath,
+	const char* fileName)
 {
+
+	mPath.assign(filePath);
+	this->setName(fileName);
+
 	std::vector<Vertex> vertices;
 	std::vector<uint32_t> indices;
 
@@ -23,7 +29,7 @@ void Mesh::load(const char* fileName,
 	readerConfig.triangulate = true;
 	readerConfig.vertex_color = true;
 
-	if (!reader.ParseFromFile(fileName, readerConfig)) {
+	if (!reader.ParseFromFile(mPath, readerConfig)) {
 		throw std::runtime_error("Mesh Load Error: " +
 			reader.Error() + "\n" + reader.Warning());
 	}

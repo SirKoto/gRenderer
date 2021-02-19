@@ -129,7 +129,7 @@ namespace gr
 
 			mGui.updatePreFrame(&mContexts[mCurrentFrame]);
 
-			tryLoadMesh();
+			tryLoadMesh(&mContexts[mCurrentFrame]);
 
 			draw(mContexts[mCurrentFrame]);
 
@@ -609,7 +609,7 @@ namespace gr
 		mTexSampler = mGlobalContext.rc().createSampler(vk::SamplerAddressMode::eRepeat);
 	}
 
-	void Engine::tryLoadMesh()
+	void Engine::tryLoadMesh(FrameContext* fc)
 	{
 		if (!mGui.isMeshToOpen()) {
 			return;
@@ -618,10 +618,11 @@ namespace gr
 		const char* fileName, *filePath;
 		mGui.isMeshToOpen(&filePath, &fileName);
 
-		Mesh mesh;
-		mesh.load(&mGlobalContext, filePath, fileName);
 		
-		mMeshes.push_back(mGlobalContext.getDict().addMesh(std::move(mesh)));
+		ResourceDictionary::MeshCreateInfo createInfo;
+		createInfo.filePath = filePath;
+		createInfo.meshName = fileName;
+		mMeshes.push_back(mGlobalContext.getDict().addMesh(fc, createInfo));
 
 		mGui.setMeshOpened();
 	}
@@ -639,7 +640,7 @@ namespace gr
 		
 		// Destroy Buffers
 		for (ResourceDictionary::ResId id : mMeshes) {
-			mGlobalContext.getDict().getMesh(id).destroy(&mGlobalContext);
+			mGlobalContext.getDict().eraseMesh(&mContexts.front(), id);
 		}
 		
 		mGlobalContext.rc().safeDestroyImage(mTexture);

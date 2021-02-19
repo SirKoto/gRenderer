@@ -8,6 +8,8 @@
 namespace gr
 {
 
+class FrameContext;
+class GlobalContext;
 class ResourceDictionary
 {
 public:
@@ -17,13 +19,19 @@ public:
 	typedef uint64_t ResId;
 
 	// The name of the mesh may be changed if it is not unique
-	ResId addMesh(Mesh&& mesh);
+	struct MeshCreateInfo {
+		const char* filePath;
+		const char* meshName = "";
+	};
+	// Create a mesh and load it from disk
+	ResId addMesh(FrameContext* fc, const MeshCreateInfo& createInfo);
+	// Overwrite the mesh with identifier id
 	void updateMesh(ResId id, Mesh&& mesh);
 	const Mesh& getMesh(ResId id) const;
-	Mesh getMesh(ResId id);
-	void eraseMesh(ResId id);
+	void eraseMesh(FrameContext* fc, ResId id);
 
 
+	void destroy(GlobalContext* gc);
 
 protected:
 

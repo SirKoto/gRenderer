@@ -3,7 +3,8 @@
 #include <glm/gtx/hash.hpp>
 
 #include "Mesh.h"
-#include "../control/GlobalContext.h"
+#include "../control/FrameContext.h"
+#include "../graphics/RenderContext.h"
 
 #include <tiny_obj_loader/tiny_obj_loader.h>
 #include<unordered_map>
@@ -13,7 +14,7 @@ namespace gr
 
 
 
-void Mesh::load(GlobalContext* gc,
+void Mesh::load(vkg::RenderContext* rc,
 	const char* filePath,
 	const char* fileName)
 {
@@ -82,34 +83,47 @@ void Mesh::load(GlobalContext* gc,
 			throw std::logic_error("Error! Buffer previously alocated");
 		}
 		mIndexBufferSize = sizeof(uint32_t) * mNumIndices;
-		mIndexBuffer = gc->rc().createIndexBuffer(mIndexBufferSize);
+		mIndexBuffer = rc->createIndexBuffer(mIndexBufferSize);
 		if (mVertexBuffer) {
 			throw std::logic_error("Error! Buffer previously alocated");
 		}
 		mVertexBufferSize = sizeof(Vertex) * mNumVertices;
-		mVertexBuffer = gc->rc().createVertexBuffer(mVertexBufferSize);
+		mVertexBuffer = rc->createVertexBuffer(mVertexBufferSize);
 	}
 
 	// upload to gpu
-	gc->rc().getTransferer()->transferToBuffer(gc->rc(),
+	rc->getTransferer()->transferToBuffer(*rc,
 		vertices.data(), vertices.size() * sizeof(vertices[0]),
 		mVertexBuffer);
-	gc->rc().getTransferer()->transferToBuffer(gc->rc(),
+	rc->getTransferer()->transferToBuffer(*rc,
 		indices.data(), indices.size() * sizeof(indices[0]),
 		mIndexBuffer);
 }
 
-void Mesh::destroy(GlobalContext* gc)
+void Mesh::scheduleDestroy(FrameContext* fc)
 {
 	if (mIndexBuffer) {
-		gc->rc().destroy(mIndexBuffer);
-		mIndexBuffer = vkg::Buffer();
+		fc->scheduleToDelete(mIndexBuffer);
+		mIndexBuffer = nullptr;
 	}
 	if (mVertexBuffer) {
-		gc->rc().destroy(mVertexBuffer);
-		mVertexBuffer = vkg::Buffer();
+		fc->scheduleToDelete(mVertexBuffer);
+		mVertexBuffer = nullptr;
 	}
 }
+
+void Mesh::destroy(vkg::RenderContext* rc)
+{
+	if (mIndexBuffer) {
+		rc->destroy(mIndexBuffer);
+		mIndexBuffer = nullptr;
+	}
+	if (mVertexBuffer) {
+		rc->destroy(mVertexBuffer);
+		mVertexBuffer = nullptr;
+	}
+}
+
 
 void Mesh::addToVertexInputDescription(
 	uint32_t binding,

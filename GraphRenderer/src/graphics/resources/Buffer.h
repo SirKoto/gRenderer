@@ -23,6 +23,8 @@ public:
 
 	operator bool() const { return mBuffer; }
 
+	Buffer& operator=(std::nullptr_t) { mBuffer = nullptr; mBytesSize = 0; return *this; }
+
 protected:
 
 	vk::Buffer mBuffer;

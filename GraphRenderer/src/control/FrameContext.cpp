@@ -59,6 +59,7 @@ void gr::FrameContext::recreateCommandPools()
 
 void gr::FrameContext::destroy()
 {
+	resetFrameResources();
 	destroyCommandPools();
 }
 

@@ -10,7 +10,11 @@
 namespace gr
 {
 
-class GlobalContext;
+// Forward declare render context
+namespace vkg {
+class RenderContext;
+}
+class FrameContext;
 class Mesh : public IObject
 {
 public:
@@ -21,11 +25,13 @@ public:
 	Mesh& operator=(const Mesh&) = default;
 	Mesh& operator=(Mesh&&) = default;
 
-	void load(GlobalContext* gc,
+	void load(vkg::RenderContext* rc,
 		const char* filePath,
 		const char* fileName = "");
 
-	void destroy(GlobalContext* gc);
+	void scheduleDestroy(FrameContext* fc);
+	void destroy(vkg::RenderContext* rc);
+
 
 	const vk::Buffer& getVB() const { return mVertexBuffer.getVkBuffer(); }
 	const vk::Buffer& getIB() const { return mIndexBuffer.getVkBuffer(); }

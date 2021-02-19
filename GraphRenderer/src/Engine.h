@@ -82,7 +82,7 @@ namespace gr
 		void createUniformBuffers();
 		void createTextureImage();
 
-		void tryLoadMesh();
+		void tryLoadMesh(FrameContext* fc);
 
 		void cleanup();
 		void cleanupSwapChainDependantObjs();

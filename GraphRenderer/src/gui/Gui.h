@@ -58,6 +58,7 @@ protected:
 	bool mCloseAppFlag = false;
 	bool mWindowImGuiMetricsOpen = false;
 	bool mWindowStyleEditor = false;
+	bool mWindowMeshesOpen = false;
 
 	std::string mMeshToOpenFilePath;
 	std::string mMeshToOpenFileName;
@@ -70,6 +71,7 @@ protected:
 	void drawMainMenuBar(FrameContext* fc);
 	void drawStyleWindow(FrameContext* fc);
 	void drawFilePicker();
+	void drawResourcesWindows(FrameContext* fc);
 };
 
 } // namespace gr

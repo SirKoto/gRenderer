@@ -578,6 +578,7 @@ void Gui::drawWindows(FrameContext* fc)
     }
 
     drawFilePicker();
+    drawResourcesWindows(fc);
 }
 
 void Gui::drawMainMenuBar(FrameContext* fc)
@@ -620,6 +621,11 @@ void Gui::drawMainMenuBar(FrameContext* fc)
                 }
                 ImGui::EndCombo();
             }
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Resources")) {
+            ImGui::MenuItem("Meshes", nullptr, &this->mWindowMeshesOpen);
             ImGui::EndMenu();
         }
 
@@ -676,6 +682,22 @@ void Gui::drawFilePicker()
 
         // close
         ImGuiFileDialog::Instance()->Close();
+    }
+}
+
+void Gui::drawResourcesWindows(FrameContext* fc)
+{
+    if (mWindowMeshesOpen) {
+        if (ImGui::Begin("Meshes", &mWindowMeshesOpen)) {
+            for (const std::string& name : fc->gc().getDict().getAllMeshesNames()) {
+                if (ImGui::TreeNode(name.c_str())) {
+
+                    ImGui::TreePop();
+                }
+            }
+        }
+
+        ImGui::End();
     }
 }
 

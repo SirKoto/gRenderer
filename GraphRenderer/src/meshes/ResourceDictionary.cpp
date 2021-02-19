@@ -13,16 +13,20 @@ ResourceDictionary::ResId ResourceDictionary::addMesh(
 	ResId id = getAndUpdateId();
 
 	Mesh mesh;
-	mesh.load(&fc->rc(), createInfo.filePath, createInfo.meshName);
+	mesh.load(&fc->rc(), createInfo.filePath);
 
 	// check if the name is unique or create new
 	{
-		std::unique_lock stringLock(mName2IdMutex);
-		if (mName2Id.count(mesh.getName()) != 0) {
-			mesh.setName(createUniqueName(mesh.getName()));
+		std::unique_lock stringLock(mIdentifierMutex);
+		std::string name = createInfo.meshName;
+		if (mName2Id.count(name) != 0) {
+			name = createUniqueName(name);
 		}
 
-		mName2Id.emplace(mesh.getName(), id);
+		std::pair<decltype(mName2Id)::const_iterator, bool> it =
+			mName2Id.emplace(std::move(name), id);
+		assert(it.second);
+		mId2Name.emplace(id, it.first->first.c_str());
 	}
 
 	{
@@ -80,6 +84,44 @@ std::string ResourceDictionary::createUniqueName(const std::string& string)
 		newName = string + '_' + std::to_string(i++);
 	} while (mName2Id.count(newName) != 0);
 	return newName;
+}
+
+ResourceDictionary::ResId ResourceDictionary::getId(const std::string name) const
+{
+	std::shared_lock slock(mIdentifierMutex);
+	return mName2Id.at(name);
+}
+
+std::string ResourceDictionary::getName(const ResId id) const
+{
+	std::shared_lock slock(mIdentifierMutex);
+	return std::string(mId2Name.at(id));
+}
+
+std::vector<std::string> ResourceDictionary::getAllMeshesNames() const
+{
+	std::shared_lock lock(mIdentifierMutex);
+	std::vector<std::string> res;
+	res.reserve(mMeshes.size());
+
+	for (const ResId& id : getAllMeshesIds()) {
+		res.push_back(mId2Name.at(id));
+	}
+
+	return res;
+}
+
+std::vector<ResourceDictionary::ResId> ResourceDictionary::getAllMeshesIds() const
+{
+	std::shared_lock lock(mMeshMutex);
+	std::vector<ResId> res;
+	res.reserve(mMeshes.size());
+
+	for (const std::pair<const ResId, Mesh>& it : mMeshes) {
+		res.push_back(it.first);
+	}
+
+	return res;
 }
 
 } // namespace gr

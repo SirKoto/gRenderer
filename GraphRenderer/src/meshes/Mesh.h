@@ -5,7 +5,6 @@
 
 #include "../graphics/resources/Buffer.h"
 #include "../graphics/shaders/VertexInputDescription.h"
-#include "IObject.h"
 
 namespace gr
 {
@@ -15,7 +14,7 @@ namespace vkg {
 class RenderContext;
 }
 class FrameContext;
-class Mesh : public IObject
+class Mesh
 {
 public:
 
@@ -26,8 +25,7 @@ public:
 	Mesh& operator=(Mesh&&) = default;
 
 	void load(vkg::RenderContext* rc,
-		const char* filePath,
-		const char* fileName = "");
+		const char* filePath);
 
 	void scheduleDestroy(FrameContext* fc);
 	void destroy(vkg::RenderContext* rc);

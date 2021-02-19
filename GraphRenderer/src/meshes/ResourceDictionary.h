@@ -25,10 +25,17 @@ public:
 	};
 	// Create a mesh and load it from disk
 	ResId addMesh(FrameContext* fc, const MeshCreateInfo& createInfo);
-	// Overwrite the mesh with identifier id
+	// Overwrite the mesh with identifier id.
 	void updateMesh(ResId id, Mesh&& mesh);
 	const Mesh& getMesh(ResId id) const;
 	void eraseMesh(FrameContext* fc, ResId id);
+
+	ResId getId(const std::string  name) const;
+	std::string getName(const ResId id) const;
+
+	std::vector<std::string> getAllMeshesNames() const;
+	std::vector<ResId> getAllMeshesIds() const;
+
 
 
 	void destroy(GlobalContext* gc);
@@ -38,11 +45,13 @@ protected:
 	std::unordered_map<uint64_t, Mesh> mMeshes;
 	
 	std::unordered_map<std::string, ResId> mName2Id;
+	std::unordered_map<ResId, const char*> mId2Name;
+
 
 	ResId mNextId = 0;
 
 	mutable std::shared_mutex mMeshMutex;
-	mutable std::shared_mutex mName2IdMutex;
+	mutable std::shared_mutex mIdentifierMutex;
 	mutable std::mutex mNextIdMutex;
 
 

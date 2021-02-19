@@ -20,6 +20,8 @@ public:
 
 	vkg::RenderContext& rc() { return mGlobalContext->rc(); }
 	const vkg::RenderContext& rc() const { return mGlobalContext->rc(); }
+	GlobalContext& gc() { return *mGlobalContext; }
+	const GlobalContext& gc() const { return *mGlobalContext; }
 	vkg::Window& getWindow() { return mGlobalContext->getWindow(); }
 	const vkg::Window& getWindow() const { return mGlobalContext->getWindow(); }
 

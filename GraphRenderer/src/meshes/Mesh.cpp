@@ -15,12 +15,10 @@ namespace gr
 
 
 void Mesh::load(vkg::RenderContext* rc,
-	const char* filePath,
-	const char* fileName)
+	const char* filePath)
 {
 
 	mPath.assign(filePath);
-	this->setName(fileName);
 
 	std::vector<Vertex> vertices;
 	std::vector<uint32_t> indices;

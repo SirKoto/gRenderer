@@ -76,6 +76,9 @@ protected:
 	void drawResourcesWindows(FrameContext* fc);
 	void drawRenameWindow(FrameContext* fc);
 
+	// make sure to push id before
+	void appendRenameButton(FrameContext* fc, const std::string& name);
+
 	static int s_stringTextCallback(void* data);
 };
 

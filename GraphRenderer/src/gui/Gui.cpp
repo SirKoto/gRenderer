@@ -577,9 +577,10 @@ void Gui::drawWindows(FrameContext* fc)
         ImGui::End();
     }
 
-    drawFilePicker();
     drawResourcesWindows(fc);
     drawRenameWindow(fc);
+
+    drawFilePicker();
 }
 
 void Gui::drawMainMenuBar(FrameContext* fc)
@@ -689,16 +690,20 @@ void Gui::drawFilePicker()
 void Gui::drawResourcesWindows(FrameContext* fc)
 {
     if (mWindowMeshesOpen) {
+
+        ImGui::SetNextWindowSizeConstraints(
+            ImVec2(10 * ImGui::GetFontSize(), 5 * ImGui::GetFontSize()), // minSize
+            ImVec2(FLT_MAX, FLT_MAX) // maxSize
+        );
+
         if (ImGui::Begin("Meshes", &mWindowMeshesOpen)) {
             for (const std::string& name : fc->gc().getDict().getAllMeshesNames()) {
                 if (ImGui::TreeNode(name.c_str())) {
-                    std::string r = "Rename####" + name;
-                    if (ImGui::Button(r.c_str())) {
-                        mWindowRenameOpen = true;
-                        mRenameString = name;
-                        mRenameId = fc->gc().getDict().getId(name);
-                    }
+                    ImGui::PushID(name.c_str());
 
+                    appendRenameButton(fc, name);
+
+                    ImGui::PopID();
                     ImGui::TreePop();
 
                 }
@@ -706,6 +711,15 @@ void Gui::drawResourcesWindows(FrameContext* fc)
         }
 
         ImGui::End();
+    }
+}
+
+void Gui::appendRenameButton(FrameContext* fc, const std::string& name)
+{
+    if (ImGui::Button("Rename")) {
+        mWindowRenameOpen = true;
+        mRenameString = name;
+        mRenameId = fc->gc().getDict().getId(name);
     }
 }
 
@@ -724,16 +738,29 @@ int Gui::s_stringTextCallback(void* data_) {
 void Gui::drawRenameWindow(FrameContext* fc)
 {
     if (mWindowRenameOpen) {
-        if (ImGui::Begin("Rename", &mWindowRenameOpen)) {
+       if (ImGui::Begin("Rename", &mWindowRenameOpen,
+            ImGuiWindowFlags_NoResize |
+            ImGuiWindowFlags_NoScrollbar |
+            ImGuiWindowFlags_NoCollapse |
+            ImGuiWindowFlags_AlwaysAutoResize
+        )) {
+
+            const bool canRenamePre = mRenameString == fc->gc().getDict().getName(mRenameId);
+
+            if (!canRenamePre) {
+                ImGui::PushStyleColor(ImGuiCol_Text, (ImVec4)ImColor(255, 10, 10));
+            }
+
             if (ImGui::InputText(
-                "####RenameName",
+                "name####RenameName",
                 const_cast<char*>(mRenameString.c_str()),
                 mRenameString.capacity() + 1,
                 ImGuiInputTextFlags_CallbackResize,
                 reinterpret_cast<ImGuiInputTextCallback>(s_stringTextCallback),
                 this)) {
+                // read again after callback
                 const bool canRename = !fc->gc().getDict().existsName(mRenameString);
-                
+
                 if (canRename) {
                     fc->gc().getDict().rename(mRenameId, mRenameString);
                 }
@@ -741,6 +768,9 @@ void Gui::drawRenameWindow(FrameContext* fc)
             if (ImGui::IsItemFocused() &&
                 fc->gc().getWindow().isDown(vkg::Window::Input::KeyEnter)) {
                 mWindowRenameOpen = false;
+            }
+            if (!canRenamePre) {
+                ImGui::PopStyleColor();
             }
         }
 

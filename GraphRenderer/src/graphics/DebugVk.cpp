@@ -33,7 +33,7 @@ bool DebugVk::checkValidationLayersSupport()
 	for (const char* layerName : validationLayersArray) {
 		bool layerFound = false;
 		for (const VkLayerProperties& layerProperties : avaliableLayers) {
-			if (strcmp(layerName, layerProperties.layerName)) {
+			if (std::strcmp(layerName, layerProperties.layerName) == 0) {
 				layerFound = true;
 				break;
 			}

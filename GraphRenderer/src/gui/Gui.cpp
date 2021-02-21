@@ -579,6 +579,7 @@ void Gui::drawWindows(FrameContext* fc)
 
     drawFilePicker();
     drawResourcesWindows(fc);
+    drawRenameWindow(fc);
 }
 
 void Gui::drawMainMenuBar(FrameContext* fc)
@@ -691,9 +692,55 @@ void Gui::drawResourcesWindows(FrameContext* fc)
         if (ImGui::Begin("Meshes", &mWindowMeshesOpen)) {
             for (const std::string& name : fc->gc().getDict().getAllMeshesNames()) {
                 if (ImGui::TreeNode(name.c_str())) {
+                    std::string r = "Rename####" + name;
+                    if (ImGui::Button(r.c_str())) {
+                        mWindowRenameOpen = true;
+                        mRenameString = name;
+                        mRenameId = fc->gc().getDict().getId(name);
+                    }
 
                     ImGui::TreePop();
+
                 }
+            }
+        }
+
+        ImGui::End();
+    }
+}
+
+int Gui::s_stringTextCallback(void* data_) {
+    ImGuiInputTextCallbackData* data = reinterpret_cast<ImGuiInputTextCallbackData*>(data_);
+
+    Gui* gui = reinterpret_cast<Gui*>(data->UserData);
+
+    assert(data->Buf == gui->mRenameString.c_str());
+    gui->mRenameString.resize(data->BufTextLen);
+    data->Buf = const_cast<char*>(gui->mRenameString.c_str());
+
+    return 0;
+}
+
+void Gui::drawRenameWindow(FrameContext* fc)
+{
+    if (mWindowRenameOpen) {
+        if (ImGui::Begin("Rename", &mWindowRenameOpen)) {
+            if (ImGui::InputText(
+                "####RenameName",
+                const_cast<char*>(mRenameString.c_str()),
+                mRenameString.capacity() + 1,
+                ImGuiInputTextFlags_CallbackResize,
+                reinterpret_cast<ImGuiInputTextCallback>(s_stringTextCallback),
+                this)) {
+                const bool canRename = !fc->gc().getDict().existsName(mRenameString);
+                
+                if (canRename) {
+                    fc->gc().getDict().rename(mRenameId, mRenameString);
+                }
+            }
+            if (ImGui::IsItemFocused() &&
+                fc->gc().getWindow().isDown(vkg::Window::Input::KeyEnter)) {
+                mWindowRenameOpen = false;
             }
         }
 

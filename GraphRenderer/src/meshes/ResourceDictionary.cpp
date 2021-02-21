@@ -86,7 +86,7 @@ std::string ResourceDictionary::createUniqueName(const std::string& string)
 	return newName;
 }
 
-ResourceDictionary::ResId ResourceDictionary::getId(const std::string name) const
+ResourceDictionary::ResId ResourceDictionary::getId(const std::string& name) const
 {
 	std::shared_lock slock(mIdentifierMutex);
 	return mName2Id.at(name);
@@ -96,6 +96,28 @@ std::string ResourceDictionary::getName(const ResId id) const
 {
 	std::shared_lock slock(mIdentifierMutex);
 	return std::string(mId2Name.at(id));
+}
+
+bool ResourceDictionary::existsName(const std::string& name) const
+{
+	std::shared_lock slock(mIdentifierMutex);
+
+	return mName2Id.count(name) != 0;
+}
+
+void ResourceDictionary::rename(ResId id, const std::string& newName)
+{
+	std::unique_lock slock(mIdentifierMutex);
+
+	decltype(mId2Name)::iterator it = mId2Name.find(id);
+
+	mName2Id.erase(it->second);
+	std::pair<decltype(mName2Id)::const_iterator, bool> insertIt = 
+		mName2Id.emplace(newName, id);
+	// assert inserted
+	assert(insertIt.second);
+	it->second = insertIt.first->first.c_str();
+
 }
 
 std::vector<std::string> ResourceDictionary::getAllMeshesNames() const

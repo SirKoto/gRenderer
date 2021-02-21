@@ -59,12 +59,14 @@ protected:
 	bool mWindowImGuiMetricsOpen = false;
 	bool mWindowStyleEditor = false;
 	bool mWindowMeshesOpen = false;
+	bool mWindowRenameOpen = false;
 
 	std::string mMeshToOpenFilePath;
 	std::string mMeshToOpenFileName;
+	std::string mRenameString;
+	ResourceDictionary::ResId mRenameId;
 
 	bool mIsMeshToOpen = false;
-	
 
 
 	void drawWindows(FrameContext* fc);
@@ -72,6 +74,9 @@ protected:
 	void drawStyleWindow(FrameContext* fc);
 	void drawFilePicker();
 	void drawResourcesWindows(FrameContext* fc);
+	void drawRenameWindow(FrameContext* fc);
+
+	static int s_stringTextCallback(void* data);
 };
 
 } // namespace gr

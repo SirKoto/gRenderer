@@ -30,8 +30,10 @@ public:
 	const Mesh& getMesh(ResId id) const;
 	void eraseMesh(FrameContext* fc, ResId id);
 
-	ResId getId(const std::string  name) const;
+	ResId getId(const std::string&  name) const;
 	std::string getName(const ResId id) const;
+	bool existsName(const std::string& name) const;
+	void rename(ResId id, const std::string& newName);
 
 	std::vector<std::string> getAllMeshesNames() const;
 	std::vector<ResId> getAllMeshesIds() const;

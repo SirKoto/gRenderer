@@ -129,8 +129,6 @@ namespace gr
 
 			mGui.updatePreFrame(&mContexts[mCurrentFrame]);
 
-			tryLoadMesh(&mContexts[mCurrentFrame]);
-
 			draw(mContexts[mCurrentFrame]);
 
 			pRenderContext->flushData();
@@ -369,7 +367,8 @@ namespace gr
 			0, nullptr					// dynamic offsets
 		);
 
-		if (!mMeshes.empty()) {
+		// Do not render anything for now
+		/*if (!mMeshes.empty()) {
 			vk::DeviceSize offset = 0;
 			const Mesh& mesh = mGlobalContext.getDict().getMesh(mMeshes.front());
 			buff.bindVertexBuffers(0, 1, &mesh.getVB(), &offset);
@@ -379,7 +378,7 @@ namespace gr
 				mesh.getNumIndices(), // index count
 				1, 0, 0, 0	// instance count, and offsets
 			);
-		}
+		}*/
 
 		buff.nextSubpass(vk::SubpassContents::eInline);
 
@@ -609,24 +608,6 @@ namespace gr
 		mTexSampler = mGlobalContext.rc().createSampler(vk::SamplerAddressMode::eRepeat);
 	}
 
-	void Engine::tryLoadMesh(FrameContext* fc)
-	{
-		if (!mGui.isMeshToOpen()) {
-			return;
-		}
-
-		const char* fileName, *filePath;
-		mGui.isMeshToOpen(&filePath, &fileName);
-
-		
-		ResourceDictionary::MeshCreateInfo createInfo;
-		createInfo.filePath = filePath;
-		createInfo.meshName = fileName;
-		mMeshes.push_back(mGlobalContext.getDict().addMesh(fc, createInfo));
-
-		mGui.setMeshOpened();
-	}
-
 	void Engine::cleanup()
 	{
 		// destroy sync objects
@@ -638,10 +619,6 @@ namespace gr
 
 		cleanupSwapChainDependantObjs();
 		
-		// Destroy Buffers
-		for (ResourceDictionary::ResId id : mMeshes) {
-			mGlobalContext.getDict().eraseMesh(&mContexts.front(), id);
-		}
 		
 		mGlobalContext.rc().safeDestroyImage(mTexture);
 

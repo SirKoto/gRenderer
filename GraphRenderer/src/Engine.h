@@ -46,7 +46,6 @@ namespace gr
 		std::array<uint64_t, MAX_FRAMES_IN_FLIGHT> mInFlightSemaphoreValues;
 		std::vector<vk::Fence> mImagesInFlightFences;
 
-		std::vector<ResourceDictionary::ResId> mMeshes;
 		std::vector<vkg::Buffer> mUbos;
 		vkg::Image2D mTexture;
 		vk::Sampler mTexSampler;
@@ -81,8 +80,6 @@ namespace gr
 
 		void createUniformBuffers();
 		void createTextureImage();
-
-		void tryLoadMesh(FrameContext* fc);
 
 		void cleanup();
 		void cleanupSwapChainDependantObjs();

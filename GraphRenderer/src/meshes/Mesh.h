@@ -24,6 +24,7 @@ public:
 	Mesh& operator=(const Mesh&) = default;
 	Mesh& operator=(Mesh&&) = default;
 
+	// Catch exception if it can fail
 	void load(vkg::RenderContext* rc,
 		const char* filePath);
 

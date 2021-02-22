@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Mesh.h"
+#include "Texture.h"
 
 #include <unordered_map>
 #include <shared_mutex>
@@ -30,29 +31,42 @@ public:
 	const Mesh& getMesh(ResId id) const;
 	void eraseMesh(FrameContext* fc, ResId id);
 
+	struct TextureCreateInfo {
+		const char* filePath;
+		const char* textureName = "";
+	};
+	ResId addTexture(FrameContext* fc, const TextureCreateInfo& createInfo);
+	void updateTexture(ResId id, Texture&& tex);
+	const Texture& getTexture(ResId id) const;
+	void eraseTexture(FrameContext* fc, ResId id);
+
 	ResId getId(const std::string&  name) const;
 	std::string getName(const ResId id) const;
 	bool existsName(const std::string& name) const;
 	void rename(ResId id, const std::string& newName);
 
 	std::vector<std::string> getAllMeshesNames() const;
-	std::vector<ResId> getAllMeshesIds() const;
+	std::vector<std::string> getAllTextureNames() const;
 
+	std::vector<ResId> getAllMeshesIds() const;
+	std::vector<ResId> getAllTextureIds() const;
 
 
 	void destroy(GlobalContext* gc);
 
 protected:
 
-	std::unordered_map<uint64_t, Mesh> mMeshes;
+	std::unordered_map<ResId, Mesh> mMeshes;
+	std::unordered_map<ResId, Texture> mTextures;
+
 	
 	std::unordered_map<std::string, ResId> mName2Id;
 	std::unordered_map<ResId, const char*> mId2Name;
 
 
-	ResId mNextId = 0;
+	ResId mNextId = 1;
 
-	mutable std::shared_mutex mMeshMutex;
+	mutable std::shared_mutex mMeshMutex, mTexMutex;
 	mutable std::shared_mutex mIdentifierMutex;
 	mutable std::mutex mNextIdMutex;
 

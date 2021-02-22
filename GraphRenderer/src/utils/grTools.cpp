@@ -1,7 +1,8 @@
-#include "FsTools.h"
+#include "grTools.h"
 
 #include <iostream>
 #include <fstream>
+#include <stb_image/stb_image.h>
 
 namespace gr
 {
@@ -23,6 +24,25 @@ void tools::loadBinaryFile(
 	file.read(outFileBytes->data(), fileSize);
 
 	file.close();
+}
+
+void tools::loadImageRGBA(
+	const char* fileName,
+	uint8_t** outImg,
+	uint32_t* outWidth, uint32_t* outHeight)
+{
+	int32_t width, height, chann;
+	*outImg = stbi_load(
+		fileName,
+		&width, &height, &chann, STBI_rgb_alpha);
+
+	*outWidth = static_cast<uint32_t>(width);
+	*outHeight = static_cast<uint32_t>(height);
+}
+
+void tools::freeImage(uint8_t* img)
+{
+	stbi_image_free(img);
 }
 
 }; // namespace gr

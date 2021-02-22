@@ -38,17 +38,29 @@ void gr::FrameContext::scheduleToDelete(const vkg::Buffer buffer)
 	}
 }
 
+void gr::FrameContext::scheduleToDelete(const vkg::Image2D image)
+{
+	if (image) {
+		mImagesToDelete.push_back(image);
+	}
+}
+
 void gr::FrameContext::resetFrameResources()
 {
 	graphicsPool().reset();
 	presentPool().reset();
 	transferPool().reset();
 
-	for (const vkg::Buffer buffer : mBuffersToDelete) {
+	for (const vkg::Buffer &buffer : mBuffersToDelete) {
 		rc().destroy(buffer);
 	}
+	for (const vkg::Image2D& image2d : mImagesToDelete) {
+		rc().destroy(image2d);
+	}
+
 
 	mBuffersToDelete.clear();
+	mImagesToDelete.clear();
 }
 
 void gr::FrameContext::recreateCommandPools()

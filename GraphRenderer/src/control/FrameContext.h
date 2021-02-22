@@ -49,6 +49,7 @@ public:
 	const vkg::ResetCommandPool& transferPool() const { return mPools.transferTransientPool; };
 
 	void scheduleToDelete(const vkg::Buffer buffer);
+	void scheduleToDelete(const vkg::Image2D image);
 
 	void resetFrameResources();
 	void recreateCommandPools();
@@ -65,6 +66,8 @@ private:
 
 	vkg::RenderContext::FrameCommandPools mPools;
 	std::vector<vkg::Buffer> mBuffersToDelete;
+	std::vector<vkg::Image2D> mImagesToDelete;
+
 
 	GlobalContext* mGlobalContext;
 

@@ -93,9 +93,6 @@
     <ClCompile Include="src\graphics\render\RenderPassBuilder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\utils\FsTools.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\utils\Fibers\FScheduler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -183,6 +180,12 @@
     <ClCompile Include="src\meshes\ResourceDictionary.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\meshes\Texture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utils\grTools.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engine.h">
@@ -202,9 +205,6 @@
     </ClInclude>
     <ClInclude Include="src\graphics\present\SwapChain.h">
       <Filter>Header Files\vkg</Filter>
-    </ClInclude>
-    <ClInclude Include="src\utils\FsTools.h">
-      <Filter>Header Files\tools</Filter>
     </ClInclude>
     <ClInclude Include="src\utils\Fibers\FScheduler.h">
       <Filter>Header Files\grjob\Fibers</Filter>
@@ -322,6 +322,12 @@
     </ClInclude>
     <ClInclude Include="src\meshes\IObject.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\Texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\grTools.h">
+      <Filter>Header Files\tools</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -121,6 +121,7 @@ static uint32_t __glsl_shader_frag_spv[] =
 
 
 constexpr const char * IMPORT_MESH_STRING_KEY = "ImportMeshChooserKeyImGuiFileDialog";
+constexpr const char* IMPORT_TEX_STRING_KEY = "ImportTextureChooserKeyImGuiFileDialog";
 
 
 void Gui::init(GlobalContext* gc)
@@ -580,12 +581,14 @@ void Gui::drawWindows(FrameContext* fc)
     drawResourcesWindows(fc);
     drawRenameWindow(fc);
 
-    drawFilePicker();
+    drawFilePicker(fc);
 }
 
 void Gui::drawMainMenuBar(FrameContext* fc)
 {
     if (ImGui::BeginMainMenuBar()) {
+
+        ImGui::PushID("MainMenu");
 
         if (ImGui::BeginMenu("File")) {
 
@@ -597,7 +600,20 @@ void Gui::drawMainMenuBar(FrameContext* fc)
                 ImGuiFileDialog::Instance()->OpenDialog(
                     IMPORT_MESH_STRING_KEY,
                     "Choose mesh to load",
-                    ".*", // filter
+                    ".obj", // filter
+                    "." // directory
+                );
+
+            }
+            if (ImGui::MenuItem("Import image", nullptr,
+                nullptr, !mFilePickerInUse)) {
+
+                mFilePickerInUse = true;
+                // open dialog
+                ImGuiFileDialog::Instance()->OpenDialog(
+                    IMPORT_TEX_STRING_KEY,
+                    "Choose image to load",
+                    ".png", // filter
                     "." // directory
                 );
 
@@ -628,6 +644,7 @@ void Gui::drawMainMenuBar(FrameContext* fc)
 
         if (ImGui::BeginMenu("Resources")) {
             ImGui::MenuItem("Meshes", nullptr, &this->mWindowMeshesOpen);
+            ImGui::MenuItem("Textures", nullptr, &this->mWindowTexturesOpen);
             ImGui::EndMenu();
         }
 
@@ -638,6 +655,8 @@ void Gui::drawMainMenuBar(FrameContext* fc)
             ImGui::EndMenu();
         }
 
+
+        ImGui::PopID();
         ImGui::EndMainMenuBar();
     }
 }
@@ -660,7 +679,7 @@ void Gui::drawStyleWindow(FrameContext* fc)
     }
 }
 
-void Gui::drawFilePicker()
+void Gui::drawFilePicker(FrameContext* fc)
 {
 
     if (ImGuiFileDialog::Instance()->Display(
@@ -685,10 +704,36 @@ void Gui::drawFilePicker()
         // close
         ImGuiFileDialog::Instance()->Close();
     }
+
+    if (ImGuiFileDialog::Instance()->Display(
+        IMPORT_TEX_STRING_KEY, // Key
+        ImGuiWindowFlags_NoCollapse,
+        ImVec2(0, 20 * ImGui::GetFontSize()) // minSize
+    )) {
+        assert(mFilePickerInUse);
+        mFilePickerInUse = false;
+        // action if OK
+        if (ImGuiFileDialog::Instance()->IsOk())
+        {
+
+            std::map<std::string, std::string> map =
+                ImGuiFileDialog::Instance()->GetSelection();
+            assert(map.size() == 1);
+
+            ResourceDictionary::TextureCreateInfo createInfo;
+            createInfo.filePath = map.begin()->second.c_str();
+            createInfo.textureName = map.begin()->first.c_str();
+            fc->gc().getDict().addTexture(fc, createInfo);
+        }
+
+        // close
+        ImGuiFileDialog::Instance()->Close();
+    }
 }
 
 void Gui::drawResourcesWindows(FrameContext* fc)
 {
+    ImGui::PushID("Resources");
     if (mWindowMeshesOpen) {
 
         ImGui::SetNextWindowSizeConstraints(
@@ -710,8 +755,36 @@ void Gui::drawResourcesWindows(FrameContext* fc)
             }
         }
 
+
         ImGui::End();
     }
+
+    if (mWindowTexturesOpen) {
+
+        ImGui::SetNextWindowSizeConstraints(
+            ImVec2(10 * ImGui::GetFontSize(), 5 * ImGui::GetFontSize()), // minSize
+            ImVec2(FLT_MAX, FLT_MAX) // maxSize
+        );
+
+        if (ImGui::Begin("Textures", &mWindowTexturesOpen)) {
+            for (const std::string& name : fc->gc().getDict().getAllTextureNames()) {
+                if (ImGui::TreeNode(name.c_str())) {
+                    ImGui::PushID(name.c_str());
+
+                    appendRenameButton(fc, name);
+
+                    ImGui::PopID();
+                    ImGui::TreePop();
+
+                }
+            }
+        }
+
+
+        ImGui::End();
+    }
+
+    ImGui::PopID();
 }
 
 void Gui::appendRenameButton(FrameContext* fc, const std::string& name)

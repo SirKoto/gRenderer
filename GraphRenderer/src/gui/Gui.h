@@ -59,6 +59,8 @@ protected:
 	bool mWindowImGuiMetricsOpen = false;
 	bool mWindowStyleEditor = false;
 	bool mWindowMeshesOpen = false;
+	bool mWindowTexturesOpen = false;
+
 	bool mWindowRenameOpen = false;
 
 	std::string mMeshToOpenFilePath;
@@ -69,10 +71,11 @@ protected:
 	bool mIsMeshToOpen = false;
 
 
+
 	void drawWindows(FrameContext* fc);
 	void drawMainMenuBar(FrameContext* fc);
 	void drawStyleWindow(FrameContext* fc);
-	void drawFilePicker();
+	void drawFilePicker(FrameContext* fc);
 	void drawResourcesWindows(FrameContext* fc);
 	void drawRenameWindow(FrameContext* fc);
 

@@ -13,9 +13,9 @@ ResourceDictionary::ResId ResourceDictionary::addMesh(
 {
 
 
-	Mesh mesh;
+	std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>();
 	try {
-		mesh.load(&fc->rc(), createInfo.filePath);
+		mesh->load(&fc->rc(), createInfo.filePath);
 	}
 	catch (std::exception exc) {
 		std::cerr << "Exception on loading mesh " << exc.what() << std::endl;
@@ -41,7 +41,7 @@ ResourceDictionary::ResId ResourceDictionary::addMesh(
 
 	{
 		std::unique_lock meshLock(mMeshMutex);
-		mMeshes.emplace(id, mesh);
+		mMeshes.emplace(id, std::move(mesh));
 	}
 
 	return id;
@@ -49,26 +49,27 @@ ResourceDictionary::ResId ResourceDictionary::addMesh(
 
 void ResourceDictionary::updateMesh(ResId id, Mesh&& mesh)
 {
-	std::unique_lock meshLock(mMeshMutex);
-	mMeshes.at(id) = std::move(mesh);
+	std::shared_lock meshLock(mMeshMutex);
+	*mMeshes.at(id) = std::move(mesh);
 }
 
 const Mesh& ResourceDictionary::getMesh(ResId id) const
 {
 	std::shared_lock meshLock(mMeshMutex);
 
-	return mMeshes.at(id);
+	return *mMeshes.at(id);
 }
 
 void ResourceDictionary::eraseMesh(FrameContext* fc, ResId id)
 {
 	std::unique_lock meshLock(mMeshMutex);
-	std::unordered_map<uint64_t, Mesh>::iterator it =
+	std::unordered_map<uint64_t, std::unique_ptr<Mesh>>::iterator it =
 		mMeshes.find(id);
 	if (it == mMeshes.end()) {
 		return;
 	}
-	it->second.scheduleDestroy(fc);
+	it->second->scheduleDestroy(fc);
+	mMeshesToFree.push_back(std::move(it->second));
 	mMeshes.erase(it);
 }
 
@@ -81,12 +82,18 @@ ResourceDictionary::ResId ResourceDictionary::getAndUpdateId()
 
 void ResourceDictionary::destroy(GlobalContext* gc)
 {
-	for (std::pair<const ResId, Mesh>& it : mMeshes) {
-		it.second.destroy(&gc->rc());
+	for (std::pair<const ResId, std::unique_ptr<Mesh>>& it : mMeshes) {
+		it.second->destroy(&gc->rc());
 	}
-	for (std::pair<const ResId, Texture>& it : mTextures) {
-		it.second.destroy(&gc->rc());
+	for (std::pair<const ResId, std::unique_ptr<Texture>>& it : mTextures) {
+		it.second->destroy(&gc->rc());
 	}
+}
+
+void ResourceDictionary::flushDataAndFree()
+{
+	mMeshesToFree.clear();
+	mTexturesToFree.clear();
 }
 
 std::string ResourceDictionary::createUniqueName(const std::string& string)
@@ -101,8 +108,8 @@ std::string ResourceDictionary::createUniqueName(const std::string& string)
 
 ResourceDictionary::ResId ResourceDictionary::addTexture(FrameContext* fc, const TextureCreateInfo& createInfo)
 {
-	Texture tex;
-	bool loaded = tex.load(&fc->rc(), createInfo.filePath);
+	std::unique_ptr<Texture> tex = std::make_unique<Texture>();
+	bool loaded = tex->load(&fc->rc(), createInfo.filePath);
 	if (!loaded) {
 		return 0;
 	}
@@ -125,7 +132,7 @@ ResourceDictionary::ResId ResourceDictionary::addTexture(FrameContext* fc, const
 
 	{
 		std::unique_lock texLock(mTexMutex);
-		mTextures.emplace(id, tex);
+		mTextures.emplace(id, std::move(tex));
 	}
 
 	return id;
@@ -133,25 +140,26 @@ ResourceDictionary::ResId ResourceDictionary::addTexture(FrameContext* fc, const
 
 void ResourceDictionary::updateTexture(ResId id, Texture&& tex)
 {
-	std::unique_lock texLock(mTexMutex);
-	mTextures.at(id) = std::move(tex);
+	std::shared_lock texLock(mTexMutex);
+	*mTextures.at(id) = std::move(tex);
 }
 
 const Texture& ResourceDictionary::getTexture(ResId id) const
 {
 	std::shared_lock texLock(mTexMutex);
-	return mTextures.at(id);
+	return *mTextures.at(id);
 }
 
 void ResourceDictionary::eraseTexture(FrameContext* fc, ResId id)
 {
 	std::unique_lock texLock(mTexMutex);
-	std::unordered_map<uint64_t, Texture>::iterator it =
+	std::unordered_map<uint64_t, std::unique_ptr<Texture>>::iterator it =
 		mTextures.find(id);
 	if (it == mTextures.end()) {
 		return;
 	}
-	it->second.scheduleDestroy(fc);
+	it->second->scheduleDestroy(fc);
+	mTexturesToFree.push_back(std::move(it->second));
 	mTextures.erase(it);
 }
 
@@ -221,7 +229,7 @@ std::vector<ResourceDictionary::ResId> ResourceDictionary::getAllMeshesIds() con
 	std::vector<ResId> res;
 	res.reserve(mMeshes.size());
 
-	for (const std::pair<const ResId, Mesh>& it : mMeshes) {
+	for (const std::pair<const ResId, std::unique_ptr<Mesh>>& it : mMeshes) {
 		res.push_back(it.first);
 	}
 
@@ -234,7 +242,7 @@ std::vector<ResourceDictionary::ResId> ResourceDictionary::getAllTextureIds() co
 	std::vector<ResId> res;
 	res.reserve(mMeshes.size());
 
-	for (const std::pair<const ResId, Texture>& it : mTextures) {
+	for (const std::pair<const ResId, std::unique_ptr<Texture>>& it : mTextures) {
 		res.push_back(it.first);
 	}
 

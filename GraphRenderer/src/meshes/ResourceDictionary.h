@@ -5,6 +5,7 @@
 
 #include <unordered_map>
 #include <shared_mutex>
+#include <memory>
 
 namespace gr
 {
@@ -53,11 +54,15 @@ public:
 
 
 	void destroy(GlobalContext* gc);
+	void flushDataAndFree();
 
 protected:
 
-	std::unordered_map<ResId, Mesh> mMeshes;
-	std::unordered_map<ResId, Texture> mTextures;
+	std::unordered_map<ResId, std::unique_ptr<Mesh>> mMeshes;
+	std::unordered_map<ResId, std::unique_ptr<Texture>> mTextures;
+
+	std::vector<std::unique_ptr<Mesh>> mMeshesToFree;
+	std::vector<std::unique_ptr<Texture>> mTexturesToFree;
 
 	
 	std::unordered_map<std::string, ResId> mName2Id;

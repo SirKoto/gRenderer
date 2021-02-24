@@ -455,20 +455,20 @@ void Gui::render(FrameContext* fc, vk::CommandBuffer cmd)
             const ImDrawCmd& imCmd = list->CmdBuffer[j];
 
             // set scissors
-            std::array<uint32_t, 2> origin;
-            std::array<uint32_t, 2> size;
-            origin[0] = static_cast<uint32_t>(imCmd.ClipRect.x - drawData->DisplayPos.x);
-            origin[1] = static_cast<uint32_t>(imCmd.ClipRect.y - drawData->DisplayPos.y);
-            size[0] = static_cast<uint32_t>(imCmd.ClipRect.z - drawData->DisplayPos.x);
-            size[1] = static_cast<uint32_t>(imCmd.ClipRect.w - drawData->DisplayPos.y);
+            std::array<int32_t, 2> origin;
+            std::array<int32_t, 2> size;
+            origin[0] = static_cast<int32_t>(imCmd.ClipRect.x - drawData->DisplayPos.x);
+            origin[1] = static_cast<int32_t>(imCmd.ClipRect.y - drawData->DisplayPos.y);
+            size[0] = static_cast<int32_t>(imCmd.ClipRect.z - imCmd.ClipRect.x);
+            size[1] = static_cast<int32_t>(imCmd.ClipRect.w - imCmd.ClipRect.y);
 
             // if outside of viewport do not even draw
             if (origin[0] < drawData->DisplaySize.x &&
                 origin[1] < drawData->DisplaySize.y &&
                 size[0] >= 0.0f &&
                 size[1] >= 0.0f) {
-                origin[0] = std::max(0u, origin[0]);
-                origin[1] = std::max(0u, origin[1]);
+                origin[0] = std::max(0, origin[0]);
+                origin[1] = std::max(0, origin[1]);
 
                 vk::Rect2D scissor(
                     vk::Offset2D( origin[0], origin[1] ),

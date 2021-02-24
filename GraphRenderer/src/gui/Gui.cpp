@@ -680,15 +680,16 @@ void Gui::drawFilePicker(FrameContext* fc)
         // action if OK
         if (ImGuiFileDialog::Instance()->IsOk())
         {
-
             std::map<std::string, std::string> map = 
                 ImGuiFileDialog::Instance()->GetSelection();
             assert(map.size() == 1);
 
-            ResourceDictionary::MeshCreateInfo createInfo;
-            createInfo.filePath = map.begin()->second.c_str();
-            createInfo.meshName = map.begin()->first.c_str();
-            fc->gc().getDict().addMesh(fc, createInfo);
+            Mesh* mesh;
+            fc->gc().getDict().allocateObject(
+                map.begin()->first,
+                &mesh
+            );
+            mesh->load(&fc->rc(), map.begin()->second.c_str());
         }
 
         // close
@@ -705,15 +706,16 @@ void Gui::drawFilePicker(FrameContext* fc)
         // action if OK
         if (ImGuiFileDialog::Instance()->IsOk())
         {
-
             std::map<std::string, std::string> map =
                 ImGuiFileDialog::Instance()->GetSelection();
             assert(map.size() == 1);
 
-            ResourceDictionary::TextureCreateInfo createInfo;
-            createInfo.filePath = map.begin()->second.c_str();
-            createInfo.textureName = map.begin()->first.c_str();
-            fc->gc().getDict().addTexture(fc, createInfo);
+            Texture* tex;
+            fc->gc().getDict().allocateObject(
+                map.begin()->first,
+                &tex
+            );
+            tex->load(&fc->rc(), map.begin()->second.c_str());
         }
 
         // close
@@ -732,7 +734,10 @@ void Gui::drawResourcesWindows(FrameContext* fc)
         );
 
         if (ImGui::Begin("Meshes", &mWindowMeshesOpen)) {
-            for (const std::string& name : fc->gc().getDict().getAllMeshesNames()) {
+            for (const ResourceDictionary::ResId& id : 
+                fc->gc().getDict().getAllObjectsOfType<Mesh>()) {
+
+                std::string name = fc->gc().getDict().getName(id);
                 if (ImGui::TreeNode(name.c_str())) {
                     ImGui::PushID(name.c_str());
 
@@ -757,7 +762,10 @@ void Gui::drawResourcesWindows(FrameContext* fc)
         );
 
         if (ImGui::Begin("Textures", &mWindowTexturesOpen)) {
-            for (const std::string& name : fc->gc().getDict().getAllTextureNames()) {
+            for (const ResourceDictionary::ResId& id :
+                fc->gc().getDict().getAllObjectsOfType<Texture>()) {
+
+                std::string name = fc->gc().getDict().getName(id);
                 if (ImGui::TreeNode(name.c_str())) {
                     ImGui::PushID(name.c_str());
 

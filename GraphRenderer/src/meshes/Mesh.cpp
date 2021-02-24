@@ -110,14 +110,14 @@ void Mesh::scheduleDestroy(FrameContext* fc)
 	}
 }
 
-void Mesh::destroy(vkg::RenderContext* rc)
+void Mesh::destroy(GlobalContext* gc)
 {
 	if (mIndexBuffer) {
-		rc->destroy(mIndexBuffer);
+		gc->rc().destroy(mIndexBuffer);
 		mIndexBuffer = nullptr;
 	}
 	if (mVertexBuffer) {
-		rc->destroy(mVertexBuffer);
+		gc->rc().destroy(mVertexBuffer);
 		mVertexBuffer = nullptr;
 	}
 }

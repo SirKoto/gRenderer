@@ -52,9 +52,9 @@ void Texture::scheduleDestroy(FrameContext* fc)
 	fc->scheduleToDelete(mImage2d);
 }
 
-void Texture::destroy(vkg::RenderContext* rc)
+void Texture::destroy(GlobalContext* gc)
 {
-	rc->destroy(mImage2d);
+	gc->rc().destroy(mImage2d);
 }
 
 } // namespace gr

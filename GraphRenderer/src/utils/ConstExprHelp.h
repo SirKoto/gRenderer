@@ -36,7 +36,7 @@ namespace cexprUtils
 	// call TypelistBuilder<classes...>::typelist
 	// constexpr function length<TypeList>() to get length of typelist
 	// struct TypeAt<TypeList, idx>::type to get type at index
-	// constexpr function indexOf<TypeList, Class> to get idx of Class in typelist
+	// constexpr function indexOf<TypeList, Class>() to get idx of Class in typelist
 
 	template<typename H, typename T>
 	struct TypeList {

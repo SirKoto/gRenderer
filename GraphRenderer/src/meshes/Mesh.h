@@ -5,6 +5,7 @@
 
 #include "../graphics/resources/Buffer.h"
 #include "../graphics/shaders/VertexInputDescription.h"
+#include "IObject.h"
 
 namespace gr
 {
@@ -14,7 +15,9 @@ namespace vkg {
 class RenderContext;
 }
 class FrameContext;
-class Mesh
+class GlobalContext;
+
+class Mesh : public IObject
 {
 public:
 
@@ -28,9 +31,9 @@ public:
 	void load(vkg::RenderContext* rc,
 		const char* filePath);
 
-	void scheduleDestroy(FrameContext* fc);
-	void destroy(vkg::RenderContext* rc);
-
+	void scheduleDestroy(FrameContext* fc) override final;
+	void destroy(GlobalContext* gc) override final;
+	void renderImGui(FrameContext* fc) override final {};
 
 	const vk::Buffer& getVB() const { return mVertexBuffer.getVkBuffer(); }
 	const vk::Buffer& getIB() const { return mIndexBuffer.getVkBuffer(); }

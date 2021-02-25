@@ -574,13 +574,13 @@ void Gui::drawWindows(FrameContext* fc)
 
 // template loop to fill with names of used classes
 template<size_t N> 
-void fill(::std::array<const char*, cexprUtils::length< ResourceDictionary::ResourceTypesList>()>& arr) {
+void fill(::std::array<const char*, ctools::length< ResourceDictionary::ResourceTypesList>()>& arr) {
     using RTL = typename ResourceDictionary::ResourceTypesList;
-    arr[N - 1] = typeid(cexprUtils::TypeAt<RTL, N - 1>::type).name();
+    arr[N - 1] = typeid(ctools::TypeAt<RTL, N - 1>::type).name();
     fill<N - 1>(arr);
 }
 template<>
-void fill<0>(::std::array<const char*, cexprUtils::length< ResourceDictionary::ResourceTypesList>()>& arr)
+void fill<0>(::std::array<const char*, ctools::length< ResourceDictionary::ResourceTypesList>()>& arr)
 { }
 
 
@@ -648,9 +648,9 @@ void Gui::drawMainMenuBar(FrameContext* fc)
             //ImGui::MenuItem("Meshes", nullptr, &this->mWindowMeshesOpen);
             //ImGui::MenuItem("Textures", nullptr, &this->mWindowTexturesOpen);
             using RTL = typename ResourceDictionary::ResourceTypesList;
-            ::std::array<const char*, cexprUtils::length<RTL>()> names = {};
-            fill< cexprUtils::length< ResourceDictionary::ResourceTypesList>()>(names);
-            for (size_t i = 0; i < cexprUtils::length<RTL>(); ++i) {
+            ::std::array<const char*, ctools::length<RTL>()> names = {};
+            fill< ctools::length< ResourceDictionary::ResourceTypesList>()>(names);
+            for (size_t i = 0; i < ctools::length<RTL>(); ++i) {
                 ImGui::MenuItem(names[i],
                     nullptr,
                     this->mWindowResourceOpen.data() + i);
@@ -750,7 +750,7 @@ void Gui::drawResourcesWindows(FrameContext* fc)
 {
     ImGui::PushID("Resources");
     
-    drawResourcesWindows_t<cexprUtils::length<ResourceDictionary::ResourceTypesList>()>(fc);
+    drawResourcesWindows_t<ctools::length<ResourceDictionary::ResourceTypesList>()>(fc);
 
     ImGui::PopID();
 }
@@ -834,7 +834,7 @@ void Gui::helpMarker(const char* text)
 template<size_t N>
 inline void Gui::drawResourcesWindows_t(FrameContext* fc)
 {
-    using Type = typename cexprUtils::TypeAt<ResourceDictionary::ResourceTypesList, N - 1>::type;
+    using Type = typename ctools::TypeAt<ResourceDictionary::ResourceTypesList, N - 1>::type;
 
     if (mWindowResourceOpen[N - 1]) {
 

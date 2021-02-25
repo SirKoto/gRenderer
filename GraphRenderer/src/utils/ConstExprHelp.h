@@ -3,7 +3,7 @@
 
 namespace gr {
 
-namespace cexprUtils
+namespace ctools
 {
 
 	constexpr size_t pow(size_t a, size_t e)
@@ -117,6 +117,6 @@ namespace cexprUtils
 	constexpr size_t indexOf() { return IndexOf<TList, Class>::value; }
 
 
-} // namespace cexprUtils
+} // namespace ctools
 
 } // namespace gr

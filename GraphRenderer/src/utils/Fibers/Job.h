@@ -86,7 +86,7 @@ public:
 
 	~Job()
 	{
-		if (!cexprUtils::memEq(&mBuffer, 0, SIZE)) {
+		if (!ctools::memEq(&mBuffer, 0, SIZE)) {
 			reinterpret_cast<HolderBase&>(mBuffer).~HolderBase();
 		}
 	}
@@ -94,7 +94,7 @@ public:
 
 
 	void run() {
-		assert(!cexprUtils::memEq(&mBuffer, 0, SIZE));
+		assert(!ctools::memEq(&mBuffer, 0, SIZE));
 
 		reinterpret_cast<HolderBase&>(mBuffer)();
 	}

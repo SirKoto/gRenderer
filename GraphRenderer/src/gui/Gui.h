@@ -56,7 +56,7 @@ protected:
 	bool mWindowMeshesOpen = false;
 	bool mWindowTexturesOpen = false;
 
-	std::array<bool, cexprUtils::length<ResourceDictionary::ResourceTypesList>()>
+	std::array<bool, ctools::length<ResourceDictionary::ResourceTypesList>()>
 		mWindowResourceOpen;
 
 	bool mWindowRenameOpen = false;

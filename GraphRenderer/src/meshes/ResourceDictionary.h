@@ -21,7 +21,7 @@ public:
 
 	// Set list of Types that the dictionary will handle
 	using ResourceTypesList = 
-		typename cexprUtils::TypelistBuilder<Mesh, Texture>::typelist;
+		typename ctools::TypelistBuilder<Mesh, Texture>::typelist;
 	static constexpr bool CONFIG_USE_DYNAMIC_CAST = true;
 
 	ResourceDictionary& operator=(const ResourceDictionary&) = delete;
@@ -52,7 +52,7 @@ protected:
 
 	std::vector<ResId> mObjectsToFree;
 	std::unordered_map<ResId, std::unique_ptr<IObject>> mObjectsDictionary;
-	std::array<std::set<ResId>, cexprUtils::length<ResourceTypesList>()> mObjectsByType;
+	std::array<std::set<ResId>, ctools::length<ResourceTypesList>()> mObjectsByType;
 
 	std::unordered_map<std::string, ResId> mName2Id;
 
@@ -74,7 +74,7 @@ ResourceDictionary::ResId ResourceDictionary::allocateObject(
 	std::string objectName,
 	T** outPtr)
 {
-	constexpr size_t typeIdx = cexprUtils::indexOf<ResourceTypesList, T>();
+	constexpr size_t typeIdx = ctools::indexOf<ResourceTypesList, T>();
 	static_assert(typeIdx != -1, "Type not added to Dictionary");
 	const ResId id = getAndUpdateId();
 
@@ -134,7 +134,7 @@ template<typename T>
 std::vector<gr::ResourceDictionary::ResId> 
 gr::ResourceDictionary::getAllObjectsOfType() const
 {
-	constexpr size_t typeIdx = cexprUtils::indexOf<ResourceTypesList, T>();
+	constexpr size_t typeIdx = ctools::indexOf<ResourceTypesList, T>();
 	static_assert(typeIdx != -1, "Type not added to Dictionary");
 	std::shared_lock lock(mObjectsMutex);
 

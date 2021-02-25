@@ -334,12 +334,13 @@ void BufferTransferer::StageBuffer::free(vk::DeviceSize addr)
 vk::DeviceSize BufferTransferer::StageBuffer::getLastAvailableByte() const
 {
 	return this->lastAvailableByte.begin() == this->lastAvailableByte.end() ? 
-		0 : *this->lastAvailableByte.begin();
+		0 : this->lastAvailableByte.begin()->second;
 }
 
 void BufferTransferer::StageBuffer::reserve(vk::DeviceSize bytes)
 {
-	lastAvailableByte.insert(this->getLastAvailableByte() + bytes);
+	vk::DeviceSize src = this->getLastAvailableByte();
+	lastAvailableByte.emplace(src, src + bytes);
 }
 
 void BufferTransferer::StageBuffer::destroy(const RenderContext& rc)

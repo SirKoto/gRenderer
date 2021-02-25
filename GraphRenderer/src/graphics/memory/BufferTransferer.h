@@ -1,6 +1,6 @@
 #pragma once
 
-#include <set>
+#include <map>
 
 #include "../command/FreeCommandPool.h"
 #include "../resources/Buffer.h"
@@ -57,7 +57,7 @@ protected:
 	struct StageBuffer {
 		Buffer buffer;
 		vk::DeviceSize size;
-		std::set<vk::DeviceSize, std::greater<vk::DeviceSize>> lastAvailableByte;
+		std::map<vk::DeviceSize, vk::DeviceSize, std::greater<vk::DeviceSize>> lastAvailableByte;
 		uint8_t* ptr;
 
 		void create(const RenderContext& rc, vk::DeviceSize size);

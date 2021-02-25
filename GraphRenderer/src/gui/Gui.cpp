@@ -578,7 +578,7 @@ void Gui::drawWindows(FrameContext* fc)
 template<size_t N> 
 void fill(::std::array<const char*, ctools::length< ResourceDictionary::ResourceTypesList>()>& arr) {
     using RTL = typename ResourceDictionary::ResourceTypesList;
-    arr[N - 1] = typeid(ctools::TypeAt<RTL, N - 1>::type).name();
+    arr[N - 1] = ctools::TypeAt<RTL, N - 1>::type::s_getClassName();
     fill<N - 1>(arr);
 }
 template<>
@@ -783,7 +783,7 @@ void Gui::drawInspectorWindow(FrameContext* fc)
         ImGui::SetNextWindowSize(ImVec2(w, h), ImGuiCond_Appearing);
     }
 
-    if (ImGui::Begin(windowName.c_str(), &this->mWindowInspectorOpen)){
+    if (ImGui::Begin(windowName.c_str(), &this->mWindowInspectorOpen)) {
         if (goodId) {
             ImGui::PushID("Inspector");
 
@@ -882,7 +882,7 @@ inline void Gui::drawResourcesWindows_t(FrameContext* fc)
             ImVec2(FLT_MAX, FLT_MAX) // maxSize
         );
 
-        const char* windowName = typeid(Type).name();
+        const char* windowName = Type::s_getClassName();
         if (ImGui::Begin(windowName, &mWindowResourceOpen[N - 1])) {
             ImGui::PushID(windowName);
 

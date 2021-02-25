@@ -154,6 +154,12 @@ std::size_t Mesh::VertexHash::operator()(const Vertex& o) const
 
 void Mesh::renderImGui(FrameContext* fc)
 {
+	ImGui::TextDisabled("Triangle Mesh");
+	ImGui::Separator();
+	ImGui::Text("Num vertices: %u", mNumVertices);
+	ImGui::Text("Num indices: %u", mNumIndices);
+
+	ImGui::Separator();
 	ImGui::Text("Path of texture:");
 	ImGui::InputText(
 		"##Path",

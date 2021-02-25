@@ -55,7 +55,7 @@ protected:
 	bool mWindowStyleEditor = false;
 	bool mWindowMeshesOpen = false;
 	bool mWindowTexturesOpen = false;
-	bool mWindowInspectorOpen = false;
+	bool mWindowInspectorOpen = true;
 
 	std::array<bool, ctools::length<ResourceDictionary::ResourceTypesList>()>
 		mWindowResourceOpen;

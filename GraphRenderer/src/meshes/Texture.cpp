@@ -61,6 +61,12 @@ void Texture::destroy(GlobalContext* gc)
 
 void Texture::renderImGui(FrameContext* fc)
 {
+	ImGui::TextDisabled("Texture 2D");
+	ImGui::Separator();
+
+	ImGui::Text("Image size: %u x %u", mImage2d.getExtent().width, mImage2d.getExtent().height);
+
+	ImGui::Separator();
 	ImGui::Text("Path of texture:");
 	ImGui::InputText(
 		"##Path",

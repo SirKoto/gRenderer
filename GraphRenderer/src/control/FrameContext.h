@@ -65,18 +65,36 @@ private:
 	double_t mDeltaTime = 1/30.0;
 
 	vkg::RenderContext::FrameCommandPools mPools;
-	std::vector<vkg::Buffer> mBuffersToDelete;
-	std::vector<vkg::Image2D> mImagesToDelete;
+
+	struct DelRes;
+	std::vector<std::unique_ptr<DelRes>> mResourcesToDelete;
 
 
 	GlobalContext* mGlobalContext;
-
-
 
 	void destroyCommandPools();
 
 	FrameContext(uint32_t numMax, uint32_t id, GlobalContext* globalContext) :
 		CONCURRENT_FRAMES(numMax), mFrameId(id), mFrameCount(id), mGlobalContext(globalContext) {}
+
+	struct DelRes {
+		static constexpr size_t SIZE = 4 * sizeof(void*);
+		typedef std::aligned_storage<SIZE>::type Stack;
+		Stack mBuffer;
+		virtual void destroy(GlobalContext* gc) { assert(false); };
+	};
+
+	struct DelResBuffer : public DelRes {
+		static_assert(sizeof(vkg::Buffer) <= SIZE, "Not enough memory");
+		DelResBuffer(const vkg::Buffer& buffer);
+		virtual void destroy(GlobalContext* gc) override final;
+	};
+
+	struct DelResImage : public DelRes {
+		static_assert(sizeof(vkg::Image2D) <= SIZE, "Not enough memory");
+		DelResImage(const vkg::Image2D& image);
+		virtual void destroy(GlobalContext* gc) override final;
+	};
 
 };
 

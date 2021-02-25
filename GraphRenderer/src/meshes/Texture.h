@@ -23,6 +23,8 @@ public:
 	void destroy(GlobalContext* gc) override final;
 	void renderImGui(FrameContext* fc) override final;
 
+	static constexpr const char* s_getClassName() { return "Texture"; }
+
 
 protected:
 

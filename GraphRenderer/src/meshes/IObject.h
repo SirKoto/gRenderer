@@ -22,6 +22,8 @@ public:
 	virtual void scheduleDestroy(FrameContext* fc) = 0;
 	virtual void renderImGui(FrameContext* fc) = 0;
 
+	static constexpr const char* s_getClassName() { return "IObject"; }
+
 private:
 	std::string mObjectName;
 };

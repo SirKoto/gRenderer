@@ -186,6 +186,9 @@
     <ClCompile Include="src\utils\grTools.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\meshes\Sampler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engine.h">
@@ -317,17 +320,20 @@
     <ClInclude Include="src\meshes\Mesh.h">
       <Filter>Header Files\meshes</Filter>
     </ClInclude>
-    <ClInclude Include="src\meshes\ResourceDictionary.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\meshes\IObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\meshes\Texture.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\utils\grTools.h">
       <Filter>Header Files\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\Texture.h">
+      <Filter>Header Files\meshes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\Sampler.h">
+      <Filter>Header Files\meshes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\ResourceDictionary.h">
+      <Filter>Header Files\meshes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\IObject.h">
+      <Filter>Header Files\meshes</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

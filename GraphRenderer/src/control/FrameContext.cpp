@@ -34,14 +34,14 @@ void gr::FrameContext::updateTime(double_t newTime)
 void gr::FrameContext::scheduleToDelete(const vkg::Buffer buffer)
 {
 	if (buffer) {
-		mBuffersToDelete.push_back(buffer);
+		mResourcesToDelete.push_back(std::unique_ptr<DelRes>(new DelResBuffer(buffer)));
 	}
 }
 
 void gr::FrameContext::scheduleToDelete(const vkg::Image2D image)
 {
 	if (image) {
-		mImagesToDelete.push_back(image);
+		mResourcesToDelete.push_back(std::unique_ptr<DelRes>(new DelResImage(image)));
 	}
 }
 
@@ -51,16 +51,11 @@ void gr::FrameContext::resetFrameResources()
 	presentPool().reset();
 	transferPool().reset();
 
-	for (const vkg::Buffer &buffer : mBuffersToDelete) {
-		rc().destroy(buffer);
-	}
-	for (const vkg::Image2D& image2d : mImagesToDelete) {
-		rc().destroy(image2d);
+	for (size_t i = 0; i < mResourcesToDelete.size(); ++i) {
+		(mResourcesToDelete[i])->destroy(mGlobalContext);
 	}
 
-
-	mBuffersToDelete.clear();
-	mImagesToDelete.clear();
+	mResourcesToDelete.clear();
 }
 
 void gr::FrameContext::recreateCommandPools()
@@ -80,4 +75,24 @@ void gr::FrameContext::destroyCommandPools()
 	if (mPools.graphicsPool.get()) {
 		rc().destroyCommandPools(&mPools);
 	}
+}
+
+gr::FrameContext::DelResBuffer::DelResBuffer(const vkg::Buffer& buffer)
+{
+	std::memcpy(&mBuffer, &buffer, sizeof(buffer));
+}
+
+void gr::FrameContext::DelResBuffer::destroy(GlobalContext* gc)
+{
+	gc->rc().destroy(reinterpret_cast<vkg::Buffer&>(mBuffer));
+}
+
+gr::FrameContext::DelResImage::DelResImage(const vkg::Image2D& image)
+{
+	std::memcpy(&mBuffer, &image, sizeof(image));
+}
+
+void gr::FrameContext::DelResImage::destroy(GlobalContext* gc)
+{
+	gc->rc().destroy(reinterpret_cast<vkg::Image2D&>(mBuffer));
 }

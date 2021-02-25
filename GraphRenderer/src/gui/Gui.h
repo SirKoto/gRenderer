@@ -72,12 +72,11 @@ protected:
 	void drawStyleWindow(FrameContext* fc);
 	void drawFilePicker(FrameContext* fc);
 	void drawResourcesWindows(FrameContext* fc);
-	void drawRenameWindow(FrameContext* fc);
 
 	void helpMarker(const char* text);
 
 	// make sure to push id before
-	void appendRenameButton(FrameContext* fc, const std::string& name);
+	void appendRenamePopupItem(FrameContext* fc, const std::string& name);
 
 	static int s_stringTextCallback(void* data);
 

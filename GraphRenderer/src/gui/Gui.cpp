@@ -567,7 +567,7 @@ void Gui::drawWindows(FrameContext* fc)
     }
 
     drawResourcesWindows(fc);
-    drawRenameWindow(fc);
+    //drawRenameWindow(fc);
 
     drawFilePicker(fc);
 }
@@ -755,12 +755,53 @@ void Gui::drawResourcesWindows(FrameContext* fc)
     ImGui::PopID();
 }
 
-void Gui::appendRenameButton(FrameContext* fc, const std::string& name)
+void Gui::appendRenamePopupItem(FrameContext* fc, const std::string& name)
 {
-    if (ImGui::Button("Rename")) {
+    /*if (ImGui::Button("Rename")) {
         mWindowRenameOpen = true;
         mRenameString = name;
         mRenameId = fc->gc().getDict().getId(name);
+    }*/
+    if (ImGui::BeginPopupContextItem()) {
+
+        if (mRenameId != fc->gc().getDict().getId(name)) {
+            mRenameString = name;
+            mRenameId = fc->gc().getDict().getId(name);
+        }
+        const bool canRenamePre = mRenameString == fc->gc().getDict().getName(mRenameId);
+
+        ImGui::Text("Rename:");
+        if (!canRenamePre) {
+            ImGui::PushStyleColor(ImGuiCol_Text, (ImVec4)ImColor(255, 10, 10));
+        }
+
+        if (ImGui::InputText(
+            "####RenameName",
+            const_cast<char*>(mRenameString.c_str()),
+            mRenameString.capacity() + 1,
+            ImGuiInputTextFlags_CallbackResize,
+            reinterpret_cast<ImGuiInputTextCallback>(s_stringTextCallback),
+            this)) {
+            // read again after callback
+            const bool canRename = !fc->gc().getDict().existsName(mRenameString);
+
+            if (canRename) {
+                fc->gc().getDict().rename(mRenameId, mRenameString);
+            }
+        }
+
+        if (!canRenamePre) {
+            ImGui::PopStyleColor();
+        }
+
+        ImGui::SameLine();
+        helpMarker("- Press enter to close window\n- In red if the name cannot be used");
+        if (ImGui::Button("Close") ||
+            fc->gc().getWindow().isDown(vkg::Window::Input::KeyEnter) ||
+            fc->gc().getWindow().isDown(vkg::Window::Input::KeyEnterKeyPad)) {
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
     }
 }
 
@@ -776,53 +817,6 @@ int Gui::s_stringTextCallback(void* data_) {
     return 0;
 }
 
-void Gui::drawRenameWindow(FrameContext* fc)
-{
-    if (mWindowRenameOpen) {
-       if (ImGui::Begin("Rename", &mWindowRenameOpen,
-            ImGuiWindowFlags_NoResize |
-            ImGuiWindowFlags_NoScrollbar |
-            ImGuiWindowFlags_NoCollapse |
-            ImGuiWindowFlags_AlwaysAutoResize
-        )) {
-
-            const bool canRenamePre = mRenameString == fc->gc().getDict().getName(mRenameId);
-
-            if (!canRenamePre) {
-                ImGui::PushStyleColor(ImGuiCol_Text, (ImVec4)ImColor(255, 10, 10));
-            }
-
-            if (ImGui::InputText(
-                "name####RenameName",
-                const_cast<char*>(mRenameString.c_str()),
-                mRenameString.capacity() + 1,
-                ImGuiInputTextFlags_CallbackResize,
-                reinterpret_cast<ImGuiInputTextCallback>(s_stringTextCallback),
-                this)) {
-                // read again after callback
-                const bool canRename = !fc->gc().getDict().existsName(mRenameString);
-
-                if (canRename) {
-                    fc->gc().getDict().rename(mRenameId, mRenameString);
-                }
-            }
-            if (ImGui::IsItemFocused() &&
-                fc->gc().getWindow().isDown(vkg::Window::Input::KeyEnter) ||
-                fc->gc().getWindow().isDown(vkg::Window::Input::KeyEnterKeyPad)) {
-                mWindowRenameOpen = false;
-            }
-            if (!canRenamePre) {
-                ImGui::PopStyleColor();
-            }
-
-            ImGui::SameLine(); 
-            helpMarker("- Press enter to close window\n- In red if the name cannot be used");
-        }
-
-        ImGui::End();
-    }
-
-}
 
 void Gui::helpMarker(const char* text)
 {
@@ -857,16 +851,17 @@ inline void Gui::drawResourcesWindows_t(FrameContext* fc)
                 fc->gc().getDict().getAllObjectsOfType<Type>()) {
 
                 std::string name = fc->gc().getDict().getName(id);
-                if (ImGui::TreeNode(name.c_str())) {
-                    ImGui::PushID(name.c_str());
+                std::string label = name + "###" + std::to_string(id);
+                if (ImGui::Button(label.c_str())) {
+                    //ImGui::PushID(name.c_str());
 
-                    appendRenameButton(fc, name);
 
-                    ImGui::PopID();
-                    ImGui::TreePop();
-
+                    //ImGui::PopID();
                 }
+                appendRenamePopupItem(fc, name);
+
             }
+
             ImGui::PopID();
         }
 

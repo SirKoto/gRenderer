@@ -177,6 +177,7 @@
     <ClCompile Include="src\graphics\Window.cpp" />
     <ClCompile Include="src\gui\Gui.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\meshes\DescriptorSetLayout.cpp" />
     <ClCompile Include="src\meshes\Mesh.cpp" />
     <ClCompile Include="src\meshes\ResourceDictionary.cpp" />
     <ClCompile Include="src\meshes\Sampler.cpp" />
@@ -221,6 +222,7 @@
     <ClInclude Include="src\graphics\shaders\VertexInputDescription.h" />
     <ClInclude Include="src\graphics\Window.h" />
     <ClInclude Include="src\gui\Gui.h" />
+    <ClInclude Include="src\meshes\DescriptorSetLayout.h" />
     <ClInclude Include="src\meshes\IObject.h" />
     <ClInclude Include="src\meshes\Mesh.h" />
     <ClInclude Include="src\meshes\ResourceDictionary.h" />

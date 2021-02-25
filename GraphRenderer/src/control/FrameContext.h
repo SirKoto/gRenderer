@@ -51,6 +51,8 @@ public:
 	void scheduleToDelete(const vkg::Buffer buffer);
 	void scheduleToDelete(const vkg::Image2D image);
 	void scheduleToDelete(const vk::Sampler sampler);
+	void scheduleToDelete(const vk::DescriptorSetLayout descriptionLayout);
+
 
 
 	void resetFrameResources();
@@ -101,6 +103,12 @@ private:
 	struct DelResSampler : public DelRes {
 		static_assert(sizeof(vk::Sampler) <= SIZE, "Not enough memory");
 		DelResSampler(const vk::Sampler& sampler);
+		virtual void destroy(GlobalContext* gc) override final;
+	};
+
+	struct DelResDescSetLayout : public DelRes {
+		static_assert(sizeof(vk::DescriptorSetLayout) <= SIZE, "Not enough memory");
+		DelResDescSetLayout(const vk::DescriptorSetLayout& setLayout);
 		virtual void destroy(GlobalContext* gc) override final;
 	};
 

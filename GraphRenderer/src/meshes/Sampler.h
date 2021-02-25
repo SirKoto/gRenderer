@@ -13,6 +13,7 @@ class Sampler : public IObject
 {
 public:
 
+
 	virtual void destroy(GlobalContext* gc) override final;
 
 	virtual void scheduleDestroy(FrameContext* fc) override final;
@@ -23,11 +24,16 @@ public:
 
 	operator bool() const { return mSampler; }
 
+	bool hasUpdated() const { return mHasUpdatedThisframe; }
+
 protected:
 
 	vk::Sampler mSampler;
 
 	vk::SamplerAddressMode mAddresMode = vk::SamplerAddressMode::eRepeat;
+
+	bool mNeedsUpdate = true;
+	bool mHasUpdatedThisframe = false;
 };
 
 } // namespace gr

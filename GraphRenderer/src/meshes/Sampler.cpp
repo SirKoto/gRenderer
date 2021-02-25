@@ -20,8 +20,21 @@ void Sampler::scheduleDestroy(FrameContext* fc)
 
 void Sampler::renderImGui(FrameContext* fc)
 {
+
+	mHasUpdatedThisframe = false;
+
 	ImGui::TextDisabled("Sampler");
 	ImGui::Separator();
+
+	if (mNeedsUpdate) {
+		if (ImGui::Button("Update gpu data")) {
+			mNeedsUpdate = false;
+			mHasUpdatedThisframe = true;
+			this->scheduleDestroy(fc);
+			mSampler = fc->rc().createSampler(mAddresMode);
+		}
+		ImGui::Separator();
+	}
 
 	std::array<vk::SamplerAddressMode, 3> addressModes = 
 	{ 
@@ -36,6 +49,7 @@ void Sampler::renderImGui(FrameContext* fc)
 				vk::to_string(addressModes[i]).c_str(),
 				addressModes[i] == mAddresMode)) {
 				mAddresMode = addressModes[i];
+				mNeedsUpdate = true;
 			}
 
 			if (addressModes[i] == mAddresMode) {

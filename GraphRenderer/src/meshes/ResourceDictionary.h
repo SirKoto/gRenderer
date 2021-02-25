@@ -3,6 +3,8 @@
 #include "Mesh.h"
 #include "Texture.h"
 #include "Sampler.h"
+#include "DescriptorSetLayout.h"
+
 #include "../utils/ConstExprHelp.h"
 
 #include <unordered_map>
@@ -22,7 +24,9 @@ public:
 
 	// Set list of Types that the dictionary will handle
 	using ResourceTypesList = 
-		typename ctools::TypelistBuilder<Mesh, Texture, Sampler>::typelist;
+		typename ctools::TypelistBuilder<Mesh, Texture, Sampler,
+			DescriptorSetLayout
+		>::typelist;
 	static constexpr bool CONFIG_USE_DYNAMIC_CAST = true;
 
 	ResourceDictionary& operator=(const ResourceDictionary&) = delete;

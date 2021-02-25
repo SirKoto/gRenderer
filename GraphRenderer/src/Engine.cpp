@@ -625,7 +625,7 @@ namespace gr
 		mGlobalContext.rc().destroy(mTexSampler);
 
 		// layout
-		mGlobalContext.rc().getDevice().destroyDescriptorSetLayout(mDescriptorSetLayout);
+		mGlobalContext.rc().destroy(mDescriptorSetLayout);
 
 		mGlobalContext.rc().getDevice().destroyPipelineLayout(mPipLayout);
 

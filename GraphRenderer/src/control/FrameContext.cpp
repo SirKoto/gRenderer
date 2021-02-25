@@ -52,6 +52,13 @@ void gr::FrameContext::scheduleToDelete(const vk::Sampler sampler)
 	}
 }
 
+void gr::FrameContext::scheduleToDelete(const vk::DescriptorSetLayout descriptionLayout)
+{
+	if (descriptionLayout) {
+		mResourcesToDelete.push_back(std::unique_ptr<DelRes>(new DelResDescSetLayout(descriptionLayout)));
+	}
+}
+
 void gr::FrameContext::resetFrameResources()
 {
 	graphicsPool().reset();
@@ -112,4 +119,14 @@ gr::FrameContext::DelResSampler::DelResSampler(const vk::Sampler& sampler)
 void gr::FrameContext::DelResSampler::destroy(GlobalContext* gc)
 {
 	gc->rc().destroy(reinterpret_cast<vk::Sampler&>(mBuffer));
+}
+
+gr::FrameContext::DelResDescSetLayout::DelResDescSetLayout(const vk::DescriptorSetLayout& setLayout)
+{
+	std::memcpy(&mBuffer, &setLayout, sizeof(setLayout));
+}
+
+void gr::FrameContext::DelResDescSetLayout::destroy(GlobalContext* gc)
+{
+	gc->rc().destroy(reinterpret_cast<vk::DescriptorSetLayout&>(mBuffer));
 }

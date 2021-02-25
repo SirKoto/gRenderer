@@ -55,16 +55,14 @@ protected:
 	bool mWindowStyleEditor = false;
 	bool mWindowMeshesOpen = false;
 	bool mWindowTexturesOpen = false;
+	bool mWindowInspectorOpen = false;
 
 	std::array<bool, ctools::length<ResourceDictionary::ResourceTypesList>()>
 		mWindowResourceOpen;
 
-	bool mWindowRenameOpen = false;
-
 	std::string mRenameString;
 	ResourceDictionary::ResId mRenameId;
-
-
+	ResourceDictionary::ResId mInspectorResourceId = 0;
 
 
 	void drawWindows(FrameContext* fc);
@@ -72,6 +70,7 @@ protected:
 	void drawStyleWindow(FrameContext* fc);
 	void drawFilePicker(FrameContext* fc);
 	void drawResourcesWindows(FrameContext* fc);
+	void drawInspectorWindow(FrameContext* fc);
 
 	void helpMarker(const char* text);
 

@@ -6,6 +6,7 @@
 #include "../control/FrameContext.h"
 #include "../graphics/RenderContext.h"
 
+#include <imgui/imgui.h>
 #include <tiny_obj_loader/tiny_obj_loader.h>
 #include<unordered_map>
 
@@ -149,6 +150,18 @@ std::size_t Mesh::VertexHash::operator()(const Vertex& o) const
 	return ((std::hash<glm::vec3>()(o.pos) ^
 		(std::hash<glm::vec3>()(o.color) << 1)) >> 1) ^
 		(std::hash<glm::vec2>()(o.texCoord) << 1);
+}
+
+void Mesh::renderImGui(FrameContext* fc)
+{
+	ImGui::Text("Path of texture:");
+	ImGui::InputText(
+		"##Path",
+		const_cast<char*>(mPath.c_str()),
+		mPath.size(),
+		ImGuiInputTextFlags_ReadOnly
+	);
+
 }
 
 } // namespace gr

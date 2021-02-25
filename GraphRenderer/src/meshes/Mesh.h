@@ -33,7 +33,7 @@ public:
 
 	void scheduleDestroy(FrameContext* fc) override final;
 	void destroy(GlobalContext* gc) override final;
-	void renderImGui(FrameContext* fc) override final {};
+	void renderImGui(FrameContext* fc) override final;
 
 	const vk::Buffer& getVB() const { return mVertexBuffer.getVkBuffer(); }
 	const vk::Buffer& getIB() const { return mIndexBuffer.getVkBuffer(); }

@@ -21,7 +21,7 @@ public:
 
 	void scheduleDestroy(FrameContext* fc) override final;
 	void destroy(GlobalContext* gc) override final;
-	void renderImGui(FrameContext* fc) override final {};
+	void renderImGui(FrameContext* fc) override final;
 
 
 protected:

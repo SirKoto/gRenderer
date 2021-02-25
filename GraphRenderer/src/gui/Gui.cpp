@@ -567,9 +567,11 @@ void Gui::drawWindows(FrameContext* fc)
     }
 
     drawResourcesWindows(fc);
-    //drawRenameWindow(fc);
+    
+    drawInspectorWindow(fc);
 
     drawFilePicker(fc);
+
 }
 
 // template loop to fill with names of used classes
@@ -660,9 +662,9 @@ void Gui::drawMainMenuBar(FrameContext* fc)
         }
 
         if (ImGui::BeginMenu("View")) {
+            ImGui::MenuItem("Inspector", nullptr, &this->mWindowInspectorOpen);
             ImGui::MenuItem("Metrics", nullptr, &this->mWindowImGuiMetricsOpen);
             ImGui::MenuItem("Style", nullptr, &this->mWindowStyleEditor);
-
             ImGui::EndMenu();
         }
 
@@ -703,7 +705,7 @@ void Gui::drawFilePicker(FrameContext* fc)
         // action if OK
         if (ImGuiFileDialog::Instance()->IsOk())
         {
-            std::map<std::string, std::string> map = 
+            std::map<std::string, std::string> map =
                 ImGuiFileDialog::Instance()->GetSelection();
             assert(map.size() == 1);
 
@@ -749,19 +751,56 @@ void Gui::drawFilePicker(FrameContext* fc)
 void Gui::drawResourcesWindows(FrameContext* fc)
 {
     ImGui::PushID("Resources");
-    
+
     drawResourcesWindows_t<ctools::length<ResourceDictionary::ResourceTypesList>()>(fc);
 
     ImGui::PopID();
 }
 
+void Gui::drawInspectorWindow(FrameContext* fc)
+{
+    if (!this->mWindowInspectorOpen) {
+        return;
+    }
+
+    std::string windowName = " - Inspector###InspectorWindow";
+    std::string itemName = "";
+    const bool goodId = fc->gc().getDict().exists(mInspectorResourceId);
+    if (goodId) {
+        itemName = fc->gc().getDict().getName(mInspectorResourceId);
+        windowName = itemName + windowName;
+    }
+
+    {
+        // set to occupy 1/4th of the screen width
+        const ImGuiViewport* viewport = ImGui::GetMainViewport();
+        float w = viewport->WorkSize.x / 4.0f;
+        float x0 = viewport->WorkPos.x + w * 2.9f;
+        constexpr float v_margin = 0.1f;
+        float h = viewport->WorkSize.y * (1.0f - v_margin * 2.0f);
+        float y0 = viewport->WorkPos.y + viewport->WorkSize.y * v_margin;
+        ImGui::SetNextWindowPos(ImVec2(x0, y0), ImGuiCond_Appearing);
+        ImGui::SetNextWindowSize(ImVec2(w, h), ImGuiCond_Appearing);
+    }
+
+    if (ImGui::Begin(windowName.c_str(), &this->mWindowInspectorOpen)){
+        if (goodId) {
+            ImGui::PushID("Inspector");
+
+            appendRenamePopupItem(fc, itemName);
+            IObject* obj;
+            fc->gc().getDict().get(mInspectorResourceId, &obj);
+            obj->renderImGui(fc);
+
+            ImGui::PopID();
+
+        }
+    }
+    ImGui::End();
+}
+
 void Gui::appendRenamePopupItem(FrameContext* fc, const std::string& name)
 {
-    /*if (ImGui::Button("Rename")) {
-        mWindowRenameOpen = true;
-        mRenameString = name;
-        mRenameId = fc->gc().getDict().getId(name);
-    }*/
     if (ImGui::BeginPopupContextItem()) {
 
         if (mRenameId != fc->gc().getDict().getId(name)) {
@@ -854,8 +893,7 @@ inline void Gui::drawResourcesWindows_t(FrameContext* fc)
                 std::string label = name + "###" + std::to_string(id);
                 if (ImGui::Button(label.c_str())) {
                     //ImGui::PushID(name.c_str());
-
-
+                    mInspectorResourceId = id;
                     //ImGui::PopID();
                 }
                 appendRenamePopupItem(fc, name);

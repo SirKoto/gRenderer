@@ -1,5 +1,7 @@
 #include "Texture.h"
 
+#include <imgui/imgui.h>
+
 #include "../control/FrameContext.h"
 #include "../graphics/RenderContext.h"
 #include "../utils/grTools.h"
@@ -55,6 +57,18 @@ void Texture::scheduleDestroy(FrameContext* fc)
 void Texture::destroy(GlobalContext* gc)
 {
 	gc->rc().destroy(mImage2d);
+}
+
+void Texture::renderImGui(FrameContext* fc)
+{
+	ImGui::Text("Path of texture:");
+	ImGui::InputText(
+		"##Path",
+		const_cast<char*>(mPath.c_str()),
+		mPath.size(),
+		ImGuiInputTextFlags_ReadOnly
+	);
+
 }
 
 } // namespace gr

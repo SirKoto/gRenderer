@@ -70,6 +70,12 @@ bool ResourceDictionary::existsName(const std::string& name) const
 	return mName2Id.count(name) != 0;
 }
 
+bool ResourceDictionary::exists(const ResId id) const
+{
+	std::shared_lock slock(mObjectsMutex);
+	return mObjectsDictionary.count(id) != 0;
+}
+
 void ResourceDictionary::rename(ResId id, const std::string& newName)
 {
 	std::unique_lock slock(mObjectsMutex);

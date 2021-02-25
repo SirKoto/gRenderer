@@ -39,6 +39,7 @@ public:
 	ResId getId(const std::string&  name) const;
 	std::string getName(const ResId id) const;
 	bool existsName(const std::string& name) const;
+	bool exists(const ResId id) const;
 	void rename(ResId id, const std::string& newName);
 
 	template <typename T>

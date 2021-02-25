@@ -50,6 +50,8 @@ public:
 
 	void scheduleToDelete(const vkg::Buffer buffer);
 	void scheduleToDelete(const vkg::Image2D image);
+	void scheduleToDelete(const vk::Sampler sampler);
+
 
 	void resetFrameResources();
 	void recreateCommandPools();
@@ -93,6 +95,12 @@ private:
 	struct DelResImage : public DelRes {
 		static_assert(sizeof(vkg::Image2D) <= SIZE, "Not enough memory");
 		DelResImage(const vkg::Image2D& image);
+		virtual void destroy(GlobalContext* gc) override final;
+	};
+
+	struct DelResSampler : public DelRes {
+		static_assert(sizeof(vk::Sampler) <= SIZE, "Not enough memory");
+		DelResSampler(const vk::Sampler& sampler);
 		virtual void destroy(GlobalContext* gc) override final;
 	};
 

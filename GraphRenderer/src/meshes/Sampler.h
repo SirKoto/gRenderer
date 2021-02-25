@@ -2,9 +2,13 @@
 
 #include "IObject.h"
 
+#include <vulkan/vulkan.hpp>
+
 namespace gr 
 {
 
+class FrameContext;
+class GlobalContext;
 class Sampler : public IObject
 {
 public:
@@ -17,8 +21,13 @@ public:
 
 	static constexpr const char* s_getClassName() { return "Sampler"; }
 
+	operator bool() const { return mSampler; }
+
 protected:
 
+	vk::Sampler mSampler;
+
+	vk::SamplerAddressMode mAddresMode = vk::SamplerAddressMode::eRepeat;
 };
 
 } // namespace gr

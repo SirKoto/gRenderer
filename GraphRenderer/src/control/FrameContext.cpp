@@ -45,6 +45,13 @@ void gr::FrameContext::scheduleToDelete(const vkg::Image2D image)
 	}
 }
 
+void gr::FrameContext::scheduleToDelete(const vk::Sampler sampler)
+{
+	if (sampler) {
+		mResourcesToDelete.push_back(std::unique_ptr<DelRes>(new DelResSampler(sampler)));
+	}
+}
+
 void gr::FrameContext::resetFrameResources()
 {
 	graphicsPool().reset();
@@ -95,4 +102,14 @@ gr::FrameContext::DelResImage::DelResImage(const vkg::Image2D& image)
 void gr::FrameContext::DelResImage::destroy(GlobalContext* gc)
 {
 	gc->rc().destroy(reinterpret_cast<vkg::Image2D&>(mBuffer));
+}
+
+gr::FrameContext::DelResSampler::DelResSampler(const vk::Sampler& sampler)
+{
+	std::memcpy(&mBuffer, &sampler, sizeof(sampler));
+}
+
+void gr::FrameContext::DelResSampler::destroy(GlobalContext* gc)
+{
+	gc->rc().destroy(reinterpret_cast<vk::Sampler&>(mBuffer));
 }

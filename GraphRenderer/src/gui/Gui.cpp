@@ -886,6 +886,13 @@ inline void Gui::drawResourcesWindows_t(FrameContext* fc)
         if (ImGui::Begin(windowName, &mWindowResourceOpen[N - 1])) {
             ImGui::PushID(windowName);
 
+            if (ImGui::Button("New")) {
+                std::string name = std::string("new ") + Type::s_getClassName();
+                fc->gc().getDict().allocateObject<Type>(name);
+            }
+
+            ImGui::Separator();
+
             for (const ResourceDictionary::ResId& id :
                 fc->gc().getDict().getAllObjectsOfType<Type>()) {
 

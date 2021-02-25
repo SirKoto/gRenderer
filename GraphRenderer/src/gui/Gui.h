@@ -56,6 +56,9 @@ protected:
 	bool mWindowMeshesOpen = false;
 	bool mWindowTexturesOpen = false;
 
+	std::array<bool, cexprUtils::length<ResourceDictionary::ResourceTypesList>()>
+		mWindowResourceOpen;
+
 	bool mWindowRenameOpen = false;
 
 	std::string mRenameString;
@@ -71,10 +74,16 @@ protected:
 	void drawResourcesWindows(FrameContext* fc);
 	void drawRenameWindow(FrameContext* fc);
 
+	void helpMarker(const char* text);
+
 	// make sure to push id before
 	void appendRenameButton(FrameContext* fc, const std::string& name);
 
 	static int s_stringTextCallback(void* data);
+
+private:
+	template<size_t N>
+	void drawResourcesWindows_t(FrameContext* fc);
 };
 
 } // namespace gr

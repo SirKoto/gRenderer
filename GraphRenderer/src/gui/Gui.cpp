@@ -572,6 +572,19 @@ void Gui::drawWindows(FrameContext* fc)
     drawFilePicker(fc);
 }
 
+// template loop to fill with names of used classes
+template<size_t N> 
+void fill(::std::array<const char*, cexprUtils::length< ResourceDictionary::ResourceTypesList>()>& arr) {
+    using RTL = typename ResourceDictionary::ResourceTypesList;
+    arr[N - 1] = typeid(cexprUtils::TypeAt<RTL, N - 1>::type).name();
+    fill<N - 1>(arr);
+}
+template<>
+void fill<0>(::std::array<const char*, cexprUtils::length< ResourceDictionary::ResourceTypesList>()>& arr)
+{ }
+
+
+
 void Gui::drawMainMenuBar(FrameContext* fc)
 {
     if (ImGui::BeginMainMenuBar()) {
@@ -631,8 +644,18 @@ void Gui::drawMainMenuBar(FrameContext* fc)
         }
 
         if (ImGui::BeginMenu("Resources")) {
-            ImGui::MenuItem("Meshes", nullptr, &this->mWindowMeshesOpen);
-            ImGui::MenuItem("Textures", nullptr, &this->mWindowTexturesOpen);
+            ImGui::PushID("ResourcesMenu");
+            //ImGui::MenuItem("Meshes", nullptr, &this->mWindowMeshesOpen);
+            //ImGui::MenuItem("Textures", nullptr, &this->mWindowTexturesOpen);
+            using RTL = typename ResourceDictionary::ResourceTypesList;
+            ::std::array<const char*, cexprUtils::length<RTL>()> names = {};
+            fill< cexprUtils::length< ResourceDictionary::ResourceTypesList>()>(names);
+            for (size_t i = 0; i < cexprUtils::length<RTL>(); ++i) {
+                ImGui::MenuItem(names[i],
+                    nullptr,
+                    this->mWindowResourceOpen.data() + i);
+            }
+            ImGui::PopID();
             ImGui::EndMenu();
         }
 
@@ -726,61 +749,8 @@ void Gui::drawFilePicker(FrameContext* fc)
 void Gui::drawResourcesWindows(FrameContext* fc)
 {
     ImGui::PushID("Resources");
-    if (mWindowMeshesOpen) {
-
-        ImGui::SetNextWindowSizeConstraints(
-            ImVec2(10 * ImGui::GetFontSize(), 5 * ImGui::GetFontSize()), // minSize
-            ImVec2(FLT_MAX, FLT_MAX) // maxSize
-        );
-
-        if (ImGui::Begin("Meshes", &mWindowMeshesOpen)) {
-            for (const ResourceDictionary::ResId& id : 
-                fc->gc().getDict().getAllObjectsOfType<Mesh>()) {
-
-                std::string name = fc->gc().getDict().getName(id);
-                if (ImGui::TreeNode(name.c_str())) {
-                    ImGui::PushID(name.c_str());
-
-                    appendRenameButton(fc, name);
-
-                    ImGui::PopID();
-                    ImGui::TreePop();
-
-                }
-            }
-        }
-
-
-        ImGui::End();
-    }
-
-    if (mWindowTexturesOpen) {
-
-        ImGui::SetNextWindowSizeConstraints(
-            ImVec2(10 * ImGui::GetFontSize(), 5 * ImGui::GetFontSize()), // minSize
-            ImVec2(FLT_MAX, FLT_MAX) // maxSize
-        );
-
-        if (ImGui::Begin("Textures", &mWindowTexturesOpen)) {
-            for (const ResourceDictionary::ResId& id :
-                fc->gc().getDict().getAllObjectsOfType<Texture>()) {
-
-                std::string name = fc->gc().getDict().getName(id);
-                if (ImGui::TreeNode(name.c_str())) {
-                    ImGui::PushID(name.c_str());
-
-                    appendRenameButton(fc, name);
-
-                    ImGui::PopID();
-                    ImGui::TreePop();
-
-                }
-            }
-        }
-
-
-        ImGui::End();
-    }
+    
+    drawResourcesWindows_t<cexprUtils::length<ResourceDictionary::ResourceTypesList>()>(fc);
 
     ImGui::PopID();
 }
@@ -837,17 +807,79 @@ void Gui::drawRenameWindow(FrameContext* fc)
                 }
             }
             if (ImGui::IsItemFocused() &&
-                fc->gc().getWindow().isDown(vkg::Window::Input::KeyEnter)) {
+                fc->gc().getWindow().isDown(vkg::Window::Input::KeyEnter) ||
+                fc->gc().getWindow().isDown(vkg::Window::Input::KeyEnterKeyPad)) {
                 mWindowRenameOpen = false;
             }
             if (!canRenamePre) {
                 ImGui::PopStyleColor();
             }
+
+            ImGui::SameLine(); 
+            helpMarker("- Press enter to close window\n- In red if the name cannot be used");
         }
 
         ImGui::End();
     }
+
 }
+
+void Gui::helpMarker(const char* text)
+{
+    ImGui::TextDisabled("(?)");
+    if (ImGui::IsItemHovered())
+    {
+        ImGui::BeginTooltip();
+        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+        ImGui::TextUnformatted(text);
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
+    }
+}
+
+template<size_t N>
+inline void Gui::drawResourcesWindows_t(FrameContext* fc)
+{
+    using Type = typename cexprUtils::TypeAt<ResourceDictionary::ResourceTypesList, N - 1>::type;
+
+    if (mWindowResourceOpen[N - 1]) {
+
+        ImGui::SetNextWindowSizeConstraints(
+            ImVec2(10 * ImGui::GetFontSize(), 5 * ImGui::GetFontSize()), // minSize
+            ImVec2(FLT_MAX, FLT_MAX) // maxSize
+        );
+
+        const char* windowName = typeid(Type).name();
+        if (ImGui::Begin(windowName, &mWindowResourceOpen[N - 1])) {
+            ImGui::PushID(windowName);
+
+            for (const ResourceDictionary::ResId& id :
+                fc->gc().getDict().getAllObjectsOfType<Type>()) {
+
+                std::string name = fc->gc().getDict().getName(id);
+                if (ImGui::TreeNode(name.c_str())) {
+                    ImGui::PushID(name.c_str());
+
+                    appendRenameButton(fc, name);
+
+                    ImGui::PopID();
+                    ImGui::TreePop();
+
+                }
+            }
+            ImGui::PopID();
+        }
+
+
+        ImGui::End();
+    }
+
+    drawResourcesWindows_t<N - 1>(fc);
+}
+
+template<>
+inline void Gui::drawResourcesWindows_t<0>(FrameContext* fc)
+{ }
 
 
 } // namespace gr

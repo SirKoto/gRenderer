@@ -192,6 +192,9 @@
     <ClCompile Include="src\meshes\DescriptorSetLayout.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\meshes\IObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engine.h">
@@ -338,8 +341,11 @@
     <ClInclude Include="src\meshes\IObject.h">
       <Filter>Header Files\meshes</Filter>
     </ClInclude>
+    <ClInclude Include="src\meshes\ResourcesHeader.h">
+      <Filter>Header Files\meshes</Filter>
+    </ClInclude>
     <ClInclude Include="src\meshes\DescriptorSetLayout.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\meshes</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

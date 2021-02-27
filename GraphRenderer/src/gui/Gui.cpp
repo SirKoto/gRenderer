@@ -576,13 +576,13 @@ void Gui::drawWindows(FrameContext* fc)
 
 // template loop to fill with names of used classes
 template<size_t N> 
-void fill(::std::array<const char*, ctools::length< ResourceDictionary::ResourceTypesList>()>& arr) {
-    using RTL = typename ResourceDictionary::ResourceTypesList;
+void fill(::std::array<const char*, ctools::length< ResourceTypesList>()>& arr) {
+    using RTL = ResourceTypesList;
     arr[N - 1] = ctools::TypeAt<RTL, N - 1>::type::s_getClassName();
     fill<N - 1>(arr);
 }
 template<>
-void fill<0>(::std::array<const char*, ctools::length< ResourceDictionary::ResourceTypesList>()>& arr)
+void fill<0>(::std::array<const char*, ctools::length< ResourceTypesList>()>& arr)
 { }
 
 
@@ -649,9 +649,9 @@ void Gui::drawMainMenuBar(FrameContext* fc)
             ImGui::PushID("ResourcesMenu");
             //ImGui::MenuItem("Meshes", nullptr, &this->mWindowMeshesOpen);
             //ImGui::MenuItem("Textures", nullptr, &this->mWindowTexturesOpen);
-            using RTL = typename ResourceDictionary::ResourceTypesList;
+            using RTL = typename ResourceTypesList;
             ::std::array<const char*, ctools::length<RTL>()> names = {};
-            fill< ctools::length< ResourceDictionary::ResourceTypesList>()>(names);
+            fill< ctools::length< ResourceTypesList>()>(names);
             for (size_t i = 0; i < ctools::length<RTL>(); ++i) {
                 ImGui::MenuItem(names[i],
                     nullptr,
@@ -752,7 +752,7 @@ void Gui::drawResourcesWindows(FrameContext* fc)
 {
     ImGui::PushID("Resources");
 
-    drawResourcesWindows_t<ctools::length<ResourceDictionary::ResourceTypesList>()>(fc);
+    drawResourcesWindows_t<ctools::length<ResourceTypesList>()>(fc);
 
     ImGui::PopID();
 }
@@ -873,7 +873,7 @@ void Gui::helpMarker(const char* text)
 template<size_t N>
 inline void Gui::drawResourcesWindows_t(FrameContext* fc)
 {
-    using Type = typename ctools::TypeAt<ResourceDictionary::ResourceTypesList, N - 1>::type;
+    using Type = typename ctools::TypeAt<ResourceTypesList, N - 1>::type;
 
     if (mWindowResourceOpen[N - 1]) {
 
@@ -893,7 +893,7 @@ inline void Gui::drawResourcesWindows_t(FrameContext* fc)
 
             ImGui::Separator();
 
-            for (const ResourceDictionary::ResId& id :
+            for (const ResId& id :
                 fc->gc().getDict().getAllObjectsOfType<Type>()) {
 
                 std::string name = fc->gc().getDict().getName(id);

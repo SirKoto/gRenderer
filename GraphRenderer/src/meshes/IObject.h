@@ -26,6 +26,13 @@ public:
 
 private:
 	std::string mObjectName;
+
+	uint64_t mFrameLastUpdate = 0;
+
+protected:
+
+	void markUpdated(FrameContext* fc);
+
 };
 
 } // namespace gr

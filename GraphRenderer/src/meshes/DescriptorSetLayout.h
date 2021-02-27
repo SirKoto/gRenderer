@@ -2,6 +2,8 @@
 
 #include "IObject.h"
 
+#include "ResourcesHeader.h"
+
 #include <vulkan/vulkan.hpp>
 #include <vector>
 
@@ -12,6 +14,7 @@ class DescriptorSetLayout :
     public IObject
 {
 public:
+
 
 	virtual void destroy(GlobalContext * gc) override final;
 	virtual void scheduleDestroy(FrameContext * fc) override final;
@@ -26,9 +29,13 @@ private:
 
 	struct DSL {
 		vk::DescriptorSetLayoutBinding binding;
-		std::vector<uint64_t> immutableSamplers;
+		std::vector<ResId> immutableSamplers;
+
+		DSL();
 	};
 	std::list<DSL> mBindings;
+
+	void createDescriptorLayout(FrameContext* fc);
 };
 
 } // namespace gr

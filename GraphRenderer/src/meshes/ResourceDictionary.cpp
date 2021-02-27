@@ -7,7 +7,7 @@
 namespace gr
 {
 
-ResourceDictionary::ResId ResourceDictionary::getAndUpdateId()
+ResId ResourceDictionary::getAndUpdateId()
 {
 	std::unique_lock idLock(mNextIdMutex);
 
@@ -51,7 +51,7 @@ void ResourceDictionary::erase(ResId id)
 	mObjectsToFree.push_back(id);
 }
 
-ResourceDictionary::ResId ResourceDictionary::getId(const std::string& name) const
+ResId ResourceDictionary::getId(const std::string& name) const
 {
 	std::shared_lock slock(mObjectsMutex);
 	return mName2Id.at(name);

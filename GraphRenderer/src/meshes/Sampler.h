@@ -24,7 +24,8 @@ public:
 
 	operator bool() const { return mSampler; }
 
-	bool hasUpdated() const { return mHasUpdatedThisframe; }
+	vk::Sampler getVkSampler() const { return mSampler; }
+
 
 protected:
 
@@ -32,8 +33,6 @@ protected:
 
 	vk::SamplerAddressMode mAddresMode = vk::SamplerAddressMode::eRepeat;
 
-	bool mNeedsUpdate = true;
-	bool mHasUpdatedThisframe = false;
 };
 
 } // namespace gr

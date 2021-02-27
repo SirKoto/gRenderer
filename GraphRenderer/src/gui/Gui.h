@@ -57,12 +57,12 @@ protected:
 	bool mWindowTexturesOpen = false;
 	bool mWindowInspectorOpen = true;
 
-	std::array<bool, ctools::length<ResourceDictionary::ResourceTypesList>()>
+	std::array<bool, ctools::length<ResourceTypesList>()>
 		mWindowResourceOpen;
 
 	std::string mRenameString;
-	ResourceDictionary::ResId mRenameId;
-	ResourceDictionary::ResId mInspectorResourceId = 0;
+	ResId mRenameId;
+	ResId mInspectorResourceId = 0;
 
 
 	void drawWindows(FrameContext* fc);

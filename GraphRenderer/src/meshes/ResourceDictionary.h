@@ -1,16 +1,16 @@
 #pragma once
 
-#include "Mesh.h"
-#include "Texture.h"
-#include "Sampler.h"
-#include "DescriptorSetLayout.h"
-
-#include "../utils/ConstExprHelp.h"
+#include "ResourcesHeader.h"
 
 #include <unordered_map>
 #include <set>
 #include <shared_mutex>
 #include <memory>
+
+#include "Mesh.h"
+#include "Texture.h"
+#include "Sampler.h"
+#include "DescriptorSetLayout.h"
 
 namespace gr
 {
@@ -22,16 +22,10 @@ class ResourceDictionary
 {
 public:
 
-	// Set list of Types that the dictionary will handle
-	using ResourceTypesList = 
-		typename ctools::TypelistBuilder<Mesh, Texture, Sampler,
-			DescriptorSetLayout
-		>::typelist;
+	
 	static constexpr bool CONFIG_USE_DYNAMIC_CAST = true;
 
 	ResourceDictionary& operator=(const ResourceDictionary&) = delete;
-
-	typedef uint64_t ResId;
 
 	template<typename T>
 	ResId allocateObject(std::string objectName, T** outPtr = nullptr);
@@ -76,7 +70,7 @@ protected:
 };
 
 template<typename T>
-ResourceDictionary::ResId ResourceDictionary::allocateObject(
+ResId ResourceDictionary::allocateObject(
 	std::string objectName,
 	T** outPtr)
 {
@@ -137,7 +131,7 @@ void gr::ResourceDictionary::get(ResId id, T** object) const
 
 
 template<typename T>
-std::vector<gr::ResourceDictionary::ResId> 
+std::vector<gr::ResId> 
 gr::ResourceDictionary::getAllObjectsOfType() const
 {
 	constexpr size_t typeIdx = ctools::indexOf<ResourceTypesList, T>();

@@ -899,10 +899,19 @@ inline void Gui::drawResourcesWindows_t(FrameContext* fc)
                 std::string name = fc->gc().getDict().getName(id);
                 std::string label = name + "###" + std::to_string(id);
                 if (ImGui::Button(label.c_str())) {
-                    //ImGui::PushID(name.c_str());
                     mInspectorResourceId = id;
-                    //ImGui::PopID();
                 }
+                // button is drag source
+                if (ImGui::BeginDragDropSource()) {
+                    // carry identifier
+                    // unique id of carry is the name of the class
+                    ImGui::SetDragDropPayload(windowName,
+                        &id, sizeof(ResId));
+                    // Display preview text
+                    ImGui::Text(name.c_str());
+                    ImGui::EndDragDropSource();
+                }
+
                 appendRenamePopupItem(fc, name);
 
             }

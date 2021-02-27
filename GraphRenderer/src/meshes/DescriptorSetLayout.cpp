@@ -120,13 +120,22 @@ void DescriptorSetLayout::renderImGui(FrameContext* fc)
                     it->immutableSamplers.resize(dslb.descriptorCount, 0);
 
                     int i = 0;
-                    for (ResId id : it->immutableSamplers) {
+                    for (ResId& id : it->immutableSamplers) {
                         std::string name = "Undefined";
                         if (fc->gc().getDict().exists(id)) {
                             name = fc->gc().getDict().getName(id);
                         }
                         ImGui::Text("sampler %u", i++);
                         ImGui::Button(name.c_str());
+                        // This button is a drop target for a sample
+                        if (ImGui::BeginDragDropTarget()) {
+                            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(Sampler::s_getClassName()))
+                            {
+                                assert(payload->DataSize == sizeof(ResId));
+                                id = *reinterpret_cast<ResId*>(payload->Data);
+                            }
+                            ImGui::EndDragDropTarget();
+                        }
                     }
                 }
             }

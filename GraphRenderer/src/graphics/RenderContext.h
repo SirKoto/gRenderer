@@ -87,7 +87,9 @@ namespace vkg
 
 		vk::Fence createFence(bool signaled) const;
 
-		void createShaderModule(const char* fileName, vk::ShaderModule* module) const;
+		void createShaderModule(const char* fileName,
+			vk::ShaderModule* outModule,
+			std::vector<uint32_t>* outSpirV = nullptr) const;
 
 		void waitIdle() const;
 

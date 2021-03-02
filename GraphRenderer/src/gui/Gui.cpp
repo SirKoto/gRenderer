@@ -122,6 +122,7 @@ static uint32_t __glsl_shader_frag_spv[] =
 
 constexpr const char * IMPORT_MESH_STRING_KEY = "ImportMeshChooserKeyImGuiFileDialog";
 constexpr const char* IMPORT_TEX_STRING_KEY = "ImportTextureChooserKeyImGuiFileDialog";
+constexpr const char* IMPORT_SPIRV_STRING_KEY = "ImportSPIRVChooserKeyImGuiFileDialog";
 
 
 void Gui::init(GlobalContext* gc)
@@ -622,6 +623,19 @@ void Gui::drawMainMenuBar(FrameContext* fc)
                 );
 
             }
+            if (ImGui::MenuItem("Import SPIR-V", nullptr,
+                nullptr, !mFilePickerInUse)) {
+
+                mFilePickerInUse = true;
+                // open dialog
+                ImGuiFileDialog::Instance()->OpenDialog(
+                    IMPORT_SPIRV_STRING_KEY,
+                    "Choose SPIR-V shader to load",
+                    ".spv", // filter
+                    "." // directory
+                );
+
+            }
 
             if (ImGui::MenuItem("Quit", "Alt+F4")) {
                 mCloseAppFlag = true;
@@ -742,6 +756,33 @@ void Gui::drawFilePicker(FrameContext* fc)
                 &tex
             );
             tex->load(&fc->rc(), map.begin()->second.c_str());
+        }
+
+        // close
+        ImGuiFileDialog::Instance()->Close();
+    }
+
+    if (ImGuiFileDialog::Instance()->Display(
+        IMPORT_SPIRV_STRING_KEY, // Key
+        ImGuiWindowFlags_NoCollapse,
+        ImVec2(0, 20 * ImGui::GetFontSize()) // minSize
+    )) {
+        assert(mFilePickerInUse);
+        mFilePickerInUse = false;
+        // action if OK
+        if (ImGuiFileDialog::Instance()->IsOk())
+        {
+            std::map<std::string, std::string> map =
+                ImGuiFileDialog::Instance()->GetSelection();
+            assert(map.size() == 1);
+
+            Shader* shader;
+            fc->gc().getDict().allocateObject(
+                map.begin()->first,
+                &shader
+            );
+
+            shader->load(fc, map.begin()->second.c_str());
         }
 
         // close

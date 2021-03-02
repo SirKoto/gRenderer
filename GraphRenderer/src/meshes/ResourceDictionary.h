@@ -11,6 +11,8 @@
 #include "Texture.h"
 #include "Sampler.h"
 #include "DescriptorSetLayout.h"
+#include "Material.h"
+#include "Shader.h"
 
 namespace gr
 {

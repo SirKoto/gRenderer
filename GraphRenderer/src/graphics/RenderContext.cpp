@@ -452,7 +452,10 @@ namespace vkg
 		getDevice().destroyFramebuffer(framebuffer);
 	}
 
-	void RenderContext::createShaderModule(const char* fileName, vk::ShaderModule* module) const
+	void RenderContext::createShaderModule(
+		const char* fileName,
+		vk::ShaderModule* module,
+		std::vector<uint32_t>* outSpirV) const
 	{
 		assert(module != nullptr);
 
@@ -470,6 +473,11 @@ namespace vkg
 		);
 
 		(*module) = getDevice().createShaderModule(createInfo);
+
+		if (outSpirV) {
+			*outSpirV = std::vector<uint32_t>(file.size() / sizeof(uint32_t));
+			std::memcpy(outSpirV->data(), file.data(), file.size());
+		}
 	}
 
 	void RenderContext::destroy(const vk::ShaderModule module) const

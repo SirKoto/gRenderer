@@ -396,8 +396,8 @@ namespace gr
 	{
 		{
 			grjob::Job jobs[2];
-			jobs[0] = grjob::Job(&vkg::RenderContext::createShaderModule, &mGlobalContext.rc(), "resources/shaders/SPIR-V/sampler.vert.spv", mShaderModules + 0);
-			jobs[1] = grjob::Job(&vkg::RenderContext::createShaderModule, &mGlobalContext.rc(), "resources/shaders/SPIR-V/sampler.frag.spv", mShaderModules + 1);
+			jobs[0] = grjob::Job(&vkg::RenderContext::createShaderModule, &mGlobalContext.rc(), "resources/shaders/SPIR-V/sampler.vert.spv", mShaderModules + 0, nullptr);
+			jobs[1] = grjob::Job(&vkg::RenderContext::createShaderModule, &mGlobalContext.rc(), "resources/shaders/SPIR-V/sampler.frag.spv", mShaderModules + 1, nullptr);
 			grjob::Counter* c = nullptr;
 
 			grjob::runJobBatch(gr::grjob::Priority::eMid, jobs, 2, &c);

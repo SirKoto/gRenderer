@@ -122,12 +122,13 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>D:\Programs\Vulkan\1.2.162.1\Include</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>D:\Programs\Vulkan\1.2.162.1\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\Programs\SPIRV-Cross\build\Debug;D:\Programs\Vulkan\1.2.162.1\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;vulkan-1.lib;spirv-cross-cppd.lib;spirv-cross-cored.lib;spirv-cross-glsld.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -140,6 +141,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>D:\Programs\Vulkan\1.2.162.1\Include</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -147,7 +149,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>D:\Programs\Vulkan\1.2.162.1\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;vulkan-1.lib;spirv-cross-c-shared.lib;spirv-cross-cpp.lib;spirv-cross-core.lib;spirv-cross-glsl.lib;SPIRV.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -179,9 +181,11 @@
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\meshes\DescriptorSetLayout.cpp" />
     <ClCompile Include="src\meshes\IObject.cpp" />
+    <ClCompile Include="src\meshes\Material.cpp" />
     <ClCompile Include="src\meshes\Mesh.cpp" />
     <ClCompile Include="src\meshes\ResourceDictionary.cpp" />
     <ClCompile Include="src\meshes\Sampler.cpp" />
+    <ClCompile Include="src\meshes\Shader.cpp" />
     <ClCompile Include="src\meshes\Texture.cpp" />
     <ClCompile Include="src\utils\Fibers\Counter.cpp" />
     <ClCompile Include="src\utils\Fibers\Fiber.cpp" />
@@ -225,10 +229,12 @@
     <ClInclude Include="src\gui\Gui.h" />
     <ClInclude Include="src\meshes\DescriptorSetLayout.h" />
     <ClInclude Include="src\meshes\IObject.h" />
+    <ClInclude Include="src\meshes\Material.h" />
     <ClInclude Include="src\meshes\Mesh.h" />
     <ClInclude Include="src\meshes\ResourceDictionary.h" />
     <ClInclude Include="src\meshes\ResourcesHeader.h" />
     <ClInclude Include="src\meshes\Sampler.h" />
+    <ClInclude Include="src\meshes\Shader.h" />
     <ClInclude Include="src\meshes\Texture.h" />
     <ClInclude Include="src\utils\ConstExprHelp.h" />
     <ClInclude Include="src\utils\Fibers\Counter.h" />

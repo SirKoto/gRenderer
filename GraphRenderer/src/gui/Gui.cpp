@@ -302,6 +302,7 @@ void Gui::updatePipelineState(
     pipBuilder.addDynamicState(vk::DynamicState::eViewport);
     pipBuilder.addDynamicState(vk::DynamicState::eScissor);
     pipBuilder.setFrontFace(vk::FrontFace::eClockwise);
+    pipBuilder.setCulling(vk::CullModeFlagBits::eNone);
     mPipeline = pipBuilder.createPipeline(rc->getDevice(), renderPass, subpass);
 
     rc->destroy(vertexModule);

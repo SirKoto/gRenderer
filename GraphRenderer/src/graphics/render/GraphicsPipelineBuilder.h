@@ -61,6 +61,8 @@ public:
 
 	void setFrontFace(vk::FrontFace frontFace) { mRasterizationState.setFrontFace(frontFace); }
 
+	void setCulling(vk::CullModeFlagBits culling) { mRasterizationState.setCullMode(culling); }
+
 	vk::Pipeline createPipeline(vk::Device device, vk::RenderPass renderPass, uint32_t subpass) const;
 
 protected:

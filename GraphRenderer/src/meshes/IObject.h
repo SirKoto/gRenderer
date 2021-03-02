@@ -3,6 +3,8 @@
 #include <string>
 #include <stdint.h>
 
+#include <vulkan/vulkan.hpp>
+
 namespace gr
 {
 
@@ -34,5 +36,24 @@ protected:
 	void markUpdated(FrameContext* fc);
 
 };
+
+enum class VertexInputFlags {
+	eVertex,
+	eColor,
+	eNormal,
+	eUV,
+	COUNT
+};
+
+inline std::string to_string(const VertexInputFlags flag) {
+	switch (flag)
+	{
+	case VertexInputFlags::eVertex: return "Vertex";
+	case VertexInputFlags::eColor: return "Color";
+	case VertexInputFlags::eNormal: return "Normal";
+	case VertexInputFlags::eUV: return "UV";
+	default: return "invalid (" + vk::toHexString(static_cast<uint32_t>(flag)) + ")";
+	}
+}
 
 } // namespace gr

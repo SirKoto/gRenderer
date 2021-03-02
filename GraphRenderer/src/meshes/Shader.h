@@ -31,6 +31,10 @@ public:
         uint32_t vecSize;
         std::string name;
     };
+    struct InLocationInfo : LocationInfo {
+        VertexInputFlags inputFlags;
+    };
+
     struct BindingInfo {
         static constexpr std::array<const char*, 5> cols =
         { "Pos", "Name", "Type", "Bytes", "Offset" };
@@ -72,7 +76,7 @@ private:
     std::string mGLSLCode;
 
 
-    std::map<uint32_t, LocationInfo> mInLocations;
+    std::map<uint32_t, InLocationInfo> mInLocations;
     std::map<uint32_t, LocationInfo> mOutLocations;
 
     typedef std::map<uint32_t, std::unique_ptr<BindingInfo>> DescriptorSet;

@@ -825,9 +825,11 @@ void Gui::drawInspectorWindow(FrameContext* fc)
         ImGui::SetNextWindowSize(ImVec2(w, h), ImGuiCond_Appearing);
     }
 
+    ImGui::PushID("Inspector");
+
     if (ImGui::Begin(windowName.c_str(), &this->mWindowInspectorOpen)) {
         if (goodId) {
-            ImGui::PushID("Inspector");
+            ImGui::PushID((void*)mInspectorResourceId);
 
             appendRenamePopupItem(fc, itemName);
             IObject* obj;
@@ -839,6 +841,9 @@ void Gui::drawInspectorWindow(FrameContext* fc)
         }
     }
     ImGui::End();
+
+    ImGui::PopID();
+
 }
 
 void Gui::appendRenamePopupItem(FrameContext* fc, const std::string& name)

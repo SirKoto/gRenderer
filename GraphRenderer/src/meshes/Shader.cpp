@@ -51,20 +51,41 @@ void Shader::renderImGui(FrameContext* fc)
 			// input and output locations
 			if (!mInLocations.empty()) {
 				ImGui::Text("Input locations:");
-				if (ImGui::BeginTable("Input locations", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_RowBg)) {
+				if (ImGui::BeginTable("Input locations", 
+					mStage == vk::ShaderStageFlagBits::eVertex ? 5 : 4,
+					ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_RowBg)) {
 					ImGui::TableSetupColumn("Location");
 					ImGui::TableSetupColumn("Name");
 					ImGui::TableSetupColumn("Format");
 					ImGui::TableSetupColumn("VecSize");
+					if (mStage == vk::ShaderStageFlagBits::eVertex) {
+						ImGui::TableSetupColumn("Vertex Input");
+					}
 					ImGui::TableHeadersRow();
 
-					for (const std::pair<const uint32_t, LocationInfo>& loc : mInLocations) {
+					for (std::pair<const uint32_t, InLocationInfo>& loc : mInLocations) {
 						ImGui::TableNextRow();
 						ImGui::TableNextColumn();
 						ImGui::Text(std::to_string(loc.first).c_str()); ImGui::TableNextColumn();
 						ImGui::Text(loc.second.name.c_str()); ImGui::TableNextColumn();
 						ImGui::Text("Float"); ImGui::TableNextColumn();
 						ImGui::Text(std::to_string(loc.second.vecSize).c_str());
+						if (mStage == vk::ShaderStageFlagBits::eVertex) {
+							ImGui::TableNextColumn();
+							float w = ImGui::CalcItemWidth();
+							// selector to set vertex input only on vertex shader
+							std::string label = "##VertexAssembly" + std::to_string(loc.first);
+							if (ImGui::BeginCombo(label.c_str(), gr::to_string(loc.second.inputFlags).c_str())) {
+								for (int32_t i = 0; i < static_cast<uint32_t>(VertexInputFlags::COUNT); ++i) {
+									if (ImGui::Selectable(
+										gr::to_string(static_cast<VertexInputFlags>(i)).c_str(),
+										loc.second.inputFlags == static_cast<VertexInputFlags>(i))) {
+										loc.second.inputFlags = static_cast<VertexInputFlags>(i);
+									}
+								}
+								ImGui::EndCombo();
+							}
+						}
 					}
 
 					ImGui::EndTable();
@@ -210,7 +231,7 @@ void Shader::load(FrameContext* fc, const char* filePath)
 		// if already inserted
 		if (!mInLocations.insert({
 			location,
-			LocationInfo{Type::eFloat, type.vecsize, res.name} })
+			InLocationInfo{Type::eFloat, type.vecsize, res.name} })
 			.second) {
 			throw std::runtime_error("Error shader! The location is already used");
 		}

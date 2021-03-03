@@ -793,8 +793,37 @@ void Gui::drawFilePicker(FrameContext* fc)
 void Gui::drawResourcesWindows(FrameContext* fc)
 {
     ImGui::PushID("Resources");
+    bool open = false;
+    for (bool b : mWindowResourceOpen) {
+        open |= b;
+    }
+    if (open) {
+        {
+            // set to occupy 1/4th of the screen width
+            const ImGuiViewport* viewport = ImGui::GetMainViewport();
+            float w = viewport->WorkSize.x / 4.0f;
+            float x0 = viewport->WorkPos.x + viewport->WorkSize.x * 0.03f;
+            constexpr float v_margin = 0.1f;
+            float h = viewport->WorkSize.y * (1.0f - v_margin * 2.0f);
+            float y0 = viewport->WorkPos.y + viewport->WorkSize.y * v_margin;
+            ImGui::SetNextWindowPos(ImVec2(x0, y0), ImGuiCond_Appearing);
+            ImGui::SetNextWindowSize(ImVec2(w, h), ImGuiCond_Appearing);
+        }
+        if (ImGui::Begin("Resources", &open)) {
+            if (ImGui::BeginTabBar("##Tab bar", 
+                ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_AutoSelectNewTabs | 
+                ImGuiTabBarFlags_FittingPolicyScroll)) {
+                drawResourcesWindows_t<ctools::length<ResourceTypesList>()>(fc);
 
-    drawResourcesWindows_t<ctools::length<ResourceTypesList>()>(fc);
+                ImGui::EndTabBar();
+            }
+        }
+        ImGui::End();
+        // if closed
+        if (!open) {
+            mWindowResourceOpen.fill(false);
+        }
+    }
 
     ImGui::PopID();
 }
@@ -924,14 +953,8 @@ inline void Gui::drawResourcesWindows_t(FrameContext* fc)
 
     if (mWindowResourceOpen[N - 1]) {
 
-        ImGui::SetNextWindowSizeConstraints(
-            ImVec2(10 * ImGui::GetFontSize(), 5 * ImGui::GetFontSize()), // minSize
-            ImVec2(FLT_MAX, FLT_MAX) // maxSize
-        );
-
-        const char* windowName = Type::s_getClassName();
-        if (ImGui::Begin(windowName, &mWindowResourceOpen[N - 1])) {
-            ImGui::PushID(windowName);
+        constexpr const char* windowName = Type::s_getClassName();
+        if (ImGui::BeginTabItem(windowName, &mWindowResourceOpen[N - 1])) {
 
             if (ImGui::Button("New")) {
                 std::string name = std::string("new ") + Type::s_getClassName();
@@ -963,11 +986,9 @@ inline void Gui::drawResourcesWindows_t(FrameContext* fc)
 
             }
 
-            ImGui::PopID();
+            ImGui::EndTabItem();
         }
 
-
-        ImGui::End();
     }
 
     drawResourcesWindows_t<N - 1>(fc);

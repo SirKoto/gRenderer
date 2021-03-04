@@ -201,6 +201,9 @@
     <ClCompile Include="src\meshes\Shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\meshes\Pipeline.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engine.h">
@@ -357,7 +360,10 @@
       <Filter>Header Files\meshes</Filter>
     </ClInclude>
     <ClInclude Include="src\meshes\Shader.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\meshes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\Pipeline.h">
+      <Filter>Header Files\meshes</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

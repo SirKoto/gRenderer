@@ -31,31 +31,17 @@ void gr::FrameContext::updateTime(double_t newTime)
 	mDeltaTime = mGlobalContext->computeDeltaTime();
 }
 
-void gr::FrameContext::scheduleToDelete(const vkg::Buffer buffer)
+void gr::FrameContext::scheduleToDelete(const vkg::Buffer& buffer)
 {
 	if (buffer) {
 		mResourcesToDelete.push_back(std::unique_ptr<DelRes>(new DelResBuffer(buffer)));
 	}
 }
 
-void gr::FrameContext::scheduleToDelete(const vkg::Image2D image)
+void gr::FrameContext::scheduleToDelete(const vkg::Image2D& image)
 {
 	if (image) {
 		mResourcesToDelete.push_back(std::unique_ptr<DelRes>(new DelResImage(image)));
-	}
-}
-
-void gr::FrameContext::scheduleToDelete(const vk::Sampler sampler)
-{
-	if (sampler) {
-		mResourcesToDelete.push_back(std::unique_ptr<DelRes>(new DelResSampler(sampler)));
-	}
-}
-
-void gr::FrameContext::scheduleToDelete(const vk::DescriptorSetLayout descriptionLayout)
-{
-	if (descriptionLayout) {
-		mResourcesToDelete.push_back(std::unique_ptr<DelRes>(new DelResDescSetLayout(descriptionLayout)));
 	}
 }
 
@@ -111,22 +97,3 @@ void gr::FrameContext::DelResImage::destroy(GlobalContext* gc)
 	gc->rc().destroy(reinterpret_cast<vkg::Image2D&>(mBuffer));
 }
 
-gr::FrameContext::DelResSampler::DelResSampler(const vk::Sampler& sampler)
-{
-	std::memcpy(&mBuffer, &sampler, sizeof(sampler));
-}
-
-void gr::FrameContext::DelResSampler::destroy(GlobalContext* gc)
-{
-	gc->rc().destroy(reinterpret_cast<vk::Sampler&>(mBuffer));
-}
-
-gr::FrameContext::DelResDescSetLayout::DelResDescSetLayout(const vk::DescriptorSetLayout& setLayout)
-{
-	std::memcpy(&mBuffer, &setLayout, sizeof(setLayout));
-}
-
-void gr::FrameContext::DelResDescSetLayout::destroy(GlobalContext* gc)
-{
-	gc->rc().destroy(reinterpret_cast<vk::DescriptorSetLayout&>(mBuffer));
-}

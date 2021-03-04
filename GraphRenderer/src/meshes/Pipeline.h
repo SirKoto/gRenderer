@@ -1,27 +1,31 @@
 #pragma once
 #include "IObject.h"
 
-#include <vulkan/vulkan.hpp>
+#include "ResourcesHeader.h"
 
 namespace gr
 {
 
-class Material :
+class Pipeline :
     public IObject
 {
 public:
-    // Inherited via IObject
+
     virtual void destroy(GlobalContext* gc) override final;
+
     virtual void scheduleDestroy(FrameContext* fc) override final;
+
     virtual void renderImGui(FrameContext* fc) override final;
 
-    static constexpr const char* s_getClassName() { return "Material"; }
+    static constexpr const char* s_getClassName() { return "Pipeline"; }
 
 private:
 
+    vk::PipelineLayout mPipelineLayout;
+    vk::Pipeline mPipeline;
 
-protected:
+    gr::ResId mMaterialDescriptorLayout;
 
-}; // class Material
+};
 
 } // namespace gr

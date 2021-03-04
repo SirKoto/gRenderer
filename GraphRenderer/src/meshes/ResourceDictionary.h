@@ -13,6 +13,8 @@
 #include "DescriptorSetLayout.h"
 #include "Material.h"
 #include "Shader.h"
+#include "Pipeline.h"
+
 
 namespace gr
 {
@@ -35,6 +37,7 @@ public:
 	template<typename T>
 	void get(ResId id, T** object) const;
 
+	// erase will schedule destroy on the item
 	void erase(ResId id);
 
 	ResId getId(const std::string&  name) const;

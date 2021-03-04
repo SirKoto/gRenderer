@@ -48,11 +48,10 @@ public:
 	vkg::ResetCommandPool& transferPool() { return mPools.transferTransientPool; };
 	const vkg::ResetCommandPool& transferPool() const { return mPools.transferTransientPool; };
 
-	void scheduleToDelete(const vkg::Buffer buffer);
-	void scheduleToDelete(const vkg::Image2D image);
-	void scheduleToDelete(const vk::Sampler sampler);
-	void scheduleToDelete(const vk::DescriptorSetLayout descriptionLayout);
-
+	void scheduleToDelete(const vkg::Buffer& buffer);
+	void scheduleToDelete(const vkg::Image2D& image);
+	template<typename T>
+	void scheduleToDelete(const T& obj);
 
 
 	void resetFrameResources();
@@ -81,6 +80,7 @@ private:
 	FrameContext(uint32_t numMax, uint32_t id, GlobalContext* globalContext) :
 		CONCURRENT_FRAMES(numMax), mFrameId(id), mFrameCount(id), mGlobalContext(globalContext) {}
 
+
 	struct DelRes {
 		static constexpr size_t SIZE = 4 * sizeof(void*);
 		typedef std::aligned_storage<SIZE>::type Stack;
@@ -100,18 +100,26 @@ private:
 		virtual void destroy(GlobalContext* gc) override final;
 	};
 
-	struct DelResSampler : public DelRes {
-		static_assert(sizeof(vk::Sampler) <= SIZE, "Not enough memory");
-		DelResSampler(const vk::Sampler& sampler);
-		virtual void destroy(GlobalContext* gc) override final;
-	};
-
-	struct DelResDescSetLayout : public DelRes {
-		static_assert(sizeof(vk::DescriptorSetLayout) <= SIZE, "Not enough memory");
-		DelResDescSetLayout(const vk::DescriptorSetLayout& setLayout);
-		virtual void destroy(GlobalContext* gc) override final;
+	template<typename T>
+	struct DelResTemp : public DelRes {
+		static_assert(sizeof(T) <= SIZE, "Not enough memory");
+		DelResTemp(const T& obj) {
+			std::memcpy(&mBuffer, &obj, sizeof(obj));
+		}
+		virtual void destroy(GlobalContext* gc) override final {
+			gc->rc().destroy(reinterpret_cast<T&>(mBuffer));
+		}
 	};
 
 };
+
+template<typename T>
+inline void FrameContext::scheduleToDelete(const T& obj)
+{
+	if (obj) {
+		mResourcesToDelete.push_back(
+			std::unique_ptr<DelRes>(new DelResTemp<T>(obj)));
+	}
+}
 
 }

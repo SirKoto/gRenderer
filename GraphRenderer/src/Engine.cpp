@@ -132,6 +132,7 @@ namespace gr
 			draw(mContexts[mCurrentFrame]);
 
 			pRenderContext->flushData();
+			mGlobalContext.getDict().flushDataAndFree(&mContexts[mCurrentFrame]);
 		}
 
 		// Destroy everything

@@ -878,7 +878,7 @@ void Gui::drawInspectorWindow(FrameContext* fc)
 void Gui::appendRenamePopupItem(FrameContext* fc, const std::string& name)
 {
     if (ImGui::BeginPopupContextItem()) {
-
+        bool closePopup = false;
         if (mRenameId != fc->gc().getDict().getId(name)) {
             mRenameString = name;
             mRenameId = fc->gc().getDict().getId(name);
@@ -911,9 +911,44 @@ void Gui::appendRenamePopupItem(FrameContext* fc, const std::string& name)
 
         ImGui::SameLine();
         helpMarker("- Press enter to close window\n- In red if the name cannot be used");
+
+        // delete resource button
+        ImGui::Button("Delte##0");
+        if (ImGui::BeginPopupContextItem("DeleteButton", ImGuiPopupFlags_MouseButtonLeft)) {
+            ImGui::Text("Are you sure?");
+
+            if (ImGui::Button("Delete##1")) {
+                // delete resource
+                IObject* obj = nullptr;
+                fc->gc().getDict().erase(mRenameId);
+                if (mInspectorResourceId == mRenameId) {
+                    mInspectorResourceId = 0;
+                }
+
+                mRenameId = 0;
+                mRenameString = "";
+
+                closePopup = true;
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel")) {
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::EndPopup();
+
+        }
+
+        ImGui::Separator();
+
         if (ImGui::Button("Close") ||
             fc->gc().getWindow().isDown(vkg::Window::Input::KeyEnter) ||
             fc->gc().getWindow().isDown(vkg::Window::Input::KeyEnterKeyPad)) {
+            closePopup = true;
+        }
+
+        if (closePopup) {
             ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();

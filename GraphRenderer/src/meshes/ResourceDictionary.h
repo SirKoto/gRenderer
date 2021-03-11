@@ -14,6 +14,7 @@
 #include "Material.h"
 #include "Shader.h"
 #include "Pipeline.h"
+#include "Scene.h"
 
 
 namespace gr

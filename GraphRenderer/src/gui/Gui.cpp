@@ -569,6 +569,8 @@ void Gui::drawWindows(FrameContext* fc)
     }
 
     drawResourcesWindows(fc);
+
+    drawSceneWindow(fc);
     
     drawInspectorWindow(fc);
 
@@ -677,6 +679,7 @@ void Gui::drawMainMenuBar(FrameContext* fc)
         }
 
         if (ImGui::BeginMenu("View")) {
+            ImGui::MenuItem("Scene", nullptr, &this->mWindowSceneOpen);
             ImGui::MenuItem("Inspector", nullptr, &this->mWindowInspectorOpen);
             ImGui::MenuItem("Metrics", nullptr, &this->mWindowImGuiMetricsOpen);
             ImGui::MenuItem("Style", nullptr, &this->mWindowStyleEditor);
@@ -860,11 +863,11 @@ void Gui::drawInspectorWindow(FrameContext* fc)
         if (goodId) {
             ImGui::PushID((void*)mInspectorResourceId);
 
-            appendRenamePopupItem(fc, itemName);
-            IObject* obj;
-            fc->gc().getDict().get(mInspectorResourceId, &obj);
-            obj->renderImGui(fc);
-
+            if (!appendRenamePopupItem(fc, itemName)) {
+                IObject* obj;
+                fc->gc().getDict().get(mInspectorResourceId, &obj);
+                obj->renderImGui(fc);
+            }
             ImGui::PopID();
 
         }
@@ -875,8 +878,57 @@ void Gui::drawInspectorWindow(FrameContext* fc)
 
 }
 
-void Gui::appendRenamePopupItem(FrameContext* fc, const std::string& name)
+void Gui::drawSceneWindow(FrameContext* fc)
 {
+    if (!this->mWindowSceneOpen) {
+        return;
+    }
+
+    std::string windowName = "Scene###SceneWindow";
+    std::string itemName = "";
+    const bool goodId = fc->gc().getDict().exists(mSceneId);
+    if (goodId) {
+        itemName = fc->gc().getDict().getName(mSceneId);
+        windowName = itemName + " - " + windowName;
+    }
+
+    {
+        // set to occupy 1/4th of the screen width
+        const ImGuiViewport* viewport = ImGui::GetMainViewport();
+        float w = viewport->WorkSize.x / 4.0f;
+        float x0 = viewport->WorkPos.x + viewport->WorkSize.x * 0.04f;
+        constexpr float v_margin = 0.15f;
+        float h = viewport->WorkSize.y * (1.0f - v_margin * 2.0f);
+        float y0 = viewport->WorkPos.y + viewport->WorkSize.y * v_margin;
+        ImGui::SetNextWindowPos(ImVec2(x0, y0), ImGuiCond_Appearing);
+        ImGui::SetNextWindowSize(ImVec2(w, h), ImGuiCond_Appearing);
+    }
+
+    ImGui::PushID("Scene");
+    if (ImGui::Begin(windowName.c_str(), &this->mWindowSceneOpen)) {
+        if (goodId) {
+            ImGui::PushID((void*)mSceneId);
+
+            if (!appendRenamePopupItem(fc, itemName)) {
+                IObject* obj;
+                fc->gc().getDict().get(mSceneId, &obj);
+                obj->renderImGui(fc);
+            }
+
+            ImGui::PopID();
+
+        }
+    }
+
+    ImGui::End();
+    ImGui::PopID();
+
+}
+
+bool Gui::appendRenamePopupItem(FrameContext* fc, const std::string& name)
+{
+    bool retValue = false;
+
     if (ImGui::BeginPopupContextItem()) {
         bool closePopup = false;
         if (mRenameId != fc->gc().getDict().getId(name)) {
@@ -913,7 +965,7 @@ void Gui::appendRenamePopupItem(FrameContext* fc, const std::string& name)
         helpMarker("- Press enter to close window\n- In red if the name cannot be used");
 
         // delete resource button
-        ImGui::Button("Delte##0");
+        ImGui::Button("Delete##0");
         if (ImGui::BeginPopupContextItem("DeleteButton", ImGuiPopupFlags_MouseButtonLeft)) {
             ImGui::Text("Are you sure?");
 
@@ -924,11 +976,15 @@ void Gui::appendRenamePopupItem(FrameContext* fc, const std::string& name)
                 if (mInspectorResourceId == mRenameId) {
                     mInspectorResourceId = 0;
                 }
+                if (mSceneId == mRenameId) {
+                    mSceneId = 0;
+                }
 
                 mRenameId = 0;
                 mRenameString = "";
 
                 closePopup = true;
+                retValue = true;
                 ImGui::CloseCurrentPopup();
             }
             ImGui::SameLine();
@@ -953,6 +1009,8 @@ void Gui::appendRenamePopupItem(FrameContext* fc, const std::string& name)
         }
         ImGui::EndPopup();
     }
+
+    return retValue;
 }
 
 int Gui::s_stringTextCallback(void* data_) {
@@ -1004,7 +1062,16 @@ inline void Gui::drawResourcesWindows_t(FrameContext* fc)
                 std::string name = fc->gc().getDict().getName(id);
                 std::string label = name + "###" + std::to_string(id);
                 if (ImGui::Button(label.c_str())) {
-                    mInspectorResourceId = id;
+
+                    // if is scene...
+                    if (std::is_same<Type, gr::Scene>::value) {
+                        mSceneId = id;
+                    }
+                    else {
+                        mInspectorResourceId = id;
+                    }
+
+                    
                 }
                 // button is drag source
                 if (ImGui::BeginDragDropSource()) {

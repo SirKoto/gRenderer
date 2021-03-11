@@ -186,6 +186,7 @@
     <ClCompile Include="src\meshes\Pipeline.cpp" />
     <ClCompile Include="src\meshes\ResourceDictionary.cpp" />
     <ClCompile Include="src\meshes\Sampler.cpp" />
+    <ClCompile Include="src\meshes\Scene.cpp" />
     <ClCompile Include="src\meshes\Shader.cpp" />
     <ClCompile Include="src\meshes\Texture.cpp" />
     <ClCompile Include="src\utils\Fibers\Counter.cpp" />
@@ -236,6 +237,7 @@
     <ClInclude Include="src\meshes\ResourceDictionary.h" />
     <ClInclude Include="src\meshes\ResourcesHeader.h" />
     <ClInclude Include="src\meshes\Sampler.h" />
+    <ClInclude Include="src\meshes\Scene.h" />
     <ClInclude Include="src\meshes\Shader.h" />
     <ClInclude Include="src\meshes\Texture.h" />
     <ClInclude Include="src\utils\ConstExprHelp.h" />

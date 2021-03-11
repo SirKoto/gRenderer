@@ -56,6 +56,7 @@ protected:
 	bool mWindowMeshesOpen = false;
 	bool mWindowTexturesOpen = false;
 	bool mWindowInspectorOpen = true;
+	bool mWindowSceneOpen = true;
 
 	std::array<bool, ctools::length<ResourceTypesList>()>
 		mWindowResourceOpen;
@@ -63,6 +64,7 @@ protected:
 	std::string mRenameString;
 	ResId mRenameId;
 	ResId mInspectorResourceId = 0;
+	ResId mSceneId = 0;
 
 
 	void drawWindows(FrameContext* fc);
@@ -71,11 +73,13 @@ protected:
 	void drawFilePicker(FrameContext* fc);
 	void drawResourcesWindows(FrameContext* fc);
 	void drawInspectorWindow(FrameContext* fc);
+	void drawSceneWindow(FrameContext* fc);
 
 	void helpMarker(const char* text);
 
 	// make sure to push id before
-	void appendRenamePopupItem(FrameContext* fc, const std::string& name);
+	// returns true if need to reload resId and check for existance
+	bool appendRenamePopupItem(FrameContext* fc, const std::string& name);
 
 	static int s_stringTextCallback(void* data);
 

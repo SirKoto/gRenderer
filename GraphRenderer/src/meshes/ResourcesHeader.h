@@ -15,11 +15,12 @@ class DescriptorSetLayout;
 class Shader;
 class Material;
 class Pipeline;
+class Scene;
 
 // Set list of Types that the dictionary will handle
 using ResourceTypesList =
 typename ctools::TypelistBuilder<Mesh, Texture, Sampler,
-	DescriptorSetLayout, Shader, Pipeline, Material
+	DescriptorSetLayout, Shader, Pipeline, Material, Scene
 >::typelist;
 
 typedef uint64_t ResId;

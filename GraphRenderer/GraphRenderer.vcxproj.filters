@@ -204,6 +204,9 @@
     <ClCompile Include="src\meshes\Pipeline.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\meshes\Scene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engine.h">
@@ -363,6 +366,9 @@
       <Filter>Header Files\meshes</Filter>
     </ClInclude>
     <ClInclude Include="src\meshes\Pipeline.h">
+      <Filter>Header Files\meshes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\Scene.h">
       <Filter>Header Files\meshes</Filter>
     </ClInclude>
   </ItemGroup>

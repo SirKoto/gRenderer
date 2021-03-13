@@ -14,7 +14,7 @@ void Pipeline::scheduleDestroy(FrameContext* fc)
 	fc->scheduleToDelete(mPipeline);
 	fc->scheduleToDelete(mPipelineLayout);
 }
-void Pipeline::renderImGui(FrameContext* fc)
+void Pipeline::renderImGui(FrameContext* fc, GuiFeedback* feedback)
 {
 
 }

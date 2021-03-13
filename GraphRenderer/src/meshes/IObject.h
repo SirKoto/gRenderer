@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include <vulkan/vulkan.hpp>
+#include "ResourcesHeader.h"
 
 namespace gr
 {
@@ -22,7 +23,11 @@ public:
 
 	virtual void destroy(GlobalContext* gc) = 0;
 	virtual void scheduleDestroy(FrameContext* fc) = 0;
-	virtual void renderImGui(FrameContext* fc) = 0;
+
+	struct GuiFeedback {
+		ResId selectResource;
+	};
+	virtual void renderImGui(FrameContext* fc, GuiFeedback* feedback = nullptr) = 0;
 
 	static constexpr const char* s_getClassName() { return "IObject"; }
 

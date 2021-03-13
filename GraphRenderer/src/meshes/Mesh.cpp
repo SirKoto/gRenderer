@@ -152,7 +152,7 @@ std::size_t Mesh::VertexHash::operator()(const Vertex& o) const
 		(std::hash<glm::vec2>()(o.texCoord) << 1);
 }
 
-void Mesh::renderImGui(FrameContext* fc)
+void Mesh::renderImGui(FrameContext* fc, GuiFeedback* feedback)
 {
 	ImGui::TextDisabled("Triangle Mesh");
 	ImGui::Separator();

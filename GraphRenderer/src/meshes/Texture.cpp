@@ -59,7 +59,7 @@ void Texture::destroy(GlobalContext* gc)
 	gc->rc().destroy(mImage2d);
 }
 
-void Texture::renderImGui(FrameContext* fc)
+void Texture::renderImGui(FrameContext* fc, GuiFeedback* feedback)
 {
 	ImGui::TextDisabled("Texture 2D");
 	ImGui::Separator();

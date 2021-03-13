@@ -15,6 +15,7 @@
 #include "Shader.h"
 #include "Pipeline.h"
 #include "Scene.h"
+#include "GameObject.h"
 
 
 namespace gr
@@ -62,7 +63,7 @@ protected:
 
 	std::unordered_map<std::string, ResId> mName2Id;
 
-	ResId mNextId = 1;
+	ResId mNextId = ResId(1);
 
 	mutable std::mutex mEraseObjectMutex;
 	mutable std::shared_mutex mObjectsMutex;

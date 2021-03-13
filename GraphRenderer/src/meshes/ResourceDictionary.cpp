@@ -11,7 +11,9 @@ ResId ResourceDictionary::getAndUpdateId()
 {
 	std::unique_lock idLock(mNextIdMutex);
 
-	return mNextId++;
+	mNextId.value += 1;
+
+	return mNextId;
 }
 
 void ResourceDictionary::destroy(GlobalContext* gc)

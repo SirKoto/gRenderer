@@ -180,6 +180,7 @@
     <ClCompile Include="src\gui\Gui.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\meshes\DescriptorSetLayout.cpp" />
+    <ClCompile Include="src\meshes\GameObject.cpp" />
     <ClCompile Include="src\meshes\IObject.cpp" />
     <ClCompile Include="src\meshes\Material.cpp" />
     <ClCompile Include="src\meshes\Mesh.cpp" />
@@ -230,6 +231,7 @@
     <ClInclude Include="src\graphics\Window.h" />
     <ClInclude Include="src\gui\Gui.h" />
     <ClInclude Include="src\meshes\DescriptorSetLayout.h" />
+    <ClInclude Include="src\meshes\GameObject.h" />
     <ClInclude Include="src\meshes\IObject.h" />
     <ClInclude Include="src\meshes\Material.h" />
     <ClInclude Include="src\meshes\Mesh.h" />

@@ -18,7 +18,7 @@ void Shader::scheduleDestroy(FrameContext* fc)
 	this->destroy(&fc->gc());
 }
 
-void Shader::renderImGui(FrameContext* fc)
+void Shader::renderImGui(FrameContext* fc, GuiFeedback* feedback)
 {
 	ImGui::TextDisabled("Shader");
 	ImGui::Separator();

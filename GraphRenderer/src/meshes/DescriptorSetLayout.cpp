@@ -17,7 +17,7 @@ void DescriptorSetLayout::scheduleDestroy(FrameContext* fc)
     fc->scheduleToDelete(mDescSetLayout);
 }
 
-void DescriptorSetLayout::renderImGui(FrameContext* fc)
+void DescriptorSetLayout::renderImGui(FrameContext* fc, GuiFeedback* feedback)
 {
 
     ImGui::TextDisabled("Descriptor Set Layout");
@@ -117,12 +117,12 @@ void DescriptorSetLayout::renderImGui(FrameContext* fc)
                     }
                 }
                 if (immutableEnabled) {
-                    it->immutableSamplers.resize(dslb.descriptorCount, 0);
+                    it->immutableSamplers.resize(dslb.descriptorCount);
 
                     int i = 0;
                     for (ResId& id : it->immutableSamplers) {
                         std::string name = "Undefined";
-                        if (fc->gc().getDict().exists(id)) {
+                        if ( id && fc->gc().getDict().exists(id)) {
                             name = fc->gc().getDict().getName(id);
                         }
                         ImGui::Text("sampler %u", i++);

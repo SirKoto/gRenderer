@@ -861,7 +861,7 @@ void Gui::drawInspectorWindow(FrameContext* fc)
 
     if (ImGui::Begin(windowName.c_str(), &this->mWindowInspectorOpen)) {
         if (goodId) {
-            ImGui::PushID((void*)mInspectorResourceId);
+            ImGui::PushID((void*) std::hash<ResId>()(mInspectorResourceId));
 
             if (!appendRenamePopupItem(fc, itemName)) {
                 IObject* obj;
@@ -907,12 +907,17 @@ void Gui::drawSceneWindow(FrameContext* fc)
     ImGui::PushID("Scene");
     if (ImGui::Begin(windowName.c_str(), &this->mWindowSceneOpen)) {
         if (goodId) {
-            ImGui::PushID((void*)mSceneId);
+            ImGui::PushID((void*)std::hash<ResId>()(mSceneId));
 
             if (!appendRenamePopupItem(fc, itemName)) {
                 IObject* obj;
                 fc->gc().getDict().get(mSceneId, &obj);
-                obj->renderImGui(fc);
+                IObject::GuiFeedback feedback;
+                obj->renderImGui(fc, &feedback);
+
+                if (feedback.selectResource) {
+                    mInspectorResourceId = feedback.selectResource;
+                }
             }
 
             ImGui::PopID();
@@ -974,13 +979,13 @@ bool Gui::appendRenamePopupItem(FrameContext* fc, const std::string& name)
                 IObject* obj = nullptr;
                 fc->gc().getDict().erase(mRenameId);
                 if (mInspectorResourceId == mRenameId) {
-                    mInspectorResourceId = 0;
+                    mInspectorResourceId.reset();
                 }
                 if (mSceneId == mRenameId) {
-                    mSceneId = 0;
+                    mSceneId.reset();
                 }
 
-                mRenameId = 0;
+                mRenameId.reset();
                 mRenameString = "";
 
                 closePopup = true;

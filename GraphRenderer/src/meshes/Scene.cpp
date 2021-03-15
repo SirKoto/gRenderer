@@ -1,6 +1,7 @@
 #include "Scene.h"
 
 #include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
 #include "GameObject.h"
 #include "../control/FrameContext.h"
 
@@ -30,6 +31,28 @@ void Scene::renderImGui(FrameContext* fc, GuiFeedback* feedback)
 
 		ImGui::EndPopup();
 	}
+
+	// Drop target to drop gameobjects
+	{
+		ImVec2 min = ImGui::GetWindowPos();
+		ImVec2 max = ImGui::GetWindowSize();
+		max.x += min.x;
+		max.y += min.y;
+
+		if (ImGui::BeginDragDropTargetCustom(
+			ImRect{ min, max },
+			ImGui::GetCurrentWindow()->ID)) {
+			if (const ImGuiPayload* payload =
+				ImGui::AcceptDragDropPayload(GameObject::s_getClassName()))
+			{
+				assert(payload->DataSize == sizeof(ResId));
+				ResId id = *reinterpret_cast<ResId*>(payload->Data);
+				mGameObjects.push_back(id);
+			}
+			ImGui::EndDragDropTarget();
+		}
+	}
+
 	decltype(mGameObjects)::iterator it = mGameObjects.begin();
 	while (it != mGameObjects.end()) {
 		ResId id = *it;

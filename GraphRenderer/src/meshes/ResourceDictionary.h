@@ -6,6 +6,7 @@
 #include <set>
 #include <shared_mutex>
 #include <memory>
+#include <iostream>
 
 #include "Mesh.h"
 #include "Texture.h"
@@ -98,11 +99,13 @@ ResId ResourceDictionary::allocateObject(
 			mName2Id.emplace(std::move(objectName), id);
 		assert(itName.second);
 		// Create object and reference
-	
 		std::pair<decltype(mObjectsDictionary)::iterator, bool> itObj =
 			mObjectsDictionary.emplace(id, std::unique_ptr<IObject>(new T));
 		assert(itObj.second); // assert inserted
-		mObjectsByType[typeIdx].insert(id);
+		std::pair<std::set<ResId>::iterator, bool> itObjType =
+			mObjectsByType[typeIdx].insert(id);
+		assert(itObjType.second);
+
 		itObj.first->second->setObjectName(itName.first->first);
 
 		// return reference

@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <limits>
 #include <functional>
+#include <string>
 #include "../utils/ConstExprHelp.h"
 
 
@@ -33,6 +34,18 @@ struct ResId {
 		return this->value != std::numeric_limits<uint64_t>::max();
 	}
 
+	bool operator < (const ResId& o) const {
+		return this->value < o.value;
+	}
+
+	bool operator == (const ResId& o) const {
+		return this->value == o.value;
+	}
+
+	bool operator != (const ResId& o) const {
+		return !(*this == o);
+	}
+
 	ResId() = default;
 	explicit ResId(uint64_t v) : value(v) {}
 
@@ -52,5 +65,9 @@ struct hash<gr::ResId> {
 		return hash<uint64_t>()(id.value);
 	}
 };
+
+inline std::string to_string(const gr::ResId& id) {
+	return std::to_string(id.value);
+}
 
 }

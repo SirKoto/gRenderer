@@ -934,11 +934,13 @@ bool Gui::appendRenamePopupItem(FrameContext* fc, const std::string& name)
 {
     bool retValue = false;
 
+    ResId id = fc->gc().getDict().getId(name);
+
     if (ImGui::BeginPopupContextItem()) {
         bool closePopup = false;
-        if (mRenameId != fc->gc().getDict().getId(name)) {
+        if (mRenameId != id) {
             mRenameString = name;
-            mRenameId = fc->gc().getDict().getId(name);
+            mRenameId = id;
         }
         const bool canRenamePre = mRenameString == fc->gc().getDict().getName(mRenameId);
 
@@ -1064,8 +1066,10 @@ inline void Gui::drawResourcesWindows_t(FrameContext* fc)
             for (const ResId& id :
                 fc->gc().getDict().getAllObjectsOfType<Type>()) {
 
+                std::string idStr = std::to_string(id);
+                ImGui::PushID(idStr.c_str());
                 std::string name = fc->gc().getDict().getName(id);
-                std::string label = name + "###" + std::to_string(id);
+                std::string label = name + "###" + idStr;
                 if (ImGui::Button(label.c_str())) {
 
                     // if is scene...
@@ -1090,6 +1094,8 @@ inline void Gui::drawResourcesWindows_t(FrameContext* fc)
                 }
 
                 appendRenamePopupItem(fc, name);
+
+                ImGui::PopID();
 
             }
 

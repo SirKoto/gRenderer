@@ -23,6 +23,7 @@ public:
 	virtual void destroy(GlobalContext* gc) = 0;
 	virtual void scheduleDestroy(FrameContext* fc) = 0;
 	virtual void renderImGui(FrameContext* fc) = 0;
+	void update(FrameContext* fc);
 
 	static constexpr const char* s_getClassName() { return "IObject"; }
 
@@ -30,10 +31,13 @@ private:
 	std::string mObjectName;
 
 	uint64_t mFrameLastUpdate = 0;
+	bool needsUpdate = false;
 
 protected:
+	virtual void updateInternal(FrameContext* fc) {}
 
 	void markUpdated(FrameContext* fc);
+	void signalNeedsLatterUpdate();
 
 };
 

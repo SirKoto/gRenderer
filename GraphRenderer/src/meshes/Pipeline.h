@@ -19,12 +19,17 @@ public:
 
     static constexpr const char* s_getClassName() { return "Pipeline"; }
 
+protected:
+    virtual void updateInternal(FrameContext* fc) override final;
+
 private:
 
     vk::PipelineLayout mPipelineLayout;
     vk::Pipeline mPipeline;
 
     gr::ResId mMaterialDescriptorLayout;
+
+    std::vector<ResId> mShaderStages;
 
 };
 

@@ -50,6 +50,16 @@ public:
 	static void addToVertexInputDescription(uint32_t binding,
 		vkg::VertexInputDescription* vid);
 
+	struct VIDInfo {
+		uint32_t location;
+		VertexInputFlags attrib;
+		uint32_t numComponents;
+	};
+
+	static void addToVertexInputDescription(uint32_t binding,
+		std::vector<VIDInfo> attribs,
+		vkg::VertexInputDescription* vid);
+
 	operator bool()const { return mIndexBuffer; }
 
 protected:

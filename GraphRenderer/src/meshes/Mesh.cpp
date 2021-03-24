@@ -138,6 +138,36 @@ void Mesh::addToVertexInputDescription(
 		.addAttributeFloat(2, 2, offsetof(Vertex, Vertex::texCoord));
 }
 
+void Mesh::addToVertexInputDescription(
+	uint32_t binding,
+	std::vector<VIDInfo> attribs,
+	vkg::VertexInputDescription* vid)
+{
+	if (vid->existsBinding(binding)) {
+		throw std::logic_error("Error, already exists binding with such id!");
+	}
+
+	vkg::VertexInputDescription::Binding& bind = vid->addBinding(binding, sizeof(Vertex));
+
+	for (const VIDInfo& info : attribs) {
+		switch (info.attrib)
+		{
+		case VertexInputFlags::eVertex:
+			bind.addAttributeFloat(info.location, info.numComponents, offsetof(Vertex, Vertex::pos));
+			break;
+		case VertexInputFlags::eColor:
+			bind.addAttributeFloat(info.location, info.numComponents, offsetof(Vertex, Vertex::color));
+			break;
+		case VertexInputFlags::eUV:
+			bind.addAttributeFloat(info.location, info.numComponents, offsetof(Vertex, Vertex::texCoord));
+			break;
+		default:
+			break;
+		}
+	}
+}
+
+
 bool Mesh::Vertex::operator==(const Vertex& o) const
 {
 	return this->pos == o.pos &&

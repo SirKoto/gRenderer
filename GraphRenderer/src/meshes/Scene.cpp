@@ -57,15 +57,32 @@ void Scene::renderImGui(FrameContext* fc, GuiFeedback* feedback)
 	while (it != mGameObjects.end()) {
 		ResId id = *it;
 
+		bool advance = true;
+
 		if (fc->gc().getDict().exists(id)) {
 			if (ImGui::Button(fc->gc().getDict().getName(id).c_str())) {
 				feedback->selectResource = id;
 			}
 
-			++it;
+			// context on button
+			if (ImGui::BeginPopupContextItem()) {
+
+				if (ImGui::Button("Remove")) {
+					it = mGameObjects.erase(it);
+					advance = false;
+					ImGui::CloseCurrentPopup();
+				}
+
+				ImGui::EndPopup();
+			}
 		}
 		else {
 			it = mGameObjects.erase(it);
+			advance = false;
+		}
+
+		if (advance) {
+			++it;
 		}
 	}
 	

@@ -14,7 +14,7 @@ void DescriptorSetLayout::destroy(GlobalContext* gc)
 
 void DescriptorSetLayout::scheduleDestroy(FrameContext* fc)
 {
-    fc->scheduleToDelete(mDescSetLayout);
+    fc->scheduleToDestroy(mDescSetLayout);
 }
 
 void DescriptorSetLayout::renderImGui(FrameContext* fc, GuiFeedback* feedback)

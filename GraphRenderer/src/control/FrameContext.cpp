@@ -31,14 +31,14 @@ void gr::FrameContext::updateTime(double_t newTime)
 	mDeltaTime = mGlobalContext->computeDeltaTime();
 }
 
-void gr::FrameContext::scheduleToDelete(const vkg::Buffer& buffer)
+void gr::FrameContext::scheduleToDestroy(const vkg::Buffer& buffer)
 {
 	if (buffer) {
 		mResourcesToDelete.push_back(std::unique_ptr<DelRes>(new DelResBuffer(buffer)));
 	}
 }
 
-void gr::FrameContext::scheduleToDelete(const vkg::Image2D& image)
+void gr::FrameContext::scheduleToDestroy(const vkg::Image2D& image)
 {
 	if (image) {
 		mResourcesToDelete.push_back(std::unique_ptr<DelRes>(new DelResImage(image)));

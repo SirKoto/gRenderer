@@ -15,7 +15,7 @@ void Sampler::destroy(GlobalContext* gc)
 
 void Sampler::scheduleDestroy(FrameContext* fc)
 {
-	fc->scheduleToDelete(mSampler);
+	fc->scheduleToDestroy(mSampler);
 }
 
 void Sampler::renderImGui(FrameContext* fc, GuiFeedback* feedback)

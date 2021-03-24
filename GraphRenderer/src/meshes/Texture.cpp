@@ -51,7 +51,7 @@ bool Texture::load(vkg::RenderContext* rc, const char* filePath)
 
 void Texture::scheduleDestroy(FrameContext* fc)
 {
-	fc->scheduleToDelete(mImage2d);
+	fc->scheduleToDestroy(mImage2d);
 }
 
 void Texture::destroy(GlobalContext* gc)

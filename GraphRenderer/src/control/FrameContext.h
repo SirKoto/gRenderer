@@ -48,10 +48,10 @@ public:
 	vkg::ResetCommandPool& transferPool() { return mPools.transferTransientPool; };
 	const vkg::ResetCommandPool& transferPool() const { return mPools.transferTransientPool; };
 
-	void scheduleToDelete(const vkg::Buffer& buffer);
-	void scheduleToDelete(const vkg::Image2D& image);
+	void scheduleToDestroy(const vkg::Buffer& buffer);
+	void scheduleToDestroy(const vkg::Image2D& image);
 	template<typename T>
-	void scheduleToDelete(const T& obj);
+	void scheduleToDestroy(const T& obj);
 
 
 	void resetFrameResources();
@@ -114,7 +114,7 @@ private:
 };
 
 template<typename T>
-inline void FrameContext::scheduleToDelete(const T& obj)
+inline void FrameContext::scheduleToDestroy(const T& obj)
 {
 	if (obj) {
 		mResourcesToDelete.push_back(

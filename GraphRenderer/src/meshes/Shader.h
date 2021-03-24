@@ -4,6 +4,7 @@
 #include <string>
 #include <vulkan/vulkan.hpp>
 #include <map>
+#include <glm/glm.hpp>
 
 namespace gr
 {
@@ -13,6 +14,11 @@ class Shader :
     public IObject
 {
 public:
+
+    struct UBO {
+        glm::mat4 M, V, P;
+    };
+
     // Inherited via IObject
     virtual void destroy(GlobalContext* gc) override;
     virtual void scheduleDestroy(FrameContext* fc) override;

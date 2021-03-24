@@ -102,11 +102,11 @@ void Mesh::load(vkg::RenderContext* rc,
 void Mesh::scheduleDestroy(FrameContext* fc)
 {
 	if (mIndexBuffer) {
-		fc->scheduleToDelete(mIndexBuffer);
+		fc->scheduleToDestroy(mIndexBuffer);
 		mIndexBuffer = nullptr;
 	}
 	if (mVertexBuffer) {
-		fc->scheduleToDelete(mVertexBuffer);
+		fc->scheduleToDestroy(mVertexBuffer);
 		mVertexBuffer = nullptr;
 	}
 }

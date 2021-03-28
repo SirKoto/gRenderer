@@ -25,7 +25,7 @@ void Scene::renderImGui(FrameContext* fc, GuiFeedback* feedback)
 		if (ImGui::Button("Add empty")) {
 
 			ResId newId = fc->gc().getDict().allocateObject<GameObject>("Empty GameObject");
-			mGameObjects.push_back(newId);
+			mGameObjects.insert(newId);
 			ImGui::CloseCurrentPopup();
 		}
 
@@ -47,7 +47,7 @@ void Scene::renderImGui(FrameContext* fc, GuiFeedback* feedback)
 			{
 				assert(payload->DataSize == sizeof(ResId));
 				ResId id = *reinterpret_cast<ResId*>(payload->Data);
-				mGameObjects.push_back(id);
+				mGameObjects.insert(id);
 			}
 			ImGui::EndDragDropTarget();
 		}
@@ -60,6 +60,8 @@ void Scene::renderImGui(FrameContext* fc, GuiFeedback* feedback)
 		bool advance = true;
 
 		if (fc->gc().getDict().exists(id)) {
+
+			ImGui::PushID((void*)std::hash<ResId>()(id));
 			if (ImGui::Button(fc->gc().getDict().getName(id).c_str())) {
 				feedback->selectResource = id;
 			}
@@ -75,6 +77,8 @@ void Scene::renderImGui(FrameContext* fc, GuiFeedback* feedback)
 
 				ImGui::EndPopup();
 			}
+
+			ImGui::PopID();
 		}
 		else {
 			it = mGameObjects.erase(it);

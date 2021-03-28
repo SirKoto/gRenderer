@@ -2,7 +2,7 @@
 
 #include "IObject.h"
 
-#include <list>
+#include <set>
 
 namespace gr
 {
@@ -22,7 +22,7 @@ public:
 
 private:
 
-    std::list<ResId> mGameObjects;
+    std::set<ResId> mGameObjects;
 
 };
 

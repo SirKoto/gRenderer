@@ -7,15 +7,12 @@
 #include <spirv_cross/spirv_glsl.hpp>
 
 namespace gr {
-void Shader::destroy(GlobalContext* gc)
-{
-	gc->rc().destroy(mShaderModule);
-	mShaderModule = nullptr;
-}
+
 
 void Shader::scheduleDestroy(FrameContext* fc)
 {
-	this->destroy(&fc->gc());
+	fc->rc().destroy(mShaderModule);
+	mShaderModule = nullptr;
 }
 
 void Shader::renderImGui(FrameContext* fc, GuiFeedback* feedback)
@@ -201,7 +198,7 @@ std::unique_ptr<Shader::BindingInfo> loadBinding(
 void Shader::load(FrameContext* fc, const char* filePath)
 {
 	if (mShaderModule) {
-		this->destroy(&fc->gc());
+		this->scheduleDestroy(fc);
 	}
 
 	mPath = filePath;

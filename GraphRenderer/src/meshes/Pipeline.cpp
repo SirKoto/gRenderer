@@ -4,11 +4,8 @@
 
 namespace gr
 {
-void Pipeline::destroy(GlobalContext* gc)
-{
-	gc->rc().destroy(mPipeline);
-	gc->rc().destroy(mPipelineLayout);
-}
+
+
 void Pipeline::scheduleDestroy(FrameContext* fc)
 {
 	fc->scheduleToDestroy(mPipeline);

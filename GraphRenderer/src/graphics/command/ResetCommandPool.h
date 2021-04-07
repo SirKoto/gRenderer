@@ -22,7 +22,7 @@ namespace vkg
 		// num must be different from zero
 		std::vector<vk::CommandBuffer> newCommandBuffers(const uint32_t num);
 
-		vk::CommandBuffer newCommandBuffer();
+		vk::CommandBuffer newCommandBuffer(vk::CommandBufferLevel level = vk::CommandBufferLevel::ePrimary);
 
 		void submitCommandBuffer(const vk::CommandBuffer commandBuffer,
 			const vk::Semaphore* waitSemaphore,
@@ -47,8 +47,12 @@ namespace vkg
 		struct CommandSpace
 		{
 			vk::CommandPool pool = nullptr;
-			uint32_t lastUsed = 0;
-			std::vector<vk::CommandBuffer> buffers;
+			uint32_t nextToUseP = 0;
+			uint32_t nextToUseS = 0;
+
+			std::vector<vk::CommandBuffer> buffersP;
+			std::vector<vk::CommandBuffer> buffersS;
+
 		};
 
 		std::vector<CommandSpace> mCommandSpaces;

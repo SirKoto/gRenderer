@@ -21,7 +21,6 @@ public:
 	const std::string& getObjectName() const { return mObjectName; }
 	void setObjectName(const std::string& newName) { mObjectName = newName; }
 
-	virtual void destroy(GlobalContext* gc) = 0;
 	virtual void scheduleDestroy(FrameContext* fc) = 0;
 
 	struct GuiFeedback {

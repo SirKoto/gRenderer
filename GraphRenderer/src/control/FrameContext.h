@@ -1,6 +1,8 @@
 #pragma once
 #include "GlobalContext.h"
 
+#include "../graphics/RenderSubmitter.h"
+
 namespace gr
 {
 
@@ -48,6 +50,10 @@ public:
 	vkg::ResetCommandPool& transferPool() { return mPools.transferTransientPool; };
 	const vkg::ResetCommandPool& transferPool() const { return mPools.transferTransientPool; };
 
+	vkg::RenderSubmitter& renderSubmitter() { return mRenderSubmitter; }
+	const vkg::RenderSubmitter& renderSubmitter() const { return mRenderSubmitter; }
+
+
 	void scheduleToDestroy(const vkg::Buffer& buffer);
 	void scheduleToDestroy(const vkg::Image2D& image);
 	template<typename T>
@@ -68,6 +74,7 @@ private:
 	double_t mDeltaTime = 1/30.0;
 
 	vkg::RenderContext::FrameCommandPools mPools;
+	vkg::RenderSubmitter mRenderSubmitter;
 
 	struct DelRes;
 	std::vector<std::unique_ptr<DelRes>> mResourcesToDelete;

@@ -16,10 +16,10 @@ ResId ResourceDictionary::getAndUpdateId()
 	return mNextId;
 }
 
-void ResourceDictionary::destroy(GlobalContext* gc)
+void ResourceDictionary::destroy(FrameContext* fc)
 {
 	for (std::pair<const ResId, std::unique_ptr<IObject>>& it : mObjectsDictionary) {
-		it.second->destroy(gc);
+		it.second->scheduleDestroy(fc);
 	}
 }
 

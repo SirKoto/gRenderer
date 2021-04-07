@@ -53,7 +53,7 @@ public:
 	std::vector<ResId> getAllObjectsOfType() const;
 
 
-	void destroy(GlobalContext* gc);
+	void destroy(FrameContext* gc);
 	void flushDataAndFree(FrameContext* fc);
 
 protected:

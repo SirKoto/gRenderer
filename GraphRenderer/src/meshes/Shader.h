@@ -15,12 +15,10 @@ class Shader :
 {
 public:
 
-    struct UBO {
+    struct transformUBO {
         glm::mat4 M, V, P;
     };
 
-    // Inherited via IObject
-    virtual void destroy(GlobalContext* gc) override;
     virtual void scheduleDestroy(FrameContext* fc) override;
     virtual void renderImGui(FrameContext* fc, GuiFeedback* feedback = nullptr) override;
 

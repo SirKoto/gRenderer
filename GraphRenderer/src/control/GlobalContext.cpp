@@ -22,7 +22,6 @@ double_t gr::GlobalContext::computeDeltaTime() const
 
 void gr::GlobalContext::destroy()
 {
-	mDict.destroy(this);
 	mWindow.destroy(mRenderContext.getInstance());
 	mRenderContext.destroy();
 }

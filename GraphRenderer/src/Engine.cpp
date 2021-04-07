@@ -25,7 +25,7 @@
 namespace gr
 {
 
-	struct UBO {
+	struct transformUBO {
 		glm::mat4 M, V, P;
 	};
 
@@ -84,6 +84,10 @@ namespace gr
 		createPipelineLayout();
 		createGraphicsPipeline();
 
+		for (FrameContext& fc : mContexts) {
+			fc.renderSubmitter().setDefaultMaterial(mGraphicsPipeline, mPipLayout);
+		}
+
 		mGui.init(&mGlobalContext);
 		mGui.updatePipelineState(&mGlobalContext.rc(), mRenderPass, 1);
 		mGui.addFont("resources/fonts/ProggyCleanTT.ttf");
@@ -141,6 +145,8 @@ namespace gr
 
 
 		cleanup();
+
+		mGlobalContext.getDict().destroy(&mContexts.front());
 
 		for (FrameContext& c : mContexts) {
 			c.destroy();
@@ -220,7 +226,7 @@ namespace gr
 	{
 		
 		float time = frameContext.timef();
-		UBO ubo;
+		transformUBO ubo;
 		ubo.M = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f),
 			glm::vec3(0.0f, 0.0f, 1.0f));
 		ubo.V = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f,
@@ -323,22 +329,69 @@ namespace gr
 		createUniformBuffers();
 		createDescriptorSets();
 		createGraphicsPipeline();
+		for (FrameContext& fc : mContexts) {
+			fc.renderSubmitter().setDefaultMaterial(mGraphicsPipeline, mPipLayout);
+		}
 	}
 
 	vk::CommandBuffer Engine::createAndRecordGraphicCommandBuffers(FrameContext* frame)
 	{
 		 vkg::ResetCommandPool& cmdPool = frame->graphicsPool();
 
+		 // create render secondary command buffer
+		 vk::CommandBuffer renderBuff, guiBuff;
+		 grjob::Job jobs[2];
+		 jobs[0] = grjob::Job( [&renderBuff, &frame, this]()
+			 {
+				 renderBuff = frame->graphicsPool().newCommandBuffer(vk::CommandBufferLevel::eSecondary);
+
+				 vk::CommandBufferInheritanceInfo inheritanceInfo(
+					 mRenderPass, 0, mPresentFramebuffers[frame->getImageIdx()]);
+
+				 vk::CommandBufferBeginInfo beginInfo(
+					 vk::CommandBufferUsageFlagBits::eOneTimeSubmit |
+					 vk::CommandBufferUsageFlagBits::eRenderPassContinue,
+					 &inheritanceInfo);
+				 renderBuff.begin(beginInfo);
+
+				 frame->renderSubmitter().flushDraws(renderBuff);
+
+				 renderBuff.end();
+			 }
+		 );
+
+		 jobs[1] = grjob::Job([&guiBuff, &frame, this]()
+			 {
+				 guiBuff = frame->graphicsPool().newCommandBuffer(vk::CommandBufferLevel::eSecondary);
+
+				 // on subpass 1
+				 vk::CommandBufferInheritanceInfo inheritanceInfo(
+					 mRenderPass, 1, mPresentFramebuffers[frame->getImageIdx()]);
+
+				 vk::CommandBufferBeginInfo beginInfo(
+					 vk::CommandBufferUsageFlagBits::eOneTimeSubmit |
+					 vk::CommandBufferUsageFlagBits::eRenderPassContinue,
+					 &inheritanceInfo);
+				 guiBuff.begin(beginInfo);
+
+				 mGui.render(frame, guiBuff);
+
+				 guiBuff.end();
+			 }
+		 );
+
+		 grjob::Counter* c = nullptr;
+		 grjob::runJobBatch(grjob::Priority::eMid, jobs, 2, &c);
+		 grjob::waitForCounterAndFree(c, 0);
+
+
 		vk::CommandBuffer buff = cmdPool.newCommandBuffer();
-
-
-		const uint32_t graphicsQueueFamilyIdx = mGlobalContext.rc().getGraphicsFamilyIdx();
 
 		vk::CommandBufferBeginInfo beginInfo = {};
 
 		buff.begin(beginInfo);
 
-		// The first clear is ignored because is the resolve image
+		// The first clear is ignored because it is the resolve image
 		std::array<vk::ClearValue, 3> clearVal = {};
 		clearVal[1].color.setFloat32({ 0.0f, 0.0f, 0.0f, 1.0f });
 		clearVal[2].depthStencil.setDepth(1.0f).setStencil(0);
@@ -351,8 +404,10 @@ namespace gr
 			clearVal
 		);
 
-		buff.beginRenderPass(passInfo, vk::SubpassContents::eInline);
+		buff.beginRenderPass(passInfo, vk::SubpassContents::eSecondaryCommandBuffers);
 
+		buff.executeCommands(1, &renderBuff);
+		/*
 		if (mGui.isWireframeRenderModeEnabled()) {
 			buff.bindPipeline(vk::PipelineBindPoint::eGraphics, mWireframePipeline);
 		}
@@ -368,8 +423,9 @@ namespace gr
 			0, nullptr					// dynamic offsets
 		);
 
+		
 		// Do not render anything for now
-		/*if (!mMeshes.empty()) {
+		if (!mMeshes.empty()) {
 			vk::DeviceSize offset = 0;
 			const Mesh& mesh = mGlobalContext.getDict().getMesh(mMeshes.front());
 			buff.bindVertexBuffers(0, 1, &mesh.getVB(), &offset);
@@ -381,9 +437,9 @@ namespace gr
 			);
 		}*/
 
-		buff.nextSubpass(vk::SubpassContents::eInline);
+		buff.nextSubpass(vk::SubpassContents::eSecondaryCommandBuffers);
 
-		mGui.render(frame, buff);
+		buff.executeCommands(1, &guiBuff);
 
 		buff.endRenderPass();
 
@@ -448,7 +504,7 @@ namespace gr
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
 			vk::DescriptorBufferInfo buffInfo(
 				mUbos[i].getVkBuffer(), // buffer
-				0, sizeof(UBO) // offset and range
+				0, sizeof(transformUBO) // offset and range
 			);
 
 			vk::DescriptorImageInfo imgInfo(
@@ -564,7 +620,7 @@ namespace gr
 		// Create uniform buffer objects
 		mUbos.resize(MAX_FRAMES_IN_FLIGHT);
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
-			mUbos[i] = mGlobalContext.rc().createUniformBuffer(sizeof(UBO));
+			mUbos[i] = mGlobalContext.rc().createUniformBuffer(sizeof(transformUBO));
 		}
 	}
 

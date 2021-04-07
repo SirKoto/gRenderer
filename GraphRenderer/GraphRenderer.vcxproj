@@ -167,6 +167,7 @@
     <ClCompile Include="src\graphics\DebugVk.cpp" />
     <ClCompile Include="src\graphics\memory\MemoryManager.cpp" />
     <ClCompile Include="src\graphics\present\SwapChain.cpp" />
+    <ClCompile Include="src\graphics\RenderSubmitter.cpp" />
     <ClCompile Include="src\graphics\render\GraphicsPipelineBuilder.cpp" />
     <ClCompile Include="src\graphics\render\PipelineBuilder.cpp" />
     <ClCompile Include="src\graphics\render\RenderPass.cpp" />
@@ -218,6 +219,7 @@
     <ClInclude Include="src\graphics\DebugVk.h" />
     <ClInclude Include="src\graphics\memory\MemoryManager.h" />
     <ClInclude Include="src\graphics\present\SwapChain.h" />
+    <ClInclude Include="src\graphics\RenderSubmitter.h" />
     <ClInclude Include="src\graphics\render\GraphicsPipelineBuilder.h" />
     <ClInclude Include="src\graphics\render\PipelineBuilder.h" />
     <ClInclude Include="src\graphics\render\RenderPass.h" />

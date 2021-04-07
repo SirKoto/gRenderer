@@ -276,9 +276,8 @@ namespace vkg
 			sizeInBytes,				// size of buffer
 			vk::BufferUsageFlagBits::eUniformBuffer |
 			vk::BufferUsageFlagBits::eTransferDst,
-			vk::SharingMode::eConcurrent, // To use with graphics and transfer queue
-			static_cast<uint32_t>(sharedR.size()),
-			sharedR.data()
+			vk::SharingMode::eExclusive, 
+			0, nullptr
 		);
 
 		vk::Buffer buffer;

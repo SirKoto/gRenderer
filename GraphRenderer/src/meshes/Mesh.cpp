@@ -111,17 +111,6 @@ void Mesh::scheduleDestroy(FrameContext* fc)
 	}
 }
 
-void Mesh::destroy(GlobalContext* gc)
-{
-	if (mIndexBuffer) {
-		gc->rc().destroy(mIndexBuffer);
-		mIndexBuffer = nullptr;
-	}
-	if (mVertexBuffer) {
-		gc->rc().destroy(mVertexBuffer);
-		mVertexBuffer = nullptr;
-	}
-}
 
 
 void Mesh::addToVertexInputDescription(

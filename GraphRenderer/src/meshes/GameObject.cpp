@@ -9,13 +9,13 @@ namespace gr
 {
 
 
-void GameObject::destroy(GlobalContext* gc)
-{
-    gc->rc().destroy(mUbos);
-}
-
 void GameObject::scheduleDestroy(FrameContext* fc)
 {
+    if (mUbosGpuPtr) {
+        fc->rc().unmapAllocatable(mUbos);
+        mUbosGpuPtr = nullptr;
+    }
+
     if (mUbos) {
         fc->scheduleToDestroy(mUbos);
     }
@@ -25,6 +25,7 @@ void GameObject::renderImGui(FrameContext* fc, GuiFeedback* feedback)
 {
 
     ImGui::TextDisabled("GameObject");
+    // TRANSFORM
     ImGui::Separator();
     
     float width = ImGui::GetWindowSize().x / 3.5f;
@@ -61,16 +62,49 @@ void GameObject::renderImGui(FrameContext* fc, GuiFeedback* feedback)
     ImGui::SetNextItemWidth(width);
     ImGui::DragFloat("##rot3", &mRotation[2], 0.5f, -FLT_MAX, FLT_MAX, "%.3f", ImGuiSliderFlags_NoRoundToFormat);
 
+    // TRIANGLE MESH
+    ImGui::Separator();
 
+    std::string name = "Undefined";
+    if (mMesh) {
+        if (fc->gc().getDict().exists(mMesh)) {
+            name = fc->gc().getDict().getName(mMesh);
+        }
+        else {
+            mMesh.reset();
+        }
+    }
+
+
+    ImGui::Text("Mesh:");
+    ImGui::Button(name.c_str());
+    if (ImGui::BeginDragDropTarget()) {
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(Mesh::s_getClassName()))
+        {
+            assert(payload->DataSize == sizeof(ResId));
+            ResId id = *reinterpret_cast<ResId*>(payload->Data);
+
+            this->setMesh(id);
+        }
+        ImGui::EndDragDropTarget();
+    }
 }
 
 void GameObject::createUbos(FrameContext* fc)
 {
+    if (mUbosGpuPtr) {
+        fc->rc().unmapAllocatable(mUbos);
+        mUbosGpuPtr = nullptr;
+    }
     if (mUbos) {
         fc->scheduleToDestroy(mUbos);
     }
 
-    mUbos = fc->rc().createUniformBuffer(fc->getNumConcurrentFrames() * sizeof(Shader::UBO));
+    mUbos = fc->rc().createUniformBuffer(
+        fc->getNumConcurrentFrames() * sizeof(Shader::transformUBO)
+    );
+
+    fc->rc().mapAllocatable(mUbos, &mUbosGpuPtr);
 }
 
 

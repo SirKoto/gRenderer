@@ -48,19 +48,19 @@ std::vector<vk::CommandBuffer> ResetCommandPool::newCommandBuffers(const uint32_
 
 	CommandSpace& cs = getCS();
 	
-	if (cs.lastUsed + num >= static_cast<uint32_t>(cs.buffers.size())) {
+	if (cs.nextToUseP + num - 1 >= static_cast<uint32_t>(cs.buffersP.size())) {
 		cmds = mDevice.allocateCommandBuffers(info);
 
 		// store allocated information
-		std::vector<vk::CommandBuffer>& buff = cs.buffers;
+		std::vector<vk::CommandBuffer>& buff = cs.buffersP;
 		buff.insert(end(buff), begin(cmds), end(cmds));
 	}
 	else {
 		cmds.resize(num);
 		for (uint32_t i = 0; i < num; ++i) {
-			cmds[i] = cs.buffers[cs.lastUsed + i];
+			cmds[i] = cs.buffersP[cs.nextToUseP + i];
 		}
-		cs.lastUsed += num;
+		cs.nextToUseP += num;
 	}
 
 	
@@ -68,29 +68,42 @@ std::vector<vk::CommandBuffer> ResetCommandPool::newCommandBuffers(const uint32_
 	return cmds;
 }
 
-vk::CommandBuffer ResetCommandPool::newCommandBuffer()
+vk::CommandBuffer ResetCommandPool::newCommandBuffer(vk::CommandBufferLevel level)
 {
 	vk::CommandBufferAllocateInfo info = vk::CommandBufferAllocateInfo(
 		getCS().pool,
-		vk::CommandBufferLevel::ePrimary,
+		level,
 		1
 	);
 
+	vk::CommandBuffer cmd;
+
+	// Lambda, to allocate the command buffer (primary or secondary)
+	auto fun = [this, &cmd, &info](uint32_t* nextToUse, std::vector<vk::CommandBuffer>* buffers)
+	{
+		if (*nextToUse >= static_cast<uint32_t>(buffers->size())) {
+
+			vk::Result res = mDevice.allocateCommandBuffers(&info, &cmd);
+			if (res != vk::Result::eSuccess) {
+				throw std::runtime_error("Error Allocate command buffers!!");
+			}
+
+			buffers->push_back(cmd);
+
+			*nextToUse = static_cast<uint32_t>(buffers->size());
+		}
+		else {
+			cmd = (*buffers)[(*nextToUse)++];
+		}
+	};
+
 	CommandSpace& cs = getCS();
 
-
-	vk::CommandBuffer cmd;
-	if (cs.lastUsed + 1 >= static_cast<uint32_t>(cs.buffers.size())) {
-
-		vk::Result res = mDevice.allocateCommandBuffers(&info, &cmd);
-		if (res != vk::Result::eSuccess) {
-			throw std::runtime_error("Error Allocate command buffers!!");
-		}
-
-		cs.buffers.push_back(cmd);
+	if (level == vk::CommandBufferLevel::ePrimary) {
+		fun(&cs.nextToUseP, &cs.buffersP);
 	}
 	else {
-		cmd = cs.buffers[cs.lastUsed++];
+		fun(&cs.nextToUseS, &cs.buffersS);
 	}
 
 
@@ -150,7 +163,8 @@ void ResetCommandPool::reset(bool release)
 			flags
 		);
 
-		cs.lastUsed = 0;
+		cs.nextToUseP = 0;
+		cs.nextToUseS = 0;
 	}
 }
 

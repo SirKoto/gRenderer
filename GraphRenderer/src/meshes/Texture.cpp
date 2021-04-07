@@ -54,10 +54,6 @@ void Texture::scheduleDestroy(FrameContext* fc)
 	fc->scheduleToDestroy(mImage2d);
 }
 
-void Texture::destroy(GlobalContext* gc)
-{
-	gc->rc().destroy(mImage2d);
-}
 
 void Texture::renderImGui(FrameContext* fc, GuiFeedback* feedback)
 {

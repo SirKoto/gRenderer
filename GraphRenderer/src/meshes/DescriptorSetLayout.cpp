@@ -7,10 +7,6 @@
 
 namespace gr {
 
-void DescriptorSetLayout::destroy(GlobalContext* gc)
-{
-    gc->rc().destroy(mDescSetLayout);
-}
 
 void DescriptorSetLayout::scheduleDestroy(FrameContext* fc)
 {

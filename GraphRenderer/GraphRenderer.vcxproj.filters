@@ -210,6 +210,9 @@
     <ClCompile Include="src\meshes\GameObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\graphics\RenderSubmitter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engine.h">
@@ -375,7 +378,10 @@
       <Filter>Header Files\meshes</Filter>
     </ClInclude>
     <ClInclude Include="src\meshes\GameObject.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\meshes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\RenderSubmitter.h">
+      <Filter>Header Files\vkg\rendering</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

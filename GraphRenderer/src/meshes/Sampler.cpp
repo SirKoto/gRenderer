@@ -8,10 +8,6 @@ namespace gr {
 
 
 
-void Sampler::destroy(GlobalContext* gc)
-{
-	gc->rc().destroy(mSampler);
-}
 
 void Sampler::scheduleDestroy(FrameContext* fc)
 {

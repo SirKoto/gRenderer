@@ -15,6 +15,7 @@
 
 #include <optional>
 #include <set>
+#include <glm/glm.hpp>
 
 
 namespace gr
@@ -123,6 +124,7 @@ namespace vkg
 
 		bool isPresentQueueCreated() const { return mPresentQueueRequested; }
 
+		size_t padUniformBuffer(size_t size) const;
 		vk::SampleCountFlagBits getMsaaSampleCount() const { return mMsaaSamples; }
 		CommandFlusher* getCommandFlusher() { return &mCommandFlusher; }
 
@@ -165,6 +167,16 @@ namespace vkg
 		
 		void destroy();
 
+
+		// Basic predefined Vulkan Elements
+		struct BasicTransformUBO {
+			glm::mat4 M, V, P;
+		};
+
+		vk::DescriptorSetLayout getBasicTransformLayout() const { return mBasicDescriptorSetLayout; }
+		vk::DescriptorSetLayout getEmptyLayout() const { return mEmptyDescriptorSetLayout; }
+		vk::DescriptorSet getEmptyDescriptorSet() const { return mEmptyDescriptorSet; }
+
 	protected:
 		AppInstance mInstance;
 		vk::PhysicalDevice mPhysicalDevice;
@@ -189,6 +201,7 @@ namespace vkg
 		
 		bool mAnisotropySamplerEnabled, mPresentQueueRequested;
 		vk::SampleCountFlagBits mMsaaSamples = vk::SampleCountFlagBits::e1;
+		vk::PhysicalDeviceProperties mPhysicalProperties;
 
 		// Device creation
 		// Struct used to determine the queueIndices inside this device
@@ -239,6 +252,13 @@ namespace vkg
 			vk::Image* outImage,
 			VmaAllocation* outAlloc) const;
 
+		// Basic VkElements
+		vk::DescriptorSetLayout mBasicDescriptorSetLayout;
+		vk::DescriptorSetLayout mEmptyDescriptorSetLayout;
+		vk::DescriptorSet mEmptyDescriptorSet;
+
+		void createBasicVkElements();
+		void destroyBasicVkElements();
 
 	};
 

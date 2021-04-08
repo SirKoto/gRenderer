@@ -24,6 +24,9 @@ public:
 	void setTime(double_t newTime);
 	double_t computeDeltaTime() const;
 
+	ResId getBoundScene() const { return mBoundScene; }
+	void setBoundScene(ResId id) { mBoundScene = id; }
+
 	void destroy();
 
 private:
@@ -33,6 +36,8 @@ private:
 	vkg::RenderContext mRenderContext;
 	vkg::Window mWindow;
 	ResourceDictionary mDict;
+
+	ResId mBoundScene;
 };
 
 } // namespace gr

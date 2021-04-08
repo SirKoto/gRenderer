@@ -29,6 +29,8 @@ namespace vkg
 		mGraphicsBufferTransferer.setUpTransferBlocks(this);
 
 		mDescriptorManager.initialize(*this);
+
+		createBasicVkElements();
 	}
 
 	void RenderContext::flushData()
@@ -318,6 +320,16 @@ namespace vkg
 	}
 
 
+	size_t RenderContext::padUniformBuffer(size_t size) const
+	{
+		size_t minUboAlignment = mPhysicalProperties.limits.minUniformBufferOffsetAlignment;
+		size_t alignedSize = size;
+		if (minUboAlignment > 0) {
+			alignedSize = (alignedSize + minUboAlignment - 1) & ~(minUboAlignment - 1);
+		}
+		return alignedSize;
+	}
+
 	void RenderContext::safeDestroyBuffer(Buffer& buffer) const
 	{
 		buffer.setSize(0);
@@ -487,6 +499,8 @@ namespace vkg
 
 	void RenderContext::destroy()
 	{
+		destroyBasicVkElements();
+
 		mGraphicsBufferTransferer.destroy(this);
 
 		mDescriptorManager.destroy(*this);
@@ -583,6 +597,8 @@ namespace vkg
 		if (mAnisotropySamplerEnabled) {
 			mMsaaSamples = getMaxUsableSampleCount();
 		}
+
+		mPhysicalProperties = mPhysicalDevice.getProperties();
 	}
 
 	void RenderContext::createLogicalDevice(const vk::SurfaceKHR* surf)
@@ -811,6 +827,51 @@ namespace vkg
 			vk::MemoryPropertyFlagBits::eDeviceLocal,
 			outImage,
 			outAlloc);
+	}
+
+	void RenderContext::createBasicVkElements()
+	{
+		// Basic Layout
+		{
+			std::array< vk::DescriptorSetLayoutBinding, 1> bindings;
+			bindings[0] = vk::DescriptorSetLayoutBinding(
+				0u, // binding
+				vk::DescriptorType::eUniformBuffer,
+				1,		// number of elements in the ubo (array)
+				vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
+				nullptr
+			);
+
+			vk::DescriptorSetLayoutCreateInfo createInfo(
+				{}, // flags
+				bindings
+			);
+
+			mBasicDescriptorSetLayout = this->getDevice().createDescriptorSetLayout(createInfo);
+		}
+
+		// Empty Layout
+		{
+			vk::DescriptorSetLayoutCreateInfo createInfo(
+				{}, // flags
+				0, nullptr // zero bindings
+			);
+
+			mEmptyDescriptorSetLayout = this->getDevice().createDescriptorSetLayout(createInfo);
+		}
+
+		// empty descriptor set
+		{
+			this->allocateDescriptorSet(1, mEmptyDescriptorSetLayout, &mEmptyDescriptorSet);
+		}
+	}
+
+	void RenderContext::destroyBasicVkElements()
+	{
+		mDescriptorManager.freeDescriptorSet(mEmptyDescriptorSet, mEmptyDescriptorSetLayout);
+
+		getDevice().destroyDescriptorSetLayout(mBasicDescriptorSetLayout);
+		getDevice().destroyDescriptorSetLayout(mEmptyDescriptorSetLayout);
 	}
 
 }; // namespace vkg

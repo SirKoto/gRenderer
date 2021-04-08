@@ -84,6 +84,7 @@ public:
 		std::memset(&mBuffer, 0, SIZE);
 	}
 
+
 	~Job()
 	{
 		if (!ctools::memEq(&mBuffer, 0, SIZE)) {
@@ -120,10 +121,25 @@ public:
 
 	// Member functions
 	template<class TClass, typename ...Args> explicit
-		Job(void(TClass::* callable)(Args...), TClass* c, Args&&... args) {
+		Job(void(TClass::* callable)(Args...), TClass* c, Args... args) {
 		static_assert(sizeof(HolderMember<TClass, Args...>) <= SIZE, "Type does not fit the stack!!");
 
 		new(std::addressof(mBuffer)) HolderMember(callable, c, std::forward<Args>(args)...);
+	}
+
+
+	// Specializations to copy jobs
+	template<> explicit
+	Job(const gr::grjob::Job& o) : Job() {
+		std::memcpy(&mBuffer, &o.mBuffer, SIZE);
+	}
+	template<> explicit
+	Job(gr::grjob::Job& o) : Job() {
+		std::memcpy(&mBuffer, &o.mBuffer, SIZE);
+	}
+	template<> explicit
+	Job(gr::grjob::Job&& o) : Job() {
+		std::memcpy(&mBuffer, &o.mBuffer, SIZE);
 	}
 
 };

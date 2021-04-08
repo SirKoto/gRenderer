@@ -44,7 +44,7 @@ void RenderSubmitter::flushDraws(vk::CommandBuffer cmd)
 {
     assert(cmd);
 
-    for (const auto& material : mMaterialRenderList) {
+    for (auto& material : mMaterialRenderList) {
 
         cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, material.first.pipeline);
         if (material.first.materialDescriptorSet) {
@@ -78,7 +78,10 @@ void RenderSubmitter::flushDraws(vk::CommandBuffer cmd)
             cmd.drawIndexed(dd.numIndices, 1, 0, 0, 0);
         }
 
+        material.second.renderList.clear();
+
     }
+
 }
 
 }

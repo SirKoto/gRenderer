@@ -19,6 +19,7 @@ public:
 
     void setMesh(const ResId& id) { mMesh = id; }
 
+    void graphicsUpdate(FrameContext* fc);
 
 protected:
 
@@ -31,7 +32,8 @@ protected:
     glm::vec3 mRotation = glm::vec3(0.f);
 
     vkg::Buffer mUbos;
-    void* mUbosGpuPtr = nullptr;
+    uint8_t* mUbosGpuPtr = nullptr;
+    std::vector<vk::DescriptorSet> mObjectDescriptorSets;
 
     void createUbos(FrameContext* fc);
 };

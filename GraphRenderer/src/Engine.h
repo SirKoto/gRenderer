@@ -59,6 +59,8 @@ namespace gr
 
 		void updateUBO(const FrameContext& frameContext, uint32_t currentImage);
 
+		void updateScene(FrameContext* fc);
+
 		void createRenderPass();
 		void recreateSwapChain();
 

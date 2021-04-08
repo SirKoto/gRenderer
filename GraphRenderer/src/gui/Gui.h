@@ -64,7 +64,6 @@ protected:
 	std::string mRenameString;
 	ResId mRenameId;
 	ResId mInspectorResourceId;
-	ResId mSceneId;
 
 
 	void drawWindows(FrameContext* fc);

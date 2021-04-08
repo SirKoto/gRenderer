@@ -85,7 +85,7 @@ namespace gr
 		createGraphicsPipeline();
 
 		for (FrameContext& fc : mContexts) {
-			fc.renderSubmitter().setDefaultMaterial(mGraphicsPipeline, mPipLayout);
+			fc.renderSubmitter().setDefaultMaterial(mGraphicsPipeline, mPipLayout, mGlobalContext.rc().getEmptyDescriptorSet());
 		}
 
 		mGui.init(&mGlobalContext);
@@ -132,6 +132,8 @@ namespace gr
 			mContexts[mCurrentFrame].resetFrameResources();
 
 			mGui.updatePreFrame(&mContexts[mCurrentFrame]);
+
+			updateScene(&mContexts[mCurrentFrame]);
 
 			draw(mContexts[mCurrentFrame]);
 
@@ -239,6 +241,19 @@ namespace gr
 		mGlobalContext.rc().transferDataToGPU(mUbos[currentImage], &ubo, sizeof(ubo));
 	}
 
+	void Engine::updateScene(FrameContext* fc)
+	{
+		if (!fc->gc().getBoundScene()) {
+			return;
+		}
+
+		Scene* scene;
+		fc->gc().getDict().get(fc->gc().getBoundScene(), &scene);
+
+		scene->graphicsUpdate(fc);
+
+	}
+
 	void Engine::createRenderPass()
 	{
 		vkg::RenderPassBuilder builder;
@@ -330,7 +345,7 @@ namespace gr
 		createDescriptorSets();
 		createGraphicsPipeline();
 		for (FrameContext& fc : mContexts) {
-			fc.renderSubmitter().setDefaultMaterial(mGraphicsPipeline, mPipLayout);
+			fc.renderSubmitter().setDefaultMaterial(mGraphicsPipeline, mPipLayout, mGlobalContext.rc().getEmptyDescriptorSet());
 		}
 	}
 
@@ -353,6 +368,12 @@ namespace gr
 					 vk::CommandBufferUsageFlagBits::eRenderPassContinue,
 					 &inheritanceInfo);
 				 renderBuff.begin(beginInfo);
+
+				 // TODO: bind correct sets
+				 renderBuff.bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
+					 mPipLayout, 0,
+					 { frame->rc().getEmptyDescriptorSet() },
+					 {});
 
 				 frame->renderSubmitter().flushDraws(renderBuff);
 
@@ -453,8 +474,8 @@ namespace gr
 	{
 		{
 			grjob::Job jobs[2];
-			jobs[0] = grjob::Job(&vkg::RenderContext::createShaderModule, &mGlobalContext.rc(), "resources/shaders/SPIR-V/sampler.vert.spv", mShaderModules + 0, nullptr);
-			jobs[1] = grjob::Job(&vkg::RenderContext::createShaderModule, &mGlobalContext.rc(), "resources/shaders/SPIR-V/sampler.frag.spv", mShaderModules + 1, nullptr);
+			jobs[0] = grjob::Job(&vkg::RenderContext::createShaderModule, &mGlobalContext.rc(), "resources/shaders/SPIR-V/simple.vert.spv", mShaderModules + 0, nullptr);
+			jobs[1] = grjob::Job(&vkg::RenderContext::createShaderModule, &mGlobalContext.rc(), "resources/shaders/SPIR-V/simple.frag.spv", mShaderModules + 1, nullptr);
 			grjob::Counter* c = nullptr;
 
 			grjob::runJobBatch(gr::grjob::Priority::eMid, jobs, 2, &c);
@@ -465,6 +486,8 @@ namespace gr
 
 	void Engine::createDescriptorSetLayout()
 	{
+		//TODO
+		return;
 		std::array< vk::DescriptorSetLayoutBinding, 2> bindings;
 		bindings[0] = vk::DescriptorSetLayoutBinding(
 			0u, // binding
@@ -487,11 +510,12 @@ namespace gr
 		);
 
 		mDescriptorSetLayout = mGlobalContext.rc().getDevice().createDescriptorSetLayout(createInfo);
-
 	}
 
 	void Engine::createDescriptorSets()
 	{
+		// TODO
+		return;
 		mDescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
 
 		mGlobalContext.rc().getDescriptorManager().allocateDescriptorSets(
@@ -546,9 +570,16 @@ namespace gr
 
 	void Engine::createPipelineLayout()
 	{
+		std::array<vk::DescriptorSetLayout, 3> layouts =
+		{
+			mGlobalContext.rc().getEmptyLayout(),
+			mGlobalContext.rc().getEmptyLayout(),
+			mGlobalContext.rc().getBasicTransformLayout()
+		};
+
 		vk::PipelineLayoutCreateInfo createInfo(
 			{}, // flags
-			1, &mDescriptorSetLayout, // set layouts
+			(uint32_t)layouts.size(), layouts.data(), // set layouts
 			0, nullptr // push constants
 		);
 

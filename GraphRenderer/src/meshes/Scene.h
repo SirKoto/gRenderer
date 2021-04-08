@@ -18,6 +18,8 @@ public:
 
     virtual void renderImGui(FrameContext* fc, GuiFeedback* feedback = nullptr) override;
 
+    void graphicsUpdate(FrameContext* fc);
+
 private:
 
     std::set<ResId> mGameObjects;

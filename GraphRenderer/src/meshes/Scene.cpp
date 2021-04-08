@@ -2,8 +2,11 @@
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
+
 #include "GameObject.h"
 #include "../control/FrameContext.h"
+#include "../utils/grjob.h"
+
 
 namespace gr
 {
@@ -86,6 +89,25 @@ void Scene::renderImGui(FrameContext* fc, GuiFeedback* feedback)
 		}
 	}
 	
+}
+
+
+void Scene::graphicsUpdate(FrameContext* fc)
+{
+	std::vector<grjob::Job> jobs;
+	jobs.reserve(mGameObjects.size());
+	
+	for (ResId id : mGameObjects) {
+		GameObject* obj;
+		fc->gc().getDict().get(id, &obj);
+
+		jobs.push_back(grjob::Job(&GameObject::graphicsUpdate, obj, fc));
+	}
+
+
+	grjob::Counter* c = nullptr;
+	grjob::runJobBatch(grjob::Priority::eMid, jobs.data(), (uint32_t)jobs.size(), &c);
+	grjob::waitForCounterAndFree(c, 0);
 }
 
 } // namespace gr

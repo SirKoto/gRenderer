@@ -15,10 +15,6 @@ class Shader :
 {
 public:
 
-    struct transformUBO {
-        glm::mat4 M, V, P;
-    };
-
     virtual void scheduleDestroy(FrameContext* fc) override;
     virtual void renderImGui(FrameContext* fc, GuiFeedback* feedback = nullptr) override;
 

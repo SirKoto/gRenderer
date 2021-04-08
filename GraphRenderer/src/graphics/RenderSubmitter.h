@@ -33,7 +33,7 @@ public:
 	void setDefaultMaterial(
 		const vk::Pipeline pipeline,
 		const vk::PipelineLayout pipLayout,
-		const vk::DescriptorSet descriptorSet = nullptr
+		const vk::DescriptorSet descriptorSet
 	);
 
 	void flushDraws(vk::CommandBuffer cmd);

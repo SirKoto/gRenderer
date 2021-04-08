@@ -886,9 +886,9 @@ void Gui::drawSceneWindow(FrameContext* fc)
 
     std::string windowName = "Scene###SceneWindow";
     std::string itemName = "";
-    const bool goodId = fc->gc().getDict().exists(mSceneId);
+    const bool goodId = fc->gc().getDict().exists(fc->gc().getBoundScene());
     if (goodId) {
-        itemName = fc->gc().getDict().getName(mSceneId);
+        itemName = fc->gc().getDict().getName(fc->gc().getBoundScene());
         windowName = itemName + " - " + windowName;
     }
 
@@ -907,11 +907,11 @@ void Gui::drawSceneWindow(FrameContext* fc)
     ImGui::PushID("Scene");
     if (ImGui::Begin(windowName.c_str(), &this->mWindowSceneOpen)) {
         if (goodId) {
-            ImGui::PushID((void*)std::hash<ResId>()(mSceneId));
+            ImGui::PushID((void*)std::hash<ResId>()(fc->gc().getBoundScene()));
 
             if (!appendRenamePopupItem(fc, itemName)) {
                 IObject* obj;
-                fc->gc().getDict().get(mSceneId, &obj);
+                fc->gc().getDict().get(fc->gc().getBoundScene(), &obj);
                 IObject::GuiFeedback feedback;
                 obj->renderImGui(fc, &feedback);
 
@@ -983,8 +983,8 @@ bool Gui::appendRenamePopupItem(FrameContext* fc, const std::string& name)
                 if (mInspectorResourceId == mRenameId) {
                     mInspectorResourceId.reset();
                 }
-                if (mSceneId == mRenameId) {
-                    mSceneId.reset();
+                if (fc->gc().getBoundScene() == mRenameId) {
+                    fc->gc().setBoundScene(ResId());
                 }
 
                 mRenameId.reset();
@@ -1074,13 +1074,11 @@ inline void Gui::drawResourcesWindows_t(FrameContext* fc)
 
                     // if is scene...
                     if (std::is_same<Type, gr::Scene>::value) {
-                        mSceneId = id;
+                        fc->gc().setBoundScene(id);
                     }
                     else {
                         mInspectorResourceId = id;
-                    }
-
-                    
+                    }  
                 }
                 // button is drag source
                 if (ImGui::BeginDragDropSource()) {

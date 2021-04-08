@@ -51,7 +51,7 @@ void DescriptorManager::allocateDescriptorSets(
 	const vk::DescriptorSetLayout layout,
 	vk::DescriptorSet* outLayouts)
 {
-	// First check if there exist cached descriptor sets of the layout
+	// First check if there exists cached descriptor sets of the layout
 	typedef std::pair<decltype(mDescriptorSetsCache)::const_iterator, decltype(mDescriptorSetsCache)::const_iterator> Range;
 	Range range = mDescriptorSetsCache.equal_range(layout);
 	if (range.first != range.second) {
@@ -59,8 +59,8 @@ void DescriptorManager::allocateDescriptorSets(
 		decltype(mDescriptorSetsCache)::const_iterator it = range.first;
 		while (it != range.second && numCached < num) {
 			outLayouts[numCached] = it->second;
-			// advance and delete entry (post-increment)
-			mDescriptorSetsCache.erase(it++);
+			// advance and delete entry
+			it = mDescriptorSetsCache.erase(it);
 			numCached += 1;
 		}
 
@@ -69,7 +69,7 @@ void DescriptorManager::allocateDescriptorSets(
 		num -= numCached;
 	}
 
-	// if no descriptor sets to create... delete
+	// if no descriptor sets to create... return
 	if (num == 0) {
 		return;
 	}

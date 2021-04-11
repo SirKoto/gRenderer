@@ -850,6 +850,10 @@ namespace vkg
 			mBasicDescriptorSetLayout = this->getDevice().createDescriptorSetLayout(createInfo);
 		}
 
+		// Basic Camera
+		{
+			mBasicCameraDescriptorSetLayout = mBasicDescriptorSetLayout;
+		}
 		// Empty Layout
 		{
 			vk::DescriptorSetLayoutCreateInfo createInfo(

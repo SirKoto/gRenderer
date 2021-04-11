@@ -11,6 +11,9 @@ class Material :
 {
 public:
 
+    Material(FrameContext* fc) : IObject(fc) {}
+
+
     virtual void scheduleDestroy(FrameContext* fc) override final;
     virtual void renderImGui(FrameContext* fc, GuiFeedback* feedback = nullptr) override final;
 

@@ -170,10 +170,14 @@ namespace vkg
 
 		// Basic predefined Vulkan Elements
 		struct BasicTransformUBO {
-			glm::mat4 M, V, P;
+			glm::mat4 M;
+		};
+		struct BasicCameraTransformUBO {
+			glm::mat4 M;
 		};
 
 		vk::DescriptorSetLayout getBasicTransformLayout() const { return mBasicDescriptorSetLayout; }
+		vk::DescriptorSetLayout getBasicCameraTransformLayout() const { return mBasicCameraDescriptorSetLayout; }
 		vk::DescriptorSetLayout getEmptyLayout() const { return mEmptyDescriptorSetLayout; }
 		vk::DescriptorSet getEmptyDescriptorSet() const { return mEmptyDescriptorSet; }
 
@@ -254,6 +258,7 @@ namespace vkg
 
 		// Basic VkElements
 		vk::DescriptorSetLayout mBasicDescriptorSetLayout;
+		vk::DescriptorSetLayout mBasicCameraDescriptorSetLayout;
 		vk::DescriptorSetLayout mEmptyDescriptorSetLayout;
 		vk::DescriptorSet mEmptyDescriptorSet;
 

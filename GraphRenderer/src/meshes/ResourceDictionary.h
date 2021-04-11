@@ -35,7 +35,7 @@ public:
 	ResourceDictionary& operator=(const ResourceDictionary&) = delete;
 
 	template<typename T>
-	ResId allocateObject(std::string objectName, T** outPtr = nullptr);
+	ResId allocateObject(FrameContext* fc, std::string objectName, T** outPtr = nullptr);
 
 	template<typename T>
 	void get(ResId id, T** object) const;
@@ -79,6 +79,7 @@ protected:
 
 template<typename T>
 ResId ResourceDictionary::allocateObject(
+	FrameContext* fc,
 	std::string objectName,
 	T** outPtr)
 {
@@ -100,7 +101,7 @@ ResId ResourceDictionary::allocateObject(
 		assert(itName.second);
 		// Create object and reference
 		std::pair<decltype(mObjectsDictionary)::iterator, bool> itObj =
-			mObjectsDictionary.emplace(id, std::unique_ptr<IObject>(new T));
+			mObjectsDictionary.emplace(id, std::unique_ptr<IObject>(new T(fc)));
 		assert(itObj.second); // assert inserted
 		std::pair<std::set<ResId>::iterator, bool> itObjType =
 			mObjectsByType[typeIdx].insert(id);

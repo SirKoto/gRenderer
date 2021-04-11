@@ -729,6 +729,7 @@ void Gui::drawFilePicker(FrameContext* fc)
 
             Mesh* mesh;
             fc->gc().getDict().allocateObject(
+                fc,
                 map.begin()->first,
                 &mesh
             );
@@ -755,6 +756,7 @@ void Gui::drawFilePicker(FrameContext* fc)
 
             Texture* tex;
             fc->gc().getDict().allocateObject(
+                fc,
                 map.begin()->first,
                 &tex
             );
@@ -781,6 +783,7 @@ void Gui::drawFilePicker(FrameContext* fc)
 
             Shader* shader;
             fc->gc().getDict().allocateObject(
+                fc,
                 map.begin()->first,
                 &shader
             );
@@ -1058,7 +1061,7 @@ inline void Gui::drawResourcesWindows_t(FrameContext* fc)
 
             if (ImGui::Button("New")) {
                 std::string name = std::string("new ") + Type::s_getClassName();
-                fc->gc().getDict().allocateObject<Type>(name);
+                fc->gc().getDict().allocateObject<Type>(fc, name);
             }
 
             ImGui::Separator();

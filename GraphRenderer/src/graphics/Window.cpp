@@ -45,10 +45,18 @@ void Window::initialize(int width, int heigth, const WindowConfig& config)
 	assert(width > 0 && heigth > 0);
 	mWidth = width;
 	mHeight = heigth;
+	{
+		int widthMonitor, heightMonitor;
+		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+		glfwGetMonitorWorkarea(monitor, nullptr, nullptr, &widthMonitor, &heightMonitor);
+		mWidth = std::min(mWidth, widthMonitor);
+		mHeight = std::min(mHeight, heightMonitor);
+	}
+
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 	glfwWindowHint(GLFW_RESIZABLE, config.resizableWindow ? GLFW_TRUE : GLFW_FALSE);
 
-	mWindow = glfwCreateWindow(width, heigth, config.windowTitle, nullptr, nullptr);
+	mWindow = glfwCreateWindow(mWidth, mHeight, config.windowTitle, nullptr, nullptr);
 	glfwGetFramebufferSize(reinterpret_cast<GLFWwindow*>(mWindow), &mPixelWidth, &mPixelHeight);
 
 	glfwSetWindowUserPointer(reinterpret_cast<GLFWwindow*>(mWindow), this);

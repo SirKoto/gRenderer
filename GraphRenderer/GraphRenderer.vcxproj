@@ -179,9 +179,13 @@
     <ClCompile Include="src\graphics\shaders\VertexInputDescription.cpp" />
     <ClCompile Include="src\graphics\Window.cpp" />
     <ClCompile Include="src\gui\Gui.cpp" />
+    <ClCompile Include="src\gui\GuiUtils.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\meshes\DescriptorSetLayout.cpp" />
     <ClCompile Include="src\meshes\GameObject.cpp" />
+    <ClCompile Include="src\meshes\GameObjectAddons\Camera.cpp" />
+    <ClCompile Include="src\meshes\GameObjectAddons\IAddon.cpp" />
+    <ClCompile Include="src\meshes\GameObjectAddons\Transform.cpp" />
     <ClCompile Include="src\meshes\IObject.cpp" />
     <ClCompile Include="src\meshes\Material.cpp" />
     <ClCompile Include="src\meshes\Mesh.cpp" />
@@ -232,8 +236,12 @@
     <ClInclude Include="src\graphics\shaders\VertexInputDescription.h" />
     <ClInclude Include="src\graphics\Window.h" />
     <ClInclude Include="src\gui\Gui.h" />
+    <ClInclude Include="src\gui\GuiUtils.h" />
     <ClInclude Include="src\meshes\DescriptorSetLayout.h" />
     <ClInclude Include="src\meshes\GameObject.h" />
+    <ClInclude Include="src\meshes\GameObjectAddons\Camera.h" />
+    <ClInclude Include="src\meshes\GameObjectAddons\IAddon.h" />
+    <ClInclude Include="src\meshes\GameObjectAddons\Transform.h" />
     <ClInclude Include="src\meshes\IObject.h" />
     <ClInclude Include="src\meshes\Material.h" />
     <ClInclude Include="src\meshes\Mesh.h" />

@@ -55,6 +55,9 @@
     <Filter Include="Header Files\meshes">
       <UniqueIdentifier>{dd99a38c-59fb-400c-b542-3af3ad40f502}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\meshes\addons">
+      <UniqueIdentifier>{ca4c143d-76fd-4ab1-916a-736364f85711}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -211,6 +214,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics\RenderSubmitter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\meshes\GameObjectAddons\Camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\meshes\GameObjectAddons\IAddon.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gui\GuiUtils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\meshes\GameObjectAddons\Transform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -382,6 +397,18 @@
     </ClInclude>
     <ClInclude Include="src\graphics\RenderSubmitter.h">
       <Filter>Header Files\vkg\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\GameObjectAddons\Camera.h">
+      <Filter>Header Files\meshes\addons</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\GameObjectAddons\IAddon.h">
+      <Filter>Header Files\meshes\addons</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gui\GuiUtils.h">
+      <Filter>Header Files\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\GameObjectAddons\Transform.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -7,6 +7,7 @@
 
 #include "Shader.h"
 #include "../control/FrameContext.h"
+#include "GameObjectAddons/Camera.h"
 
 
 
@@ -28,6 +29,10 @@ void GameObject::scheduleDestroy(FrameContext* fc)
     for (vk::DescriptorSet set : mObjectDescriptorSets) {
         fc->rc().freeDescriptorSet(set, fc->rc().getBasicTransformLayout());
     }
+
+    for (decltype(mAddons)::iterator it = mAddons.begin(); it != mAddons.end(); ++it) {
+        it->second->destroy(fc);
+    }
 }
 
 void GameObject::renderImGui(FrameContext* fc, GuiFeedback* feedback)
@@ -37,40 +42,7 @@ void GameObject::renderImGui(FrameContext* fc, GuiFeedback* feedback)
     // TRANSFORM
     ImGui::Separator();
     
-    float width = ImGui::GetWindowSize().x / 3.5f;
-    // position
-    ImGui::Text("Position");
-    ImGui::SetNextItemWidth(width);
-    ImGui::DragFloat("##pos1", &mPos[0], 0.05f, -FLT_MAX, FLT_MAX, "%.3f", ImGuiSliderFlags_NoRoundToFormat);
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(width);
-    ImGui::DragFloat("##pos2", &mPos[1], 0.05f, -FLT_MAX, FLT_MAX, "%.3f", ImGuiSliderFlags_NoRoundToFormat);
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(width);
-    ImGui::DragFloat("##pos3", &mPos[2], 0.05f, -FLT_MAX, FLT_MAX, "%.3f", ImGuiSliderFlags_NoRoundToFormat);
-
-    // scale
-    ImGui::Text("Scale");
-    ImGui::SetNextItemWidth(width);
-    ImGui::DragFloat("##scale1", &mScale[0], 0.05f, -FLT_MAX, FLT_MAX, "%.3f", ImGuiSliderFlags_NoRoundToFormat);
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(width);
-    ImGui::DragFloat("##scale2", &mScale[1], 0.05f, -FLT_MAX, FLT_MAX, "%.3f", ImGuiSliderFlags_NoRoundToFormat);
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(width);
-    ImGui::DragFloat("##scale3", &mScale[2], 0.05f, -FLT_MAX, FLT_MAX, "%.3f", ImGuiSliderFlags_NoRoundToFormat);
-
-    // rotation
-    ImGui::Text("Rotation");
-    ImGui::SetNextItemWidth(width);
-    ImGui::DragFloat("##rot1", &mRotation[0], 0.05f, -FLT_MAX, FLT_MAX, "%.3f", ImGuiSliderFlags_NoRoundToFormat);
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(width);
-    ImGui::DragFloat("##rot2", &mRotation[1], 0.05f, -FLT_MAX, FLT_MAX, "%.3f", ImGuiSliderFlags_NoRoundToFormat);
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(width);
-    ImGui::DragFloat("##rot3", &mRotation[2], 0.05f, -FLT_MAX, FLT_MAX, "%.3f", ImGuiSliderFlags_NoRoundToFormat);
-
+    
     // TRIANGLE MESH
     ImGui::Separator();
 
@@ -97,6 +69,27 @@ void GameObject::renderImGui(FrameContext* fc, GuiFeedback* feedback)
         }
         ImGui::EndDragDropTarget();
     }
+
+    // ADDONS
+    ImGui::Separator();
+
+    mTransform.drawImGuiInspector(fc, this);
+
+    for (decltype(mAddons)::iterator it = mAddons.begin(); it != mAddons.end(); ++it) {
+        it->second->drawImGuiInspector(fc, this);
+    }
+
+    ImGui::Separator();
+    ImGui::Button("Append addon");
+    if (ImGui::BeginPopupContextItem(0, ImGuiPopupFlags_MouseButtonLeft)) {
+
+        if (ImGui::Button(addon::Camera::s_getAddonName())) {
+            mAddons.emplace(addon::Camera::s_getAddonName(), new addon::Camera());
+            ImGui::CloseCurrentPopup();
+        }
+        
+        ImGui::EndPopup();
+    }
 }
 
 void GameObject::graphicsUpdate(FrameContext* fc)
@@ -109,14 +102,12 @@ void GameObject::graphicsUpdate(FrameContext* fc)
     {
         vkg::RenderContext::BasicTransformUBO ubo;
         ubo.M = glm::mat4(1.0);
-        ubo.P = glm::mat4(1.0);
-        ubo.V = glm::mat4(1.0);
 
-        ubo.M = glm::rotate(ubo.M, mRotation.x, glm::vec3(1.f, 0.f, 0.f));
-        ubo.M = glm::rotate(ubo.M, mRotation.y, glm::vec3(0.f, 1.f, 0.f));
-        ubo.M = glm::rotate(ubo.M, mRotation.z, glm::vec3(0.f, 0.f, 1.f));
-        ubo.M = glm::scale(ubo.M, this->mScale);
-        ubo.M = glm::translate(ubo.M, this->mPos);
+        ubo.M = glm::rotate(ubo.M, mTransform.getRotation().x, glm::vec3(1.f, 0.f, 0.f));
+        ubo.M = glm::rotate(ubo.M, mTransform.getRotation().y, glm::vec3(0.f, 1.f, 0.f));
+        ubo.M = glm::rotate(ubo.M, mTransform.getRotation().z, glm::vec3(0.f, 0.f, 1.f));
+        ubo.M = glm::scale(ubo.M, mTransform.getScale());
+        ubo.M = glm::translate(ubo.M, mTransform.getPos());
 
         size_t sizePadd = fc->rc().padUniformBuffer(sizeof(vkg::RenderContext::BasicTransformUBO));
 

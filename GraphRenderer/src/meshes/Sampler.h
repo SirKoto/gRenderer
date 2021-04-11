@@ -13,6 +13,8 @@ class Sampler : public IObject
 {
 public:
 
+	Sampler(FrameContext* fc) : IObject(fc) {}
+
 
 	virtual void scheduleDestroy(FrameContext* fc) override final;
 

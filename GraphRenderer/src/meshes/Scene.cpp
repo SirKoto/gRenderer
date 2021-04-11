@@ -4,26 +4,33 @@
 #include <imgui/imgui_internal.h>
 
 #include "GameObject.h"
+#include "GameObjectAddons/Camera.h"
 #include "../control/FrameContext.h"
 #include "../utils/grjob.h"
 
 
 namespace gr
 {
-
+Scene::Scene(FrameContext* fc) : IObject(fc)
+{
+	uiCameraGameObj = std::make_unique<GameObject>(fc);
+	bool res = uiCameraGameObj->addAddon<addon::Camera>(fc);
+	assert(res);
+}
 void Scene::scheduleDestroy(FrameContext* fc)
 {
+
 }
 
 void Scene::renderImGui(FrameContext* fc, GuiFeedback* feedback)
 {
 	assert(feedback != nullptr);
 
-	if (ImGui::BeginPopupContextWindow()) {
+	if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_NoOpenOverItems | ImGuiPopupFlags_MouseButtonRight)) {
 		
 		if (ImGui::Button("Add empty")) {
 
-			ResId newId = fc->gc().getDict().allocateObject<GameObject>("Empty GameObject");
+			ResId newId = fc->gc().getDict().allocateObject<GameObject>(fc, "Empty GameObject");
 			mGameObjects.insert(newId);
 			ImGui::CloseCurrentPopup();
 		}

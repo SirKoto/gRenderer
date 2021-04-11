@@ -21,7 +21,8 @@ class Mesh : public IObject
 {
 public:
 
-	Mesh() = default;
+	Mesh(FrameContext* fc) : IObject(fc) {}
+
 	Mesh(const Mesh&) = default;
 	Mesh(Mesh&&) = default;
 	Mesh& operator=(const Mesh&) = default;

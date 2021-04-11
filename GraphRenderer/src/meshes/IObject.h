@@ -16,6 +16,8 @@ class IObject
 {
 public:
 
+	IObject(FrameContext* fc) {}
+
 	virtual ~IObject() = default;
 
 	const std::string& getObjectName() const { return mObjectName; }

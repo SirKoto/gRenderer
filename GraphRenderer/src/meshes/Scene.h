@@ -1,8 +1,12 @@
 #pragma once
 
 #include "IObject.h"
+#include "GameObject.h"
+#include "GameObjectAddons/Camera.h"
 
 #include <set>
+
+
 
 namespace gr
 {
@@ -11,6 +15,9 @@ class Scene :
     public IObject
 {
 public:
+
+    Scene(FrameContext* fc);
+
 
     static constexpr const char* s_getClassName() { return "Scene"; }
 
@@ -21,6 +28,8 @@ public:
     void graphicsUpdate(FrameContext* fc);
 
 private:
+
+    std::unique_ptr<GameObject> uiCameraGameObj;
 
     std::set<ResId> mGameObjects;
 

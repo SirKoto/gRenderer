@@ -16,6 +16,9 @@ class Texture : public IObject
 {
 public:
 
+	Texture(FrameContext* fc) : IObject(fc) {}
+
+
 	bool load(vkg::RenderContext* rc,
 		const char* filePath);
 

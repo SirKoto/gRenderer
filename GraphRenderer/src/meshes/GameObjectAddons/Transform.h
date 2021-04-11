@@ -12,6 +12,10 @@ namespace addon
 class Transform : public IAddon
 {
 public:
+
+	Transform(FrameContext* fc) : IAddon(fc) {}
+
+
 	void drawImGuiInspector(FrameContext* fc, GameObject* parent) override final;
 
 	static const char* s_getAddonName() { return "Transform"; }

@@ -16,15 +16,13 @@ class GameObject :
 {
 public:
 
-    GameObject(FrameContext* fc) : IObject(fc) {}
+    GameObject(FrameContext* fc);
 
 
     virtual void scheduleDestroy(FrameContext* fc) override;
     virtual void renderImGui(FrameContext* fc, GuiFeedback* feedback = nullptr) override;
 
     static constexpr const char* s_getClassName() { return "GameObjects"; }
-
-    void setMesh(const ResId& id) { mMesh = id; }
 
     void graphicsUpdate(FrameContext* fc);
 
@@ -38,19 +36,10 @@ public:
 
 protected:
 
-
-    ResId mMesh;
-
     // addons
     addon::Transform mTransform;
 
     std::map<const char*, std::unique_ptr<addon::IAddon>> mAddons;
-
-    vkg::Buffer mUbos;
-    uint8_t* mUbosGpuPtr = nullptr;
-    std::vector<vk::DescriptorSet> mObjectDescriptorSets;
-
-    void createUbos(FrameContext* fc);
 };
 
 
@@ -87,7 +76,7 @@ inline const addon::Transform* gr::GameObject::getAddon<addon::Transform>() cons
 template<typename Addon>
 inline bool gr::GameObject::addAddon(FrameContext* fc)
 {
-    auto it = mAddons.emplace(Addon::s_getAddonName(), new Addon());
+    auto it = mAddons.emplace(Addon::s_getAddonName(), new Addon(fc));
     return it.second;
 }
 

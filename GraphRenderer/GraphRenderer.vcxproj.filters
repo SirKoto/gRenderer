@@ -228,6 +228,9 @@
     <ClCompile Include="src\meshes\GameObjectAddons\Transform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\meshes\GameObjectAddons\Renderable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engine.h">
@@ -408,7 +411,10 @@
       <Filter>Header Files\gui</Filter>
     </ClInclude>
     <ClInclude Include="src\meshes\GameObjectAddons\Transform.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\meshes\addons</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\GameObjectAddons\Renderable.h">
+      <Filter>Header Files\meshes\addons</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

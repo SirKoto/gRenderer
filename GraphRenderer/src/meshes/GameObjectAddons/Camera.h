@@ -11,6 +11,9 @@ class Camera : public IAddon
 {
 public:
 
+	Camera(FrameContext* fc) : IAddon(fc) {}
+
+
 	void drawImGuiInspector(FrameContext* fc, GameObject* parent) override;
 
 	void preRenderUpdate(FrameContext* fc, GameObject* parent) override;

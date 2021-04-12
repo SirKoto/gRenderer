@@ -186,6 +186,7 @@
     <ClCompile Include="src\meshes\GameObjectAddons\Camera.cpp" />
     <ClCompile Include="src\meshes\GameObjectAddons\IAddon.cpp" />
     <ClCompile Include="src\meshes\GameObjectAddons\Renderable.cpp" />
+    <ClCompile Include="src\meshes\GameObjectAddons\SimplePlayerControl.cpp" />
     <ClCompile Include="src\meshes\GameObjectAddons\Transform.cpp" />
     <ClCompile Include="src\meshes\IObject.cpp" />
     <ClCompile Include="src\meshes\Material.cpp" />
@@ -243,6 +244,7 @@
     <ClInclude Include="src\meshes\GameObjectAddons\Camera.h" />
     <ClInclude Include="src\meshes\GameObjectAddons\IAddon.h" />
     <ClInclude Include="src\meshes\GameObjectAddons\Renderable.h" />
+    <ClInclude Include="src\meshes\GameObjectAddons\SimplePlayerControl.h" />
     <ClInclude Include="src\meshes\GameObjectAddons\Transform.h" />
     <ClInclude Include="src\meshes\IObject.h" />
     <ClInclude Include="src\meshes\Material.h" />

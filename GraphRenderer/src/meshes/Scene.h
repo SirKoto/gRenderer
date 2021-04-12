@@ -35,4 +35,8 @@ private:
 
 };
 
+struct SceneRenderContext {
+    const addon::Camera* camera;
+};
+
 } // namespace gr

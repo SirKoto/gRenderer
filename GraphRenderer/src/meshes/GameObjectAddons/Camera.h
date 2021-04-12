@@ -17,7 +17,7 @@ public:
 
 	void drawImGuiInspector(FrameContext* fc, GameObject* parent) override;
 
-	void updateBeforeRender(FrameContext* fc, GameObject* parent) override;
+	void updateBeforeRender(FrameContext* fc, GameObject* parent, const SceneRenderContext& src) override;
 
 	void destroy(FrameContext* fc) override;
 
@@ -29,8 +29,6 @@ protected:
 	float mNear = 0.1f;
 	float mFar = 100.0f;
 	glm::vec2 mAspectRatio = glm::vec2(16.0f, 9.0f);
-
-	bool mCameraIsControlable = false;
 
 	vkg::Buffer mUbos;
 	uint8_t* mUbosGpuPtr = nullptr;

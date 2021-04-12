@@ -19,7 +19,7 @@ public:
 
     void drawImGuiInspector(FrameContext* fc, GameObject* parent) override;
 
-    void updateBeforeRender(FrameContext* fc, GameObject* parent) override;
+    void updateBeforeRender(FrameContext* fc, GameObject* parent, const SceneRenderContext& src) override;
 
     void destroy(FrameContext* fc) override;
 

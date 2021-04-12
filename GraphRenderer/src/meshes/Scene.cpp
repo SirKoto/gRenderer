@@ -61,6 +61,7 @@ void Scene::renderImGui(FrameContext* fc, GuiFeedback* feedback)
 		}
 	}
 
+	// Other gameobjects
 	decltype(mGameObjects)::iterator it = mGameObjects.begin();
 	while (it != mGameObjects.end()) {
 		ResId id = *it;
@@ -106,15 +107,17 @@ void Scene::graphicsUpdate(FrameContext* fc)
 	std::vector<grjob::Job> jobs;
 	jobs.reserve(mGameObjects.size() + 1);
 
+	const SceneRenderContext src = { mUiCameraGameObj.get()->getAddon<addon::Camera>() };
+
 	if (mUiCameraGameObj) {
-		jobs.push_back(grjob::Job(&GameObject::graphicsUpdate, mUiCameraGameObj.get(), fc));
+		jobs.push_back(grjob::Job(&GameObject::graphicsUpdate, mUiCameraGameObj.get(), fc, src));
 	}
 	
 	for (ResId id : mGameObjects) {
 		GameObject* obj;
 		fc->gc().getDict().get(id, &obj);
 
-		jobs.push_back(grjob::Job(&GameObject::graphicsUpdate, obj, fc));
+		jobs.push_back(grjob::Job(&GameObject::graphicsUpdate, obj, fc, src));
 	}
 
 

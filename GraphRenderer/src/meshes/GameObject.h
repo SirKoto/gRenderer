@@ -24,7 +24,7 @@ public:
 
     static constexpr const char* s_getClassName() { return "GameObjects"; }
 
-    void graphicsUpdate(FrameContext* fc);
+    void graphicsUpdate(FrameContext* fc, const SceneRenderContext& src);
 
     template <typename Addon>
     Addon* getAddon();
@@ -49,7 +49,7 @@ inline Addon* gr::GameObject::getAddon()
 
     decltype(mAddons)::iterator it = mAddons.find(Addon::s_getAddonName());
     if (it != mAddons.end()) {
-        return it->second.get();
+        return reinterpret_cast<Addon*>(it->second.get());
     }
     return nullptr;
 }

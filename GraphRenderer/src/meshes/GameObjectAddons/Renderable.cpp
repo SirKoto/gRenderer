@@ -50,7 +50,7 @@ void Renderable::drawImGuiInspector(FrameContext* fc, GameObject* parent)
     ImGui::PopID();
 }
 
-void Renderable::updateBeforeRender(FrameContext* fc, GameObject* parent)
+void Renderable::updateBeforeRender(FrameContext* fc, GameObject* parent, const SceneRenderContext& src)
 {
 
     Transform* transf = parent->getAddon<Transform>();

@@ -9,6 +9,7 @@
 #include "../control/FrameContext.h"
 #include "GameObjectAddons/Camera.h"
 #include "GameObjectAddons/Renderable.h"
+#include "GameObjectAddons/SimplePlayerControl.h"
 
 
 
@@ -52,17 +53,21 @@ void GameObject::renderImGui(FrameContext* fc, GuiFeedback* feedback)
             mAddons.emplace(addon::Renderable::s_getAddonName(), new addon::Renderable(fc));
             ImGui::CloseCurrentPopup();
         }
+        if (ImGui::Button(addon::SimplePlayerControl::s_getAddonName())) {
+            mAddons.emplace(addon::SimplePlayerControl::s_getAddonName(), new addon::SimplePlayerControl(fc));
+            ImGui::CloseCurrentPopup();
+        }
         
         ImGui::EndPopup();
     }
 }
 
-void GameObject::graphicsUpdate(FrameContext* fc)
+void GameObject::graphicsUpdate(FrameContext* fc, const SceneRenderContext& src)
 {
-    mTransform.updateBeforeRender(fc, this);
+    mTransform.updateBeforeRender(fc, this, src);
 
     for (decltype(mAddons)::iterator it = mAddons.begin(); it != mAddons.end(); ++it) {
-        it->second->updateBeforeRender(fc, this);
+        it->second->updateBeforeRender(fc, this, src);
     }
 }
 

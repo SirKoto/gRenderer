@@ -5,11 +5,10 @@
 
 #include "../../gui/GuiUtils.h"
 #include "../../control/FrameContext.h"
+#include "../Scene.h"
 
 namespace gr {
 namespace addon {
-
-
 
 void Camera::drawImGuiInspector(FrameContext* fc, GameObject* parent)
 {
@@ -30,14 +29,10 @@ void Camera::drawImGuiInspector(FrameContext* fc, GameObject* parent)
 	ImGui::SameLine(); ImGui::Text(":"); ImGui::SameLine(); ImGui::SetNextItemWidth(width);
 	ImGui::DragFloat("##y-aspect", &mAspectRatio.y, 0.05f, 1.0f, FLT_MAX, "%.3f", ImGuiSliderFlags_NoRoundToFormat);
 
-	ImGui::Checkbox("Controlable", &mCameraIsControlable);
-	ImGui::SameLine();
-	gui::helpMarker("Make camera controlable with mouse and keyboard, when mouse right click.");
-
 	ImGui::PopID();
 }
 
-void Camera::updateBeforeRender(FrameContext* fc, GameObject* parent)
+void Camera::updateBeforeRender(FrameContext* fc, GameObject* parent, const SceneRenderContext& src)
 {
     fc->renderSubmitter().setSceneDescriptorSet(mCameraDescriptorSets[fc->getIdx()]);
 

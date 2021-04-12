@@ -99,15 +99,25 @@ namespace vkg
 			InputCOUNT
 		};
 
+		bool isJustPressedUnfiltered(Input in) const;
+		bool isPressedUnfiltered(Input in) const;
+		bool isDownUnfiltered(Input in) const;
+
+		double getMouseWheelOffsetUnfiltered() const { return mMouseWheelBuff; }
+
+		void getMousePositionUnfiltered(std::array<double, 2>* pos) const;
+
+		const std::vector<uint32_t>& getInputCharsUTF_Unfiltered() const { return mCharInputBuff; }
+
 		bool isJustPressed(Input in) const;
 		bool isPressed(Input in) const;
 		bool isDown(Input in) const;
 
-		double getMouseWheelOffset() const { return mMouseWheelBuff; }
+		double getMouseWheelOffset() const;
 
 		void getMousePosition(std::array<double, 2>* pos) const;
 
-		const std::vector<uint32_t>& getInputCharsUTF() const { return mCharInputBuff; }
+		std::vector<uint32_t> getInputCharsUTF() const;
 
 	private:
 

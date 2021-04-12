@@ -18,5 +18,17 @@ void helpMarker(const char* desc)
         ImGui::EndTooltip();
     }
 }
+bool isKeyboardCaptured()
+{
+    return ImGui::GetIO().WantCaptureKeyboard;
+}
+bool isMouseCaptured()
+{
+    return ImGui::GetIO().WantCaptureMouse;
+}
+bool isInputCaptured()
+{
+    return isKeyboardCaptured() || isMouseCaptured();
+}
 } // namespace gui
 } // namespace gr

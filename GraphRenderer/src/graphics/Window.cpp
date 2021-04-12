@@ -2,6 +2,8 @@
 #include <GLFW/glfw3.h>
 
 #include "DebugVk.h"
+#include "../gui/GuiUtils.h"
+
 
 namespace gr
 {
@@ -38,7 +40,6 @@ void Window::s_windowFramebufferSizeCallback(void* window, int w, int h)
 	win->mPixelWidth = w;
 	win->mPixelHeight = h;
 }
-
 
 void Window::initialize(int width, int heigth, const WindowConfig& config)
 {
@@ -220,29 +221,65 @@ std::vector<const char*> Window::getWindowVkExtensions()
 	return extensions;
 }
 
-bool Window::isJustPressed(Input in) const
+bool Window::isJustPressedUnfiltered(Input in) const
 {
 	return mInputState[static_cast<uint32_t>(in)].justPressed == 1;
 }
 
-bool Window::isPressed(Input in) const
+bool Window::isPressedUnfiltered(Input in) const
 {
 	return mInputState[static_cast<uint32_t>(in)].pressed == 1;
 }
 
-bool Window::isDown(Input in) const
+bool Window::isDownUnfiltered(Input in) const
 {
-	return isJustPressed(in) || isPressed(in);
+	return isJustPressedUnfiltered(in) || isPressedUnfiltered(in);
 }
 
-void Window::getMousePosition(std::array<double, 2>* pos) const
+void Window::getMousePositionUnfiltered(std::array<double, 2>* pos) const
 {
 	glfwGetCursorPos(reinterpret_cast<GLFWwindow*>(mWindow), pos->data(), pos->data() + 1);
 }
 
+bool Window::isJustPressed(Input in) const
+{
+	return gui::isInputCaptured() ? false : isJustPressedUnfiltered(in);
+}
 
+bool Window::isPressed(Input in) const
+{
+	return gui::isInputCaptured() ? false : isPressedUnfiltered(in);
+}
 
+bool Window::isDown(Input in) const
+{
+	return gui::isInputCaptured() ? false : isDownUnfiltered(in);
+}
 
+double Window::getMouseWheelOffset() const
+{
+	return gui::isMouseCaptured() ? 0.0f : getMouseWheelOffsetUnfiltered();
+}
+
+void Window::getMousePosition(std::array<double, 2>* pos) const
+{
+	if (gui::isMouseCaptured()) {
+		pos->fill(-1.0);
+	}
+	else {
+		getMousePositionUnfiltered(pos);
+	}
+}
+
+std::vector<uint32_t> Window::getInputCharsUTF() const
+{
+	if (gui::isKeyboardCaptured()) {
+		return {};
+	}
+	else {
+		return getInputCharsUTF_Unfiltered();
+	}
+}
 
 
 }; // namespace vkg

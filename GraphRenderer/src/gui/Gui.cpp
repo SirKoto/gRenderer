@@ -323,23 +323,23 @@ void Gui::updatePreFrame(FrameContext* fc)
             static_cast<float>(fc->getWindow().getHeigth()));
 
     // set mouse buttons
-    io.MouseDown[ImGuiMouseButton_Left] = fc->getWindow().isDown(vkg::Window::Input::MouseLeft);
-    io.MouseDown[ImGuiMouseButton_Right] = fc->getWindow().isDown(vkg::Window::Input::MouseRight);
+    io.MouseDown[ImGuiMouseButton_Left] = fc->getWindow().isDownUnfiltered(vkg::Window::Input::MouseLeft);
+    io.MouseDown[ImGuiMouseButton_Right] = fc->getWindow().isDownUnfiltered(vkg::Window::Input::MouseRight);
 
     std::array<double, 2> mousePos;
-    fc->getWindow().getMousePosition(&mousePos);
+    fc->getWindow().getMousePositionUnfiltered(&mousePos);
     io.MousePos = ImVec2((float)mousePos[0], (float)mousePos[1]);
 
-    io.MouseWheel += (float)fc->getWindow().getMouseWheelOffset();
+    io.MouseWheel += (float)fc->getWindow().getMouseWheelOffsetUnfiltered();
 
-    for (uint32_t c : fc->getWindow().getInputCharsUTF()) {
+    for (uint32_t c : fc->getWindow().getInputCharsUTF_Unfiltered()) {
         io.AddInputCharacter(c);
     }
 
     for (uint32_t k = static_cast<uint32_t>(vkg::Window::Input::KeyA);
         k < static_cast<uint32_t>(vkg::Window::Input::InputCOUNT);
         ++k) {
-        io.KeysDown[k] = fc->getWindow().isDown(static_cast<vkg::Window::Input>(k));
+        io.KeysDown[k] = fc->getWindow().isDownUnfiltered(static_cast<vkg::Window::Input>(k));
     }
 
     io.KeyCtrl = io.KeysDown[static_cast<uint32_t>(vkg::Window::Input::KeyCtrl)];
@@ -1009,8 +1009,8 @@ bool Gui::appendRenamePopupItem(FrameContext* fc, const std::string& name)
         ImGui::Separator();
 
         if (ImGui::Button("Close") ||
-            fc->gc().getWindow().isDown(vkg::Window::Input::KeyEnter) ||
-            fc->gc().getWindow().isDown(vkg::Window::Input::KeyEnterKeyPad)) {
+            fc->gc().getWindow().isDownUnfiltered(vkg::Window::Input::KeyEnter) ||
+            fc->gc().getWindow().isDownUnfiltered(vkg::Window::Input::KeyEnterKeyPad)) {
             closePopup = true;
         }
 

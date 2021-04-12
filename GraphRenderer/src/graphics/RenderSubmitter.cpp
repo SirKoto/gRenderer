@@ -40,11 +40,34 @@ void RenderSubmitter::setDefaultMaterial(
     mMaterialRenderList.insert({ key, mat });
 }
 
+void RenderSubmitter::setSceneDescriptorSet(const vk::DescriptorSet descriptor)
+{
+    mSceneDescriptorSet = descriptor;
+}
+
 void RenderSubmitter::flushDraws(vk::CommandBuffer cmd)
 {
     assert(cmd);
 
+    if (!mSceneDescriptorSet) {
+        return;
+    }
+
+    bool firstBindDescriptors = true;
+
     for (auto& material : mMaterialRenderList) {
+
+        if (firstBindDescriptors) {
+            firstBindDescriptors = false;
+            // bind to 0
+            cmd.bindDescriptorSets(
+                vk::PipelineBindPoint::eGraphics,   // bind point
+                material.second.pipelineLayout,     // pipeline layout
+                0, 1,                               // set and number of sets
+                &mSceneDescriptorSet,// desc set
+                0, nullptr                          // no dynamic offsets
+            );
+        }
 
         cmd.bindPipeline(vk::PipelineBindPoint::eGraphics, material.first.pipeline);
         if (material.first.materialDescriptorSet) {

@@ -36,6 +36,10 @@ public:
 		const vk::DescriptorSet descriptorSet
 	);
 
+	void setSceneDescriptorSet(
+		const vk::DescriptorSet descriptor
+	);
+
 	void flushDraws(vk::CommandBuffer cmd);
 
 private:
@@ -67,6 +71,7 @@ private:
 
 	MaterialKey mDefaultMaterial;
 
+	vk::DescriptorSet mSceneDescriptorSet;
 };
 
 }

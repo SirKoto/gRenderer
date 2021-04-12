@@ -13,13 +13,15 @@ namespace gr
 {
 Scene::Scene(FrameContext* fc) : IObject(fc)
 {
-	uiCameraGameObj = std::make_unique<GameObject>(fc);
-	bool res = uiCameraGameObj->addAddon<addon::Camera>(fc);
+	mUiCameraGameObj = std::make_unique<GameObject>(fc);
+	bool res = mUiCameraGameObj->addAddon<addon::Camera>(fc);
 	assert(res);
 }
 void Scene::scheduleDestroy(FrameContext* fc)
 {
-
+	if (mUiCameraGameObj) {
+		mUiCameraGameObj->scheduleDestroy(fc);
+	}
 }
 
 void Scene::renderImGui(FrameContext* fc, GuiFeedback* feedback)
@@ -102,7 +104,11 @@ void Scene::renderImGui(FrameContext* fc, GuiFeedback* feedback)
 void Scene::graphicsUpdate(FrameContext* fc)
 {
 	std::vector<grjob::Job> jobs;
-	jobs.reserve(mGameObjects.size());
+	jobs.reserve(mGameObjects.size() + 1);
+
+	if (mUiCameraGameObj) {
+		jobs.push_back(grjob::Job(&GameObject::graphicsUpdate, mUiCameraGameObj.get(), fc));
+	}
 	
 	for (ResId id : mGameObjects) {
 		GameObject* obj;

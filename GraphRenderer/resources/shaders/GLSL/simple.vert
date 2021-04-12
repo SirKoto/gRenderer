@@ -1,8 +1,11 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-layout(set = 2, binding = 0) uniform UBO{
-    mat4 M, V, P;
+layout(set = 0, binding = 0) uniform SceneUBO{
+    mat4 V, P;
+};
+layout(set = 2, binding = 0) uniform ObjectUBO{
+    mat4 M;
 };
 
 layout(location = 0) in vec3 inPosition;

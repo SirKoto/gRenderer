@@ -14,7 +14,6 @@ public:
 	IAddon(FrameContext* fc) {}
 
 	virtual void drawImGuiInspector(FrameContext* fc, GameObject* parent) = 0;
-	virtual void preRenderUpdate(FrameContext* fc, GameObject* parent) {}
 	virtual void updateBeforeRender(FrameContext* fc, GameObject* parent) {};
 
 	virtual void destroy(FrameContext* fc) {}

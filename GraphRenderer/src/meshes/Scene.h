@@ -29,7 +29,7 @@ public:
 
 private:
 
-    std::unique_ptr<GameObject> uiCameraGameObj;
+    std::unique_ptr<GameObject> mUiCameraGameObj;
 
     std::set<ResId> mGameObjects;
 

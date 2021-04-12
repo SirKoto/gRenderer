@@ -61,11 +61,11 @@ void Renderable::updateBeforeRender(FrameContext* fc, GameObject* parent)
         vkg::RenderContext::BasicTransformUBO ubo;
         ubo.M = glm::mat4(1.0);
 
+        ubo.M = glm::translate(ubo.M, transf->getPos());
+        ubo.M = glm::scale(ubo.M, transf->getScale());
         ubo.M = glm::rotate(ubo.M, transf->getRotation().x, glm::vec3(1.f, 0.f, 0.f));
         ubo.M = glm::rotate(ubo.M, transf->getRotation().y, glm::vec3(0.f, 1.f, 0.f));
         ubo.M = glm::rotate(ubo.M, transf->getRotation().z, glm::vec3(0.f, 0.f, 1.f));
-        ubo.M = glm::scale(ubo.M, transf->getScale());
-        ubo.M = glm::translate(ubo.M, transf->getPos());
 
         size_t sizePadd = fc->rc().padUniformBuffer(sizeof(vkg::RenderContext::BasicTransformUBO));
 

@@ -19,6 +19,7 @@ GameObject::GameObject(FrameContext* fc) : IObject(fc), mTransform(fc)
 }
 void GameObject::scheduleDestroy(FrameContext* fc)
 {
+    mTransform.destroy(fc);
 
     for (decltype(mAddons)::iterator it = mAddons.begin(); it != mAddons.end(); ++it) {
         it->second->destroy(fc);
@@ -58,6 +59,8 @@ void GameObject::renderImGui(FrameContext* fc, GuiFeedback* feedback)
 
 void GameObject::graphicsUpdate(FrameContext* fc)
 {
+    mTransform.updateBeforeRender(fc, this);
+
     for (decltype(mAddons)::iterator it = mAddons.begin(); it != mAddons.end(); ++it) {
         it->second->updateBeforeRender(fc, this);
     }

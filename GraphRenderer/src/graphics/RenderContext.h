@@ -173,7 +173,8 @@ namespace vkg
 			glm::mat4 M;
 		};
 		struct BasicCameraTransformUBO {
-			glm::mat4 M;
+			glm::mat4 V;
+			glm::mat4 P;
 		};
 
 		vk::DescriptorSetLayout getBasicTransformLayout() const { return mBasicDescriptorSetLayout; }

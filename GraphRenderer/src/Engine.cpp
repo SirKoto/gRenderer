@@ -369,12 +369,6 @@ namespace gr
 					 &inheritanceInfo);
 				 renderBuff.begin(beginInfo);
 
-				 // TODO: bind correct sets
-				 renderBuff.bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
-					 mPipLayout, 0,
-					 { frame->rc().getEmptyDescriptorSet() },
-					 {});
-
 				 frame->renderSubmitter().flushDraws(renderBuff);
 
 				 renderBuff.end();
@@ -572,7 +566,7 @@ namespace gr
 	{
 		std::array<vk::DescriptorSetLayout, 3> layouts =
 		{
-			mGlobalContext.rc().getEmptyLayout(),
+			mGlobalContext.rc().getBasicCameraTransformLayout(),
 			mGlobalContext.rc().getEmptyLayout(),
 			mGlobalContext.rc().getBasicTransformLayout()
 		};

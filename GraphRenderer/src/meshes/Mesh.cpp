@@ -50,10 +50,19 @@ void Mesh::load(vkg::RenderContext* rc,
 				vertAttribs.vertices[3 * idx.vertex_index + 1],
 				vertAttribs.vertices[3 * idx.vertex_index + 2]
 			};
-			v.texCoord = {
-				vertAttribs.texcoords[2 * idx.texcoord_index + 0],
-				vertAttribs.texcoords[2 * idx.texcoord_index + 1]
-			};
+			if (idx.texcoord_index >= 0) {
+				v.texCoord = {
+					vertAttribs.texcoords[2 * idx.texcoord_index + 0],
+					vertAttribs.texcoords[2 * idx.texcoord_index + 1]
+				};
+			}
+			if (idx.normal_index >= 0) {
+				v.normal = {
+					vertAttribs.normals[3 * idx.normal_index + 0],
+					vertAttribs.normals[3 * idx.normal_index + 1],
+					vertAttribs.normals[3 * idx.normal_index + 2]
+				};
+			}
 			v.color = {
 				vertAttribs.colors[3 * idx.vertex_index + 0],
 				vertAttribs.colors[3 * idx.vertex_index + 1],
@@ -123,13 +132,15 @@ void Mesh::addToVertexInputDescription(
 
 	vid->addBinding(binding, sizeof(Vertex))
 		.addAttributeFloat(0, 3, offsetof(Vertex, Vertex::pos))
-		.addAttributeFloat(1, 3, offsetof(Vertex, Vertex::color))
-		.addAttributeFloat(2, 2, offsetof(Vertex, Vertex::texCoord));
+		.addAttributeFloat(1, 3, offsetof(Vertex, Vertex::normal))
+		.addAttributeFloat(2, 3, offsetof(Vertex, Vertex::color))
+		.addAttributeFloat(3, 2, offsetof(Vertex, Vertex::texCoord));
 }
 
 bool Mesh::Vertex::operator==(const Vertex& o) const
 {
 	return this->pos == o.pos &&
+		this->normal == o.normal &&
 		this->color == o.color &&
 		this->texCoord == o.texCoord;
 }
@@ -137,6 +148,7 @@ bool Mesh::Vertex::operator==(const Vertex& o) const
 std::size_t Mesh::VertexHash::operator()(const Vertex& o) const
 {
 	return ((std::hash<glm::vec3>()(o.pos) ^
+		(std::hash<glm::vec3>()(o.normal)) ^
 		(std::hash<glm::vec3>()(o.color) << 1)) >> 1) ^
 		(std::hash<glm::vec2>()(o.texCoord) << 1);
 }

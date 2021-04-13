@@ -170,11 +170,11 @@ namespace vkg
 
 		// Basic predefined Vulkan Elements
 		struct BasicTransformUBO {
-			glm::mat4 M;
+			alignas(16) glm::mat4 M;
 		};
 		struct BasicCameraTransformUBO {
-			glm::mat4 V;
-			glm::mat4 P;
+			alignas(16) glm::mat4 V;
+			alignas(16) glm::mat4 P;
 		};
 
 		vk::DescriptorSetLayout getBasicTransformLayout() const { return mBasicDescriptorSetLayout; }

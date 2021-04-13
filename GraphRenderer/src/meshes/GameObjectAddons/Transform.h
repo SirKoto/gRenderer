@@ -3,6 +3,7 @@
 #include "IAddon.h"
 
 #include <glm/glm.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 namespace gr {
 namespace addon
@@ -24,14 +25,22 @@ public:
 	void setPos (const glm::vec3& pos) { mPos = pos; }
 	const glm::vec3& getScale() const { return mScale; }
 	void setScale(const glm::vec3& scale) { mScale = scale; }
-	const glm::vec3& getRotation() const { return mRotation; }
-	void setRotation(const glm::vec3& rotation) { mRotation = rotation; }
+	const glm::quat& getRotation() const { return mRotation; }
+	void setRotation(const glm::quat& rotation) { mRotation = rotation; }
+	// Rotate angle radiants arround axis.
+	// axis must be normalized
+	void rotateArround(float angle, glm::vec3 axis);
 
+	glm::vec3 forward() const;
+	glm::vec3 right() const;
+	glm::vec3 up() const;
 
 private:
 	glm::vec3 mPos = glm::vec3(0.f);
 	glm::vec3 mScale = glm::vec3(1.f);
-	glm::vec3 mRotation = glm::vec3(0.f);
+
+	glm::quat mRotation = glm::quat(1.f, glm::vec3(0.f));
+
 };
 
 

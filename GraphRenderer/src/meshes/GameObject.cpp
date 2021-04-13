@@ -71,5 +71,14 @@ void GameObject::graphicsUpdate(FrameContext* fc, const SceneRenderContext& src)
     }
 }
 
+void GameObject::logicUpdate(FrameContext* fc)
+{
+    mTransform.update(fc, this);
+
+    for (decltype(mAddons)::iterator it = mAddons.begin(); it != mAddons.end(); ++it) {
+        it->second->update(fc, this);
+    }
+}
+
 
 } // namespace gr

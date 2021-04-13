@@ -234,6 +234,9 @@
     <ClCompile Include="src\meshes\GameObjectAddons\SimplePlayerControl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\utils\math\Quaternion.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engine.h">
@@ -421,6 +424,9 @@
     </ClInclude>
     <ClInclude Include="src\meshes\GameObjectAddons\SimplePlayerControl.h">
       <Filter>Header Files\meshes\addons</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\math\Quaternion.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

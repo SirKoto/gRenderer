@@ -1,6 +1,8 @@
 #pragma once
 #include "IAddon.h"
 
+#include <glm/glm.hpp>
+
 namespace gr
 {
 namespace addon {
@@ -21,8 +23,10 @@ public:
 
 private:
 
-    float mSpeed = 1.0f;
+    float mSpeed = 2.0f;
+    float mMouseSpeed = 1.f;
 
+    glm::vec2 mPreMousePos = glm::vec2(0.f);
 };
 
 

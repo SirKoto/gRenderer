@@ -26,6 +26,8 @@ public:
 
     void graphicsUpdate(FrameContext* fc, const SceneRenderContext& src);
 
+    void logicUpdate(FrameContext* fc);
+
     template <typename Addon>
     Addon* getAddon();
     template <typename Addon>

@@ -36,11 +36,13 @@ void Camera::updateBeforeRender(FrameContext* fc, GameObject* parent, const Scen
 {
     fc->renderSubmitter().setSceneDescriptorSet(mCameraDescriptorSets[fc->getIdx()]);
 
+    const Transform* transform = parent->getAddon<Transform>();
+
     vkg::RenderContext::BasicCameraTransformUBO ubo;
 
-    ubo.V = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f),
-		glm::vec3(0.0f, 1.0f, 0.0f));
-    ubo.P = glm::perspective(mFov,
+    ubo.V = glm::lookAt(transform->getPos(), transform->getPos() + transform->forward(),
+		transform->up());
+    ubo.P = glm::perspective( glm::radians(mFov),
 		mAspectRatio.x / mAspectRatio.y,
 		mNear, mFar);
     ubo.P[1][1] *= -1.0;

@@ -27,6 +27,9 @@ public:
 
     void graphicsUpdate(FrameContext* fc);
 
+    void logicUpdate(FrameContext* fc);
+
+
 private:
 
     std::unique_ptr<GameObject> mUiCameraGameObj;

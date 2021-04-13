@@ -250,6 +250,7 @@ namespace gr
 		Scene* scene;
 		fc->gc().getDict().get(fc->gc().getBoundScene(), &scene);
 
+		scene->logicUpdate(fc);
 		scene->graphicsUpdate(fc);
 
 	}

@@ -409,7 +409,7 @@ namespace gr
 
 		// The first clear is ignored because it is the resolve image
 		std::array<vk::ClearValue, 3> clearVal = {};
-		clearVal[1].color.setFloat32({ 0.0f, 0.0f, 0.0f, 1.0f });
+		clearVal[1].color.setFloat32({ 0.2f, 0.2f, 0.2f, 1.0f });
 		clearVal[2].depthStencil.setDepth(1.0f).setStencil(0);
 
 		vk::RenderPassBeginInfo passInfo(
@@ -594,6 +594,8 @@ namespace gr
 			builder.setVertexBindingDescriptions( vid.getBindingDescription() );
 			builder.setVertexAttirbuteDescriptions( vid.getAttributeDescriptions() );
 		}
+		builder.setFrontFace(vk::FrontFace::eCounterClockwise);
+		builder.setCulling(vk::CullModeFlagBits::eBack);
 		builder.setShaderStages(mShaderModules[0], mShaderModules[1]);
 		builder.setPrimitiveTopology(vk::PrimitiveTopology::eTriangleList);
 		builder.setViewportSize(mSwapChain.getExtent());

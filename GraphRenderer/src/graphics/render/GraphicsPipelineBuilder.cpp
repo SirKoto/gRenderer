@@ -6,7 +6,7 @@ namespace vkg
 {
 
 GraphicsPipelineBuilder::GraphicsPipelineBuilder() : PipelineBuilder(),
-	mViewport(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), // init viewport with everything zeroes
+	mViewport(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f), // init viewport with everything zeroes except max depth
 	mRasterizationState( // Init rasterization state
 		{}, false, false,// flags, depthClamp, rasterizerDiscard
 		vk::PolygonMode::eFill, // pollygon mode
@@ -14,8 +14,7 @@ GraphicsPipelineBuilder::GraphicsPipelineBuilder() : PipelineBuilder(),
 		vk::FrontFace::eCounterClockwise, // front face
 		false, 0.0f, 0.0f, 0.0f, // depth bias
 		1.0f // line width
-	)
-{
+	){
 
 }
 

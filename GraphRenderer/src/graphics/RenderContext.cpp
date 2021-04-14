@@ -470,7 +470,7 @@ namespace vkg
 	{
 		assert(module != nullptr);
 
-		std::vector<char> file;
+		std::vector<uint8_t> file;
 		tools::loadBinaryFile(fileName, &file);
 
 		if (file.empty()) {

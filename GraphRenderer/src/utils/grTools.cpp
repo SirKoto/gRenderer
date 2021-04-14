@@ -9,7 +9,7 @@ namespace gr
 
 void tools::loadBinaryFile(
 	const char* fileName,
-	std::vector<char>* outFileBytes)
+	std::vector<uint8_t>* outFileBytes)
 {
 	std::ifstream file(fileName, std::ios::ate | std::ios::binary);
 
@@ -21,7 +21,7 @@ void tools::loadBinaryFile(
 	outFileBytes->resize(fileSize);
 
 	file.seekg(0);
-	file.read(outFileBytes->data(), fileSize);
+	file.read(reinterpret_cast<char*>(outFileBytes->data()), fileSize);
 
 	file.close();
 }

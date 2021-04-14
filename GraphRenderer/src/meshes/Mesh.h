@@ -44,6 +44,8 @@ public:
 
 	uint32_t getNumIndices() const { return static_cast<uint32_t>(mIndices.size()); }
 
+	const mth::AABBox& getBBox() const { return mBBox; }
+
 	// add binding with locations:
 	// (location = 0) float3 vertexPosition
 	// (location = 1) float3 normal
@@ -83,6 +85,9 @@ protected:
 
 	std::string mPath;
 
+
+	void parseObj(const char* fileName);
+	void parsePly(const char* fileName);
 };
 
 } // namespace gr

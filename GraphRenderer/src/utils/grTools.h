@@ -9,7 +9,7 @@ namespace tools
 
 void loadBinaryFile(
 	const char* fileName,
-	std::vector<char>* outFileBytes
+	std::vector<uint8_t>* outFileBytes
 );
 
 void loadImageRGBA(

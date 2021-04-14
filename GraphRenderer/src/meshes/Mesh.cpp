@@ -6,14 +6,14 @@
 #include "../control/FrameContext.h"
 #include "../graphics/RenderContext.h"
 
+#include <fstream>
 #include <imgui/imgui.h>
 #include <tiny_obj_loader/tiny_obj_loader.h>
+#include <tiny_ply_loader/tinyply.h>
 #include<unordered_map>
 
 namespace gr
 {
-
-
 
 void Mesh::load(vkg::RenderContext* rc,
 	const char* filePath)
@@ -25,12 +25,75 @@ void Mesh::load(vkg::RenderContext* rc,
 	mIndices.clear();
 	mBBox.reset();
 
+	if (mPath.find(".obj") != std::string::npos) {
+		parseObj(mPath.c_str());
+	}
+	else if (mPath.find(".ply") != std::string::npos) {
+		parsePly(mPath.c_str());
+	}
+
+
+	// create buffers
+	{
+		if (mIndexBuffer) {
+			throw std::logic_error("Error! Buffer previously alocated");
+		}
+		mIndexBufferSize = sizeof(uint32_t) * mIndices.size();
+		mIndexBuffer = rc->createIndexBuffer(mIndexBufferSize);
+		if (mVertexBuffer) {
+			throw std::logic_error("Error! Buffer previously alocated");
+		}
+		mVertexBufferSize = sizeof(Vertex) * mVertices.size();
+		mVertexBuffer = rc->createVertexBuffer(mVertexBufferSize);
+	}
+
+	// upload to gpu
+	rc->getTransferer()->transferToBuffer(*rc,
+		mVertices.data(), mVertices.size() * sizeof(mVertices[0]),
+		mVertexBuffer);
+	rc->getTransferer()->transferToBuffer(*rc,
+		mIndices.data(), mIndices.size() * sizeof(mIndices[0]),
+		mIndexBuffer);
+}
+
+void Mesh::scheduleDestroy(FrameContext* fc)
+{
+	if (mIndexBuffer) {
+		fc->scheduleToDestroy(mIndexBuffer);
+		mIndexBuffer = nullptr;
+	}
+	if (mVertexBuffer) {
+		fc->scheduleToDestroy(mVertexBuffer);
+		mVertexBuffer = nullptr;
+	}
+}
+
+
+
+void Mesh::addToVertexInputDescription(
+	uint32_t binding,
+	vkg::VertexInputDescription* vid)
+{
+	if (vid->existsBinding(binding)) {
+		throw std::logic_error("Error, already exists binding with such id!");
+	}
+
+	vid->addBinding(binding, sizeof(Vertex))
+		.addAttributeFloat(0, 3, offsetof(Vertex, Vertex::pos))
+		.addAttributeFloat(1, 3, offsetof(Vertex, Vertex::normal))
+		.addAttributeFloat(2, 3, offsetof(Vertex, Vertex::color))
+		.addAttributeFloat(3, 2, offsetof(Vertex, Vertex::texCoord));
+}
+
+void Mesh::parseObj(const char* fileName)
+{
+
 	tinyobj::ObjReader reader;
 	tinyobj::ObjReaderConfig readerConfig;
 	readerConfig.triangulate = true;
 	readerConfig.vertex_color = true;
 
-	if (!reader.ParseFromFile(mPath, readerConfig)) {
+	if (!reader.ParseFromFile(fileName, readerConfig)) {
 		throw std::runtime_error("Mesh Load Error: " +
 			reader.Error() + "\n" + reader.Warning());
 	}
@@ -83,57 +146,78 @@ void Mesh::load(vkg::RenderContext* rc,
 			}
 		}
 	}
-
-	// create buffers
-	{
-		if (mIndexBuffer) {
-			throw std::logic_error("Error! Buffer previously alocated");
-		}
-		mIndexBufferSize = sizeof(uint32_t) * mIndices.size();
-		mIndexBuffer = rc->createIndexBuffer(mIndexBufferSize);
-		if (mVertexBuffer) {
-			throw std::logic_error("Error! Buffer previously alocated");
-		}
-		mVertexBufferSize = sizeof(Vertex) * mVertices.size();
-		mVertexBuffer = rc->createVertexBuffer(mVertexBufferSize);
-	}
-
-	// upload to gpu
-	rc->getTransferer()->transferToBuffer(*rc,
-		mVertices.data(), mVertices.size() * sizeof(mVertices[0]),
-		mVertexBuffer);
-	rc->getTransferer()->transferToBuffer(*rc,
-		mIndices.data(), mIndices.size() * sizeof(mIndices[0]),
-		mIndexBuffer);
 }
 
-void Mesh::scheduleDestroy(FrameContext* fc)
+void Mesh::parsePly(const char* fileName)
 {
-	if (mIndexBuffer) {
-		fc->scheduleToDestroy(mIndexBuffer);
-		mIndexBuffer = nullptr;
-	}
-	if (mVertexBuffer) {
-		fc->scheduleToDestroy(mVertexBuffer);
-		mVertexBuffer = nullptr;
-	}
-}
 
+	std::ifstream stream(fileName, std::ios::binary);
 
-
-void Mesh::addToVertexInputDescription(
-	uint32_t binding,
-	vkg::VertexInputDescription* vid)
-{
-	if (vid->existsBinding(binding)) {
-		throw std::logic_error("Error, already exists binding with such id!");
+	if (!stream) {
+		throw std::runtime_error("Error: Can't open file " + std::string(fileName));
 	}
 
-	vid->addBinding(binding, sizeof(Vertex))
-		.addAttributeFloat(0, 3, offsetof(Vertex, Vertex::pos))
-		.addAttributeFloat(1, 3, offsetof(Vertex, Vertex::normal))
-		.addAttributeFloat(2, 3, offsetof(Vertex, Vertex::color))
-		.addAttributeFloat(3, 2, offsetof(Vertex, Vertex::texCoord));
+	tinyply::PlyFile file;
+	bool res = file.parse_header(stream);
+	if (!res) {
+		throw std::runtime_error("Error: Can't parse ply header.");
+	}
+
+	std::shared_ptr<tinyply::PlyData> vertices, normals, texcoords, faces;
+	try { vertices = file.request_properties_from_element("vertex", { "x", "y", "z" }); }
+	catch (const std::exception&) {}
+
+	try { normals = file.request_properties_from_element("vertex", { "nx", "ny", "nz" }); }
+	catch (const std::exception&) {}
+
+	try { texcoords = file.request_properties_from_element("vertex", { "u", "v" }); }
+	catch (const std::exception&) {}
+
+	try { faces = file.request_properties_from_element("face", { "vertex_indices" }, 3); }
+	catch (const std::exception&) {}
+
+	file.read(stream);
+
+	if (!vertices || !faces) {
+		throw std::runtime_error("Error: Can't load faces of ply.");
+	}
+
+	assert(vertices->t == tinyply::Type::FLOAT32);
+	assert(!normals || normals->t == tinyply::Type::FLOAT32);
+	assert(!texcoords || texcoords->t == tinyply::Type::FLOAT32);
+
+
+	// copy vertices
+	mVertices.resize(vertices->count);
+	for (size_t i = 0; i < vertices->count; ++i) {
+		std::memcpy(&mVertices[i].pos, vertices->buffer.get() + i * 3 * sizeof(float), 3 * sizeof(float));
+		if (texcoords) {
+			std::memcpy(&mVertices[i].texCoord, texcoords->buffer.get() + i * 2 * sizeof(float), 2 * sizeof(float));
+		}
+		if (normals) {
+			std::memcpy(&mVertices[i].normal, normals->buffer.get() + i * 3 * sizeof(float), 3 * sizeof(float));
+		}
+
+		mBBox.addPoint(mVertices[i].pos);
+	}
+
+	mIndices.resize(faces->count * 3);
+	if (faces->t == tinyply::Type::UINT32 || faces->t == tinyply::Type::INT32) {
+		std::memcpy(mIndices.data(), faces->buffer.get(), faces->buffer.size_bytes());
+	}
+	else if (faces->t == tinyply::Type::UINT16 || faces->t == tinyply::Type::INT16) {
+		for (size_t i = 0; i < faces->count; ++i) {
+			glm::i16vec3 tmp;
+			std::memcpy(&tmp, faces->buffer.get() + i * 3 * sizeof(uint16_t), 3 * sizeof(uint16_t));
+			mIndices[3 * i + 0] = static_cast<uint32_t>(tmp.x);
+			mIndices[3 * i + 1] = static_cast<uint32_t>(tmp.y);
+			mIndices[3 * i + 2] = static_cast<uint32_t>(tmp.z);
+		}
+	}
+	else {
+		throw std::runtime_error("Error: Cant read face format");
+	}
+
 }
 
 bool Mesh::Vertex::operator==(const Vertex& o) const

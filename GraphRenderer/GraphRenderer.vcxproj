@@ -156,6 +156,7 @@
     <ClCompile Include="src\control\FrameContext.cpp" />
     <ClCompile Include="src\control\GlobalContext.cpp" />
     <ClCompile Include="src\dependencies\stbi_image.cpp" />
+    <ClCompile Include="src\dependencies\tinyply.cpp" />
     <ClCompile Include="src\dependencies\tiny_obj_loader.cpp" />
     <ClCompile Include="src\Engine.cpp" />
     <ClCompile Include="src\graphics\command\CommandFlusher.cpp" />

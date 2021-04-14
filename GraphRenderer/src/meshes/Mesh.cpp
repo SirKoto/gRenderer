@@ -21,8 +21,9 @@ void Mesh::load(vkg::RenderContext* rc,
 
 	mPath.assign(filePath);
 
-	std::vector<Vertex> vertices;
-	std::vector<uint32_t> indices;
+	mVertices.clear();
+	mIndices.clear();
+	mBBox.reset();
 
 	tinyobj::ObjReader reader;
 	tinyobj::ObjReaderConfig readerConfig;
@@ -72,39 +73,37 @@ void Mesh::load(vkg::RenderContext* rc,
 			const decltype(mVerticesCache)::const_iterator it =
 				mVerticesCache.find(v);
 			if (it != mVerticesCache.end()) {
-				indices.push_back(it->second);
+				mIndices.push_back(it->second);
 			}
 			else {
-				indices.push_back(static_cast<uint32_t>(vertices.size()));
-				vertices.push_back(v);
-				mVerticesCache.emplace(v, indices.back());
+				mIndices.push_back(static_cast<uint32_t>(mVertices.size()));
+				mVertices.push_back(v);
+				mVerticesCache.emplace(v, mIndices.back());
+				mBBox.addPoint(v.pos);
 			}
 		}
 	}
-
-	mNumIndices = static_cast<uint32_t>(indices.size());
-	mNumVertices = static_cast<uint32_t>(vertices.size());
 
 	// create buffers
 	{
 		if (mIndexBuffer) {
 			throw std::logic_error("Error! Buffer previously alocated");
 		}
-		mIndexBufferSize = sizeof(uint32_t) * mNumIndices;
+		mIndexBufferSize = sizeof(uint32_t) * mIndices.size();
 		mIndexBuffer = rc->createIndexBuffer(mIndexBufferSize);
 		if (mVertexBuffer) {
 			throw std::logic_error("Error! Buffer previously alocated");
 		}
-		mVertexBufferSize = sizeof(Vertex) * mNumVertices;
+		mVertexBufferSize = sizeof(Vertex) * mVertices.size();
 		mVertexBuffer = rc->createVertexBuffer(mVertexBufferSize);
 	}
 
 	// upload to gpu
 	rc->getTransferer()->transferToBuffer(*rc,
-		vertices.data(), vertices.size() * sizeof(vertices[0]),
+		mVertices.data(), mVertices.size() * sizeof(mVertices[0]),
 		mVertexBuffer);
 	rc->getTransferer()->transferToBuffer(*rc,
-		indices.data(), indices.size() * sizeof(indices[0]),
+		mIndices.data(), mIndices.size() * sizeof(mIndices[0]),
 		mIndexBuffer);
 }
 
@@ -157,11 +156,17 @@ void Mesh::renderImGui(FrameContext* fc, GuiFeedback* feedback)
 {
 	ImGui::TextDisabled("Triangle Mesh");
 	ImGui::Separator();
-	ImGui::Text("Num vertices: %u", mNumVertices);
-	ImGui::Text("Num indices: %u", mNumIndices);
+	ImGui::Text("Num vertices: %u", mVertices.size());
+	ImGui::Text("Num indices: %u", mIndices.size());
+
+	ImGui::Text("BBox\n\t(%.2f,%.2f,%.2f)\n\t(%.2f,%.2f,%.2f)", 
+		mBBox.getMin().x, mBBox.getMin().y, mBBox.getMin().z,
+		mBBox.getMax().x, mBBox.getMax().y, mBBox.getMax().z);
+	ImGui::Text("BBox size (%.2f, %.2f, %.2f)",
+		mBBox.getSize().x, mBBox.getSize().y, mBBox.getSize().z);
 
 	ImGui::Separator();
-	ImGui::Text("Path of texture:");
+	ImGui::Text("Path of model:");
 	ImGui::InputText(
 		"##Path",
 		const_cast<char*>(mPath.c_str()),

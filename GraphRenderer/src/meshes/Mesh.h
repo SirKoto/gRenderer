@@ -6,6 +6,7 @@
 #include "../graphics/resources/Buffer.h"
 #include "../graphics/shaders/VertexInputDescription.h"
 #include "IObject.h"
+#include "../utils/math/BBox.h"
 
 namespace gr
 {
@@ -41,7 +42,7 @@ public:
 	const vk::Buffer& getVB() const { return mVertexBuffer.getVkBuffer(); }
 	const vk::Buffer& getIB() const { return mIndexBuffer.getVkBuffer(); }
 
-	uint32_t getNumIndices() const { return mNumIndices; }
+	uint32_t getNumIndices() const { return static_cast<uint32_t>(mIndices.size()); }
 
 	// add binding with locations:
 	// (location = 0) float3 vertexPosition
@@ -68,13 +69,17 @@ protected:
 		std::size_t operator()(const Vertex& o) const;
 	};
 
+
+	std::vector<Vertex> mVertices;
+	std::vector<uint32_t> mIndices;
+
 	vkg::Buffer mIndexBuffer;
 	vkg::Buffer mVertexBuffer;
 
-	uint32_t mNumIndices = 0;
-	uint32_t mNumVertices = 0;
 	vk::DeviceSize mVertexBufferSize = 0;
 	vk::DeviceSize mIndexBufferSize = 0;
+
+	mth::AABBox mBBox;
 
 	std::string mPath;
 

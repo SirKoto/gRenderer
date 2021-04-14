@@ -58,6 +58,9 @@
     <Filter Include="Header Files\meshes\addons">
       <UniqueIdentifier>{ca4c143d-76fd-4ab1-916a-736364f85711}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\tools\math">
+      <UniqueIdentifier>{5417f02a-fcfc-48c7-8bad-250657043825}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -426,7 +429,10 @@
       <Filter>Header Files\meshes\addons</Filter>
     </ClInclude>
     <ClInclude Include="src\utils\math\Quaternion.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\tools\math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\math\BBox.h">
+      <Filter>Header Files\tools\math</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

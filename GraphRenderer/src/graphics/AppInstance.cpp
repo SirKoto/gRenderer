@@ -9,9 +9,13 @@ namespace gr
 namespace vkg
 {
 
-AppInstance::AppInstance(const std::vector<const char*>& extensionsToLoad, 
+void AppInstance::create(const std::vector<const char*>& extensionsToLoad,
 	bool loadGLFWextensions)
 {
+	if (mInstance) {
+		destroy();
+	}
+
 	if (DebugVk::validationLayersVkEnabled) {
 		bool validationLayersExist = DebugVk::checkValidationLayersSupport();
 		if (!validationLayersExist) {
@@ -32,7 +36,7 @@ AppInstance::AppInstance(const std::vector<const char*>& extensionsToLoad,
 	appInfo.applicationVersion = VK_MAKE_VERSION(0, 0, 0);
 	appInfo.pEngineName = "GraphRendererEngine";
 	appInfo.engineVersion = VK_MAKE_VERSION(0, 0, 0);
-	appInfo.apiVersion = VK_MAKE_VERSION(1, 2, 154);
+	appInfo.apiVersion = VK_MAKE_VERSION(1, 2, 162);
 
 	vk::InstanceCreateInfo createInfo = {};
 	createInfo.pApplicationInfo = &appInfo;
@@ -63,9 +67,6 @@ AppInstance::AppInstance(const std::vector<const char*>& extensionsToLoad,
 	}
 }
 
-AppInstance::~AppInstance()
-{
-}
 
 void AppInstance::destroy()
 {
@@ -73,6 +74,7 @@ void AppInstance::destroy()
 		DebugVk::DestroyDebugUtilsMessengerEXT(mInstance, mDebugMessenger, nullptr);
 	}
 	mInstance.destroy();
+	mInstance = nullptr;
 }
 
 }; // namespace vkg

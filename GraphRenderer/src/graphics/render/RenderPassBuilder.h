@@ -41,7 +41,7 @@ public:
 
 	void pushSubpassDependency(const vk::SubpassDependency& dependency);
 
-	RenderPass buildRenderPass(const DeviceComp& device) const;
+	RenderPass buildRenderPass(const RenderContext& context) const;
 
 private:
 	std::vector<vk::AttachmentDescription> mAttachmentDescriptions;

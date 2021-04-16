@@ -31,6 +31,36 @@
     <Filter Include="Header Files\vkg\rendering">
       <UniqueIdentifier>{2e8e3c52-4f21-4990-ad80-4bb1f9fb228d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\gui">
+      <UniqueIdentifier>{8e6a83e9-9d7b-4eef-bd48-02d9c24b062d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\vkg\shaders">
+      <UniqueIdentifier>{b2200053-9a1b-4875-a526-42a3a832f9eb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\vkg\commands">
+      <UniqueIdentifier>{b9571ac3-965d-4a83-8899-e391b947a769}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LibrariesSources">
+      <UniqueIdentifier>{247fdb86-fd42-426d-8c6b-794dd6f0a3f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LibrariesSources\DearImGui">
+      <UniqueIdentifier>{f7a04712-b6ad-431f-9db1-3d4300cda006}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LibrariesSources\ImGuiFileDialog">
+      <UniqueIdentifier>{3db73f18-f594-4402-92a0-989e8a058fda}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LibrariesSources\ImGuiFileDialog\dirent">
+      <UniqueIdentifier>{702b9be7-f2bf-46ba-b1ef-51e15259c055}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\meshes">
+      <UniqueIdentifier>{dd99a38c-59fb-400c-b542-3af3ad40f502}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\meshes\addons">
+      <UniqueIdentifier>{ca4c143d-76fd-4ab1-916a-736364f85711}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\tools\math">
+      <UniqueIdentifier>{5417f02a-fcfc-48c7-8bad-250657043825}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -48,9 +78,6 @@
     <ClCompile Include="src\graphics\AppInstance.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\DeviceComp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\utils\vk_mem_alloc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -58,9 +85,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics\present\SwapChain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\graphics\command\CommandPool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics\resources\Image2D.cpp">
@@ -73,12 +97,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics\render\RenderPassBuilder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\utils\FsTools.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\graphics\Context.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\utils\Fibers\FScheduler.cpp">
@@ -99,24 +117,141 @@
     <ClCompile Include="src\graphics\render\GraphicsPipelineBuilder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\gui\Gui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\shaders\VertexInputDescription.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\resources\Buffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\resources\DescriptorManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dependencies\stbi_image.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\RenderContext.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\control\FrameContext.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\command\ResetCommandPool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\command\CommandFlusher.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\memory\BufferTransferer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\command\FreeCommandPool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\control\GlobalContext.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src_lib\imgui\imgui_tables.cpp">
+      <Filter>LibrariesSources\DearImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src_lib\imgui\imgui_widgets.cpp">
+      <Filter>LibrariesSources\DearImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src_lib\imgui\imgui.cpp">
+      <Filter>LibrariesSources\DearImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src_lib\imgui\imgui_demo.cpp">
+      <Filter>LibrariesSources\DearImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src_lib\imgui\imgui_draw.cpp">
+      <Filter>LibrariesSources\DearImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src_lib\imgui\imgui_impl_glfw.cpp">
+      <Filter>LibrariesSources\DearImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src_lib\imgui\imgui_impl_vulkan.cpp">
+      <Filter>LibrariesSources\DearImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src_lib\ImGuiFileDialog\ImGuiFileDialog.cpp">
+      <Filter>LibrariesSources\ImGuiFileDialog</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dependencies\tiny_obj_loader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\meshes\Mesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\meshes\ResourceDictionary.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\meshes\Texture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utils\grTools.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\meshes\Sampler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\meshes\DescriptorSetLayout.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\meshes\IObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\meshes\Material.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\meshes\Shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\meshes\Pipeline.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\meshes\Scene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\meshes\GameObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\RenderSubmitter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\meshes\GameObjectAddons\Camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\meshes\GameObjectAddons\IAddon.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gui\GuiUtils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\meshes\GameObjectAddons\Transform.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\meshes\GameObjectAddons\Renderable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\meshes\GameObjectAddons\SimplePlayerControl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utils\math\Quaternion.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dependencies\tinyply.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\Context.h">
-      <Filter>Header Files\vkg</Filter>
-    </ClInclude>
     <ClInclude Include="src\graphics\AppInstance.h">
       <Filter>Header Files\vkg</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\command\CommandPool.h">
-      <Filter>Header Files\vkg</Filter>
-    </ClInclude>
     <ClInclude Include="src\graphics\DebugVk.h">
-      <Filter>Header Files\vkg</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\DeviceComp.h">
       <Filter>Header Files\vkg</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\Window.h">
@@ -127,9 +262,6 @@
     </ClInclude>
     <ClInclude Include="src\graphics\present\SwapChain.h">
       <Filter>Header Files\vkg</Filter>
-    </ClInclude>
-    <ClInclude Include="src\utils\FsTools.h">
-      <Filter>Header Files\tools</Filter>
     </ClInclude>
     <ClInclude Include="src\utils\Fibers\FScheduler.h">
       <Filter>Header Files\grjob\Fibers</Filter>
@@ -169,6 +301,141 @@
     </ClInclude>
     <ClInclude Include="src\graphics\render\GraphicsPipelineBuilder.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gui\Gui.h">
+      <Filter>Header Files\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\shaders\VertexInputDescription.h">
+      <Filter>Header Files\vkg\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\resources\Allocatable.h">
+      <Filter>Header Files\vkg\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\resources\Buffer.h">
+      <Filter>Header Files\vkg\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\resources\DescriptorManager.h">
+      <Filter>Header Files\vkg\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\control\FrameContext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\RenderContext.h">
+      <Filter>Header Files\vkg</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\command\ResetCommandPool.h">
+      <Filter>Header Files\vkg\commands</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\command\FreeCommandPool.h">
+      <Filter>Header Files\vkg\commands</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\memory\BufferTransferer.h">
+      <Filter>Header Files\vkg\resources</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\command\CommandFlusher.h">
+      <Filter>Header Files\vkg\commands</Filter>
+    </ClInclude>
+    <ClInclude Include="src\control\GlobalContext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src_lib\imgui\imgui_impl_vulkan.h">
+      <Filter>LibrariesSources\DearImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="src_lib\imgui\imgui_internal.h">
+      <Filter>LibrariesSources\DearImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="src_lib\imgui\imstb_rectpack.h">
+      <Filter>LibrariesSources\DearImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="src_lib\imgui\imstb_textedit.h">
+      <Filter>LibrariesSources\DearImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="src_lib\imgui\imstb_truetype.h">
+      <Filter>LibrariesSources\DearImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="src_lib\imgui\imconfig.h">
+      <Filter>LibrariesSources\DearImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="src_lib\imgui\imgui.h">
+      <Filter>LibrariesSources\DearImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="src_lib\imgui\imgui_impl_glfw.h">
+      <Filter>LibrariesSources\DearImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="src_lib\ImGuiFileDialog\ImGuiFileDialog.h">
+      <Filter>LibrariesSources\ImGuiFileDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="src_lib\ImGuiFileDialog\ImGuiFileDialogConfig.h">
+      <Filter>LibrariesSources\ImGuiFileDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="src_lib\ImGuiFileDialog\dirent\dirent.h">
+      <Filter>LibrariesSources\ImGuiFileDialog\dirent</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\Mesh.h">
+      <Filter>Header Files\meshes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\grTools.h">
+      <Filter>Header Files\tools</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\Texture.h">
+      <Filter>Header Files\meshes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\Sampler.h">
+      <Filter>Header Files\meshes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\ResourceDictionary.h">
+      <Filter>Header Files\meshes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\IObject.h">
+      <Filter>Header Files\meshes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\ResourcesHeader.h">
+      <Filter>Header Files\meshes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\DescriptorSetLayout.h">
+      <Filter>Header Files\meshes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\Material.h">
+      <Filter>Header Files\meshes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\Shader.h">
+      <Filter>Header Files\meshes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\Pipeline.h">
+      <Filter>Header Files\meshes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\Scene.h">
+      <Filter>Header Files\meshes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\GameObject.h">
+      <Filter>Header Files\meshes</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\RenderSubmitter.h">
+      <Filter>Header Files\vkg\rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\GameObjectAddons\Camera.h">
+      <Filter>Header Files\meshes\addons</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\GameObjectAddons\IAddon.h">
+      <Filter>Header Files\meshes\addons</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gui\GuiUtils.h">
+      <Filter>Header Files\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\GameObjectAddons\Transform.h">
+      <Filter>Header Files\meshes\addons</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\GameObjectAddons\Renderable.h">
+      <Filter>Header Files\meshes\addons</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\GameObjectAddons\SimplePlayerControl.h">
+      <Filter>Header Files\meshes\addons</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\math\Quaternion.h">
+      <Filter>Header Files\tools\math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\math\BBox.h">
+      <Filter>Header Files\tools\math</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

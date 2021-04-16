@@ -78,12 +78,12 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>..\Libraries\includes;$(IncludePath)</IncludePath>
+    <IncludePath>.\src_lib;..\Libraries\includes;.\;$(IncludePath)</IncludePath>
     <LibraryPath>..\Libraries\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>..\Libraries\includes;$(IncludePath)</IncludePath>
+    <IncludePath>.\src_lib;..\Libraries\includes;.\;$(IncludePath)</IncludePath>
     <LibraryPath>..\Libraries\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -118,16 +118,17 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;GLM_FORCE_RADIANS;GLM_FORCE_DEPTH_ZERO_TO_ONE;GLM_FORCE_LEFT_HANDED;_CRT_SECURE_NO_WARNINGS_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>D:\Programs\Vulkan\1.2.154.1\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\Programs\Vulkan\1.2.162.1\Include</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>D:\Programs\Vulkan\1.2.154.1\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\Programs\SPIRV-Cross\build\Debug;D:\Programs\Vulkan\1.2.162.1\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;vulkan-1.lib;spirv-cross-cppd.lib;spirv-cross-cored.lib;spirv-cross-glsld.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -136,68 +137,147 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;GLM_FORCE_RADIANS;GLM_FORCE_DEPTH_ZERO_TO_ONE;GLM_FORCE_LEFT_HANDED;_CRT_SECURE_NO_WARNINGSNDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>D:\Programs\Vulkan\1.2.154.1\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\Programs\Vulkan\1.2.162.1\Include</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>D:\Programs\Vulkan\1.2.154.1\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\Programs\Vulkan\1.2.162.1\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;vulkan-1.lib;spirv-cross-c-shared.lib;spirv-cross-cpp.lib;spirv-cross-core.lib;spirv-cross-glsl.lib;SPIRV.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\control\FrameContext.cpp" />
+    <ClCompile Include="src\control\GlobalContext.cpp" />
+    <ClCompile Include="src\dependencies\stbi_image.cpp" />
+    <ClCompile Include="src\dependencies\tinyply.cpp" />
+    <ClCompile Include="src\dependencies\tiny_obj_loader.cpp" />
     <ClCompile Include="src\Engine.cpp" />
-    <ClCompile Include="src\graphics\Context.cpp" />
+    <ClCompile Include="src\graphics\command\CommandFlusher.cpp" />
+    <ClCompile Include="src\graphics\command\FreeCommandPool.cpp" />
+    <ClCompile Include="src\graphics\memory\BufferTransferer.cpp" />
+    <ClCompile Include="src\graphics\RenderContext.cpp" />
     <ClCompile Include="src\graphics\AppInstance.cpp" />
-    <ClCompile Include="src\graphics\command\CommandPool.cpp" />
+    <ClCompile Include="src\graphics\command\ResetCommandPool.cpp" />
     <ClCompile Include="src\graphics\DebugVk.cpp" />
-    <ClCompile Include="src\graphics\DeviceComp.cpp" />
     <ClCompile Include="src\graphics\memory\MemoryManager.cpp" />
     <ClCompile Include="src\graphics\present\SwapChain.cpp" />
+    <ClCompile Include="src\graphics\RenderSubmitter.cpp" />
     <ClCompile Include="src\graphics\render\GraphicsPipelineBuilder.cpp" />
     <ClCompile Include="src\graphics\render\PipelineBuilder.cpp" />
     <ClCompile Include="src\graphics\render\RenderPass.cpp" />
     <ClCompile Include="src\graphics\render\RenderPassBuilder.cpp" />
+    <ClCompile Include="src\graphics\resources\Buffer.cpp" />
+    <ClCompile Include="src\graphics\resources\DescriptorManager.cpp" />
     <ClCompile Include="src\graphics\resources\Image.cpp" />
     <ClCompile Include="src\graphics\resources\Image2D.cpp" />
+    <ClCompile Include="src\graphics\shaders\VertexInputDescription.cpp" />
     <ClCompile Include="src\graphics\Window.cpp" />
+    <ClCompile Include="src\gui\Gui.cpp" />
+    <ClCompile Include="src\gui\GuiUtils.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\meshes\DescriptorSetLayout.cpp" />
+    <ClCompile Include="src\meshes\GameObject.cpp" />
+    <ClCompile Include="src\meshes\GameObjectAddons\Camera.cpp" />
+    <ClCompile Include="src\meshes\GameObjectAddons\IAddon.cpp" />
+    <ClCompile Include="src\meshes\GameObjectAddons\Renderable.cpp" />
+    <ClCompile Include="src\meshes\GameObjectAddons\SimplePlayerControl.cpp" />
+    <ClCompile Include="src\meshes\GameObjectAddons\Transform.cpp" />
+    <ClCompile Include="src\meshes\IObject.cpp" />
+    <ClCompile Include="src\meshes\Material.cpp" />
+    <ClCompile Include="src\meshes\Mesh.cpp" />
+    <ClCompile Include="src\meshes\Pipeline.cpp" />
+    <ClCompile Include="src\meshes\ResourceDictionary.cpp" />
+    <ClCompile Include="src\meshes\Sampler.cpp" />
+    <ClCompile Include="src\meshes\Scene.cpp" />
+    <ClCompile Include="src\meshes\Shader.cpp" />
+    <ClCompile Include="src\meshes\Texture.cpp" />
     <ClCompile Include="src\utils\Fibers\Counter.cpp" />
     <ClCompile Include="src\utils\Fibers\Fiber.cpp" />
     <ClCompile Include="src\utils\Fibers\FScheduler.cpp" />
-    <ClCompile Include="src\utils\FsTools.cpp" />
+    <ClCompile Include="src\utils\grTools.cpp" />
     <ClCompile Include="src\utils\grjob.cpp" />
+    <ClCompile Include="src\utils\math\Quaternion.cpp" />
     <ClCompile Include="src\utils\vk_mem_alloc.cpp" />
+    <ClCompile Include="src_lib\ImGuiFileDialog\ImGuiFileDialog.cpp" />
+    <ClCompile Include="src_lib\imgui\imgui.cpp" />
+    <ClCompile Include="src_lib\imgui\imgui_demo.cpp" />
+    <ClCompile Include="src_lib\imgui\imgui_draw.cpp" />
+    <ClCompile Include="src_lib\imgui\imgui_impl_glfw.cpp" />
+    <ClCompile Include="src_lib\imgui\imgui_impl_vulkan.cpp" />
+    <ClCompile Include="src_lib\imgui\imgui_tables.cpp" />
+    <ClCompile Include="src_lib\imgui\imgui_widgets.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DescriptorSetLayoutBuilder.h" />
+    <ClInclude Include="src\control\FrameContext.h" />
+    <ClInclude Include="src\control\GlobalContext.h" />
     <ClInclude Include="src\Engine.h" />
-    <ClInclude Include="src\graphics\Context.h" />
+    <ClInclude Include="src\graphics\command\CommandFlusher.h" />
+    <ClInclude Include="src\graphics\command\FreeCommandPool.h" />
+    <ClInclude Include="src\graphics\memory\BufferTransferer.h" />
+    <ClInclude Include="src\graphics\RenderContext.h" />
     <ClInclude Include="src\graphics\AppInstance.h" />
-    <ClInclude Include="src\graphics\command\CommandPool.h" />
+    <ClInclude Include="src\graphics\command\ResetCommandPool.h" />
     <ClInclude Include="src\graphics\DebugVk.h" />
-    <ClInclude Include="src\graphics\DeviceComp.h" />
     <ClInclude Include="src\graphics\memory\MemoryManager.h" />
     <ClInclude Include="src\graphics\present\SwapChain.h" />
+    <ClInclude Include="src\graphics\RenderSubmitter.h" />
     <ClInclude Include="src\graphics\render\GraphicsPipelineBuilder.h" />
     <ClInclude Include="src\graphics\render\PipelineBuilder.h" />
     <ClInclude Include="src\graphics\render\RenderPass.h" />
     <ClInclude Include="src\graphics\render\RenderPassBuilder.h" />
+    <ClInclude Include="src\graphics\resources\Allocatable.h" />
+    <ClInclude Include="src\graphics\resources\Buffer.h" />
+    <ClInclude Include="src\graphics\resources\DescriptorManager.h" />
     <ClInclude Include="src\graphics\resources\Image.h" />
     <ClInclude Include="src\graphics\resources\Image2D.h" />
+    <ClInclude Include="src\graphics\shaders\VertexInputDescription.h" />
     <ClInclude Include="src\graphics\Window.h" />
+    <ClInclude Include="src\gui\Gui.h" />
+    <ClInclude Include="src\gui\GuiUtils.h" />
+    <ClInclude Include="src\meshes\DescriptorSetLayout.h" />
+    <ClInclude Include="src\meshes\GameObject.h" />
+    <ClInclude Include="src\meshes\GameObjectAddons\Camera.h" />
+    <ClInclude Include="src\meshes\GameObjectAddons\IAddon.h" />
+    <ClInclude Include="src\meshes\GameObjectAddons\Renderable.h" />
+    <ClInclude Include="src\meshes\GameObjectAddons\SimplePlayerControl.h" />
+    <ClInclude Include="src\meshes\GameObjectAddons\Transform.h" />
+    <ClInclude Include="src\meshes\IObject.h" />
+    <ClInclude Include="src\meshes\Material.h" />
+    <ClInclude Include="src\meshes\Mesh.h" />
+    <ClInclude Include="src\meshes\Pipeline.h" />
+    <ClInclude Include="src\meshes\ResourceDictionary.h" />
+    <ClInclude Include="src\meshes\ResourcesHeader.h" />
+    <ClInclude Include="src\meshes\Sampler.h" />
+    <ClInclude Include="src\meshes\Scene.h" />
+    <ClInclude Include="src\meshes\Shader.h" />
+    <ClInclude Include="src\meshes\Texture.h" />
     <ClInclude Include="src\utils\ConstExprHelp.h" />
     <ClInclude Include="src\utils\Fibers\Counter.h" />
     <ClInclude Include="src\utils\Fibers\Fiber.h" />
     <ClInclude Include="src\utils\Fibers\FScheduler.h" />
     <ClInclude Include="src\utils\Fibers\Job.h" />
-    <ClInclude Include="src\utils\FsTools.h" />
+    <ClInclude Include="src\utils\grTools.h" />
     <ClInclude Include="src\utils\grjob.h" />
+    <ClInclude Include="src\utils\math\BBox.h" />
+    <ClInclude Include="src\utils\math\Quaternion.h" />
+    <ClInclude Include="src_lib\ImGuiFileDialog\dirent\dirent.h" />
+    <ClInclude Include="src_lib\ImGuiFileDialog\ImGuiFileDialog.h" />
+    <ClInclude Include="src_lib\ImGuiFileDialog\ImGuiFileDialogConfig.h" />
+    <ClInclude Include="src_lib\imgui\imconfig.h" />
+    <ClInclude Include="src_lib\imgui\imgui.h" />
+    <ClInclude Include="src_lib\imgui\imgui_impl_glfw.h" />
+    <ClInclude Include="src_lib\imgui\imgui_impl_vulkan.h" />
+    <ClInclude Include="src_lib\imgui\imgui_internal.h" />
+    <ClInclude Include="src_lib\imgui\imstb_rectpack.h" />
+    <ClInclude Include="src_lib\imgui\imstb_textedit.h" />
+    <ClInclude Include="src_lib\imgui\imstb_truetype.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

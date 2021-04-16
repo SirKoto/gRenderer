@@ -14,8 +14,6 @@ void createSystem(uint32_t maxThreads)
 	new(&scheduler) FScheduler(maxThreads);
 }
 
-
-
 void destroySystem()
 {
 	reinterpret_cast<FScheduler&>(scheduler).~FScheduler();
@@ -29,6 +27,16 @@ void startRunningJobSystem()
 void stopRunningJobSystem()
 {
 	reinterpret_cast<FScheduler&>(scheduler).stopSystem();
+}
+
+uint32_t getNumThreads()
+{
+	return reinterpret_cast<FScheduler&>(scheduler).getNumThreads();
+}
+
+uint32_t getThreadId()
+{
+	return FScheduler::getThreadId();
 }
 
 void runJob(Priority priority, const Job& job, Counter** pCounter, bool needsBigStack)

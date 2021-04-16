@@ -43,6 +43,7 @@ public:
 
 	void setExceptionCatch(void(*function)(const std::exception&));
 
+	uint32_t getNumThreads() const { return mNumThreads + 1; }
 
 	// An object of this type needs to exist in order to use this functions
 	static void scheduleJob(Priority priority, const Job& job, Counter** pCounter = nullptr);
@@ -55,6 +56,7 @@ public:
 	static void waitForCounterAndFree(const Counter* counter, uint32_t value);
 	static void waitForCounter(const Counter* counter, uint32_t value);
 
+	static uint32_t getThreadId();
 
 protected:
 
@@ -117,6 +119,7 @@ protected:
 	struct TLS
 	{
 		FScheduler* scheduler = nullptr;
+		uint32_t threadId;
 		Fiber threadFiber;
 
 		std::unique_ptr<QueueTokens> tokens;
@@ -158,7 +161,7 @@ protected:
 	static void s_funWorkerFiber(const FiberContext* context);
 
 
-	static void s_funThread(FScheduler* scheduler, std::unique_ptr<QueueTokens>&& tokens);
+	static void s_funThread(FScheduler* scheduler, uint32_t threadId, std::unique_ptr<QueueTokens>&& tokens);
 
 	static void s_defaultExceptionHande(const std::exception& exception);
 

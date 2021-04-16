@@ -27,7 +27,7 @@ uint32_t PipelineBuilder::addShaderStage(vk::ShaderModule module, vk::ShaderStag
 	return static_cast<uint32_t>(mShaderStages.size()) - 1;
 }
 
-vk::Pipeline PipelineBuilder::createPipeline() const
+vk::Pipeline PipelineBuilder::createPipeline(vk::Device device) const
 {
 	assert(false);
 	return vk::Pipeline();

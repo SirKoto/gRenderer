@@ -6,15 +6,32 @@ namespace vkg
 {
 
 GraphicsPipelineBuilder::GraphicsPipelineBuilder() : PipelineBuilder(),
-	mViewport(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f), // init viewport with everything zeroes
+	mViewport(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f), // init viewport with everything zeroes except max depth
 	mRasterizationState( // Init rasterization state
 		{}, false, false,// flags, depthClamp, rasterizerDiscard
 		vk::PolygonMode::eFill, // pollygon mode
 		vk::CullModeFlagBits::eBack, // cull back faces
-		vk::FrontFace::eCounterClockwise // front face
-	)
-{
+		vk::FrontFace::eCounterClockwise, // front face
+		false, 0.0f, 0.0f, 0.0f, // depth bias
+		1.0f // line width
+	){
 
+}
+
+void GraphicsPipelineBuilder::setShaderStages(vk::ShaderModule vertex, vk::ShaderModule fragment)
+{
+	mVertexModule = vertex;
+	mFragmentModule = fragment;
+}
+
+void GraphicsPipelineBuilder::setVertexBindingDescriptions(const std::vector<vk::VertexInputBindingDescription>& bindings)
+{
+	mVertInBindings = bindings;
+}
+
+void GraphicsPipelineBuilder::setVertexAttirbuteDescriptions(const std::vector<vk::VertexInputAttributeDescription>& attributes)
+{
+	mVertInAttributes = attributes;
 }
 
 void GraphicsPipelineBuilder::addVertexBindingDescription(const vk::VertexInputBindingDescription& binding)
@@ -40,6 +57,11 @@ void GraphicsPipelineBuilder::addVertexAttributDescription(vk::VertexInputAttrib
 void GraphicsPipelineBuilder::setPrimitiveTopology(vk::PrimitiveTopology topology)
 {
 	mTopology = topology;
+}
+
+void GraphicsPipelineBuilder::setPolygonMode(vk::PolygonMode polyMode)
+{
+	mRasterizationState.setPolygonMode(polyMode);
 }
 
 void GraphicsPipelineBuilder::setViewportSize(const vk::Extent2D& extent)
@@ -71,8 +93,64 @@ void GraphicsPipelineBuilder::setColorBlendAttachmentStd()
 				vk::ColorComponentFlagBits::eA);
 }
 
-vk::Pipeline GraphicsPipelineBuilder::createPipeline() const
+void GraphicsPipelineBuilder::setColorBlendAttachmentAlphaBlending()
 {
+	mColorBlendAttachment =
+		vk::PipelineColorBlendAttachmentState(
+			true,									// active blend
+			vk::BlendFactor::eSrcAlpha,				// srcColorBlendFactor
+			vk::BlendFactor::eOneMinusSrcAlpha,		// dstColorBlendFactor
+			vk::BlendOp::eAdd,						// colorBlendOp
+			vk::BlendFactor::eOne,					// srcAlphaBlendFactor
+			vk::BlendFactor::eZero,					// dstAlphaBlendFactor
+			vk::BlendOp::eAdd,						// alphaBlendOp
+			vk::ColorComponentFlagBits::eR |		// colorWriteMask
+			vk::ColorComponentFlagBits::eG |
+			vk::ColorComponentFlagBits::eB |
+			vk::ColorComponentFlagBits::eA);
+}
+
+void GraphicsPipelineBuilder::setDepthState(bool testEnable, bool writeEnable, vk::CompareOp compareOp)
+{
+	mDepthStencilState
+		.setDepthTestEnable(testEnable)
+		.setDepthWriteEnable(writeEnable)
+		.setDepthCompareOp(compareOp);
+}
+
+void GraphicsPipelineBuilder::setPipelineLayout(vk::PipelineLayout layout)
+{
+	mPipLayout = layout;
+}
+
+void GraphicsPipelineBuilder::addDynamicState(vk::DynamicState state)
+{
+	mDynamicStates.push_back(state);
+}
+
+vk::Pipeline GraphicsPipelineBuilder::createPipeline(
+	vk::Device device,
+	vk::RenderPass renderPass,
+	uint32_t subpass) const
+{
+
+	std::array<vk::PipelineShaderStageCreateInfo, 2> shaderStages = {
+		vk::PipelineShaderStageCreateInfo(
+			{}, // flags
+			vk::ShaderStageFlagBits::eVertex,
+			mVertexModule,
+			"main",
+			nullptr
+		),
+		vk::PipelineShaderStageCreateInfo(
+			{}, // flags
+			vk::ShaderStageFlagBits::eFragment,
+			mFragmentModule,
+			"main",
+			nullptr
+		) 
+	};
+
 	vk::PipelineVertexInputStateCreateInfo vertexInputState(
 		{}, // flags
 		mVertInBindings,
@@ -104,7 +182,33 @@ vk::Pipeline GraphicsPipelineBuilder::createPipeline() const
 		{}			// blendConstants
 	);
 
-	return vk::Pipeline();
+	vk::PipelineDynamicStateCreateInfo dynamicState(
+		{}, mDynamicStates
+	);
+
+	vk::GraphicsPipelineCreateInfo createInfo(
+		{}, // flags
+		shaderStages, // shader stages
+		&vertexInputState,
+		&inputAssemblyState,
+		nullptr, // tessellation
+		&viewportState,
+		&mRasterizationState,
+		&multisampleState,
+		&mDepthStencilState, // depth stencil
+		&colorBlendState,
+		&dynamicState, // dynamic state
+		mPipLayout,
+		renderPass,
+		subpass
+	);
+
+	vk::ResultValue<vk::Pipeline> res = device.createGraphicsPipeline(nullptr, createInfo);
+	if (res.result != vk::Result::eSuccess) {
+		throw std::runtime_error("Error creating graphics pipeline!!!");
+	}
+
+	return res.value;
 }
 
 } // namespace vkg

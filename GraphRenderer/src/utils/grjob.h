@@ -22,6 +22,11 @@ void startRunningJobSystem();
 
 void stopRunningJobSystem();
 
+uint32_t getNumThreads();
+
+// Thread id from 0 to getNumThreads()
+uint32_t getThreadId();
+
 void runJob(Priority priority, const Job& job, Counter** pCounter = nullptr, bool needsBigStack = false);
 
 void runJobBatch(Priority priority, const Job* jobs, uint32_t numJobs, Counter** pCounter = nullptr);

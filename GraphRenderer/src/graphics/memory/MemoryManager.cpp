@@ -70,7 +70,7 @@ void MemoryManager::freeAllocation(VmaAllocation allocation) const
 	vmaFreeMemory(mAllocator, allocation);
 }
 
-void MemoryManager::getAllocationInfo(const VmaAllocation& allocation, vk::DeviceMemory* outDeviceMemory, vk::DeviceSize* outOffset, vk::DeviceSize* outSize) const
+void MemoryManager::getAllocationInfo(VmaAllocation allocation, vk::DeviceMemory* outDeviceMemory, vk::DeviceSize* outOffset, vk::DeviceSize* outSize) const
 {
 
 	VmaAllocationInfo info;
@@ -78,6 +78,41 @@ void MemoryManager::getAllocationInfo(const VmaAllocation& allocation, vk::Devic
 	*outDeviceMemory = info.deviceMemory;
 	*outOffset = info.offset;
 	*outSize = info.size;
+}
+
+bool MemoryManager::isMemoryMappable(VmaAllocation allocation) const
+{
+	VmaAllocationInfo info;
+	vmaGetAllocationInfo(mAllocator, allocation, &info);
+	VkMemoryPropertyFlags memFlags;
+	vmaGetMemoryTypeProperties(mAllocator, info.memoryType, &memFlags);
+	if ((memFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0)
+	{
+		return true;
+	}
+	return false;
+}
+
+void* MemoryManager::mapMemory(VmaAllocation allocation) const
+{
+	void* ptr;
+	vmaMapMemory(mAllocator, allocation, &ptr);
+	return ptr;
+}
+
+void MemoryManager::unmapMemory(VmaAllocation allocation) const
+{
+	vmaUnmapMemory(mAllocator, allocation);
+}
+
+void MemoryManager::flushAllocations(const VmaAllocation* allocations, uint32_t num) const
+{
+	VkResult res = vmaFlushAllocations(mAllocator, num,
+		allocations, nullptr, nullptr);
+
+	if (res != VK_SUCCESS) {
+		throw std::runtime_error("Error! Can't flush allocations!");
+	}
 }
 
 void MemoryManager::destroy()

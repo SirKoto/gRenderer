@@ -7,19 +7,19 @@ namespace gr
 namespace vkg
 {
 
-SwapChain::SwapChain(const DeviceComp& device, const Window& window) :  mDevice(device)
+SwapChain::SwapChain(const RenderContext& context, const Window& window) :  mDevice(context.getDevice())
 {
-	createSwapChainAndImages(device, window);
+	createSwapChainAndImages(context, window);
 }
 
-void SwapChain::createSwapChainAndImages(const DeviceComp& device, const Window& window)
+void SwapChain::createSwapChainAndImages(const RenderContext& context, const Window& window)
 {
 	vk::SurfaceKHR surface = window.getSurface();
 
 	// Choose Surface format
 	{
 		std::vector<vk::SurfaceFormatKHR> availableFormats =
-			static_cast<vk::PhysicalDevice>(device).getSurfaceFormatsKHR(surface);
+			static_cast<vk::PhysicalDevice>(context).getSurfaceFormatsKHR(surface);
 		bool found = false;
 		for (const VkSurfaceFormatKHR& availableFormat : availableFormats) {
 			if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM &&
@@ -35,15 +35,15 @@ void SwapChain::createSwapChainAndImages(const DeviceComp& device, const Window&
 
 	}
 	// Choose present mode
-	vk::PresentModeKHR presentMode;
+	
 	{
 		std::vector<vk::PresentModeKHR> presentModes =
-			static_cast<vk::PhysicalDevice>(device).getSurfacePresentModesKHR(surface);
+			static_cast<vk::PhysicalDevice>(context).getSurfacePresentModesKHR(surface);
 		if (std::find(presentModes.begin(), presentModes.end(), vk::PresentModeKHR::eMailbox) != presentModes.end()) {
-			presentMode = vk::PresentModeKHR::eMailbox;
+			mPresentMode = vk::PresentModeKHR::eMailbox;
 		}
 		else {
-			presentMode = vk::PresentModeKHR::eFifo;
+			mPresentMode = vk::PresentModeKHR::eFifo;
 		}
 	}
 
@@ -52,7 +52,7 @@ void SwapChain::createSwapChainAndImages(const DeviceComp& device, const Window&
 	vk::SurfaceTransformFlagBitsKHR preTransform;
 	{
 		vk::SurfaceCapabilitiesKHR capabilities =
-			static_cast<vk::PhysicalDevice>(device).getSurfaceCapabilitiesKHR(surface);
+			static_cast<vk::PhysicalDevice>(context).getSurfaceCapabilitiesKHR(surface);
 
 		preTransform = capabilities.currentTransform;
 		// Check if the capabilites automatically assigned extent, if not then assign it
@@ -91,7 +91,7 @@ void SwapChain::createSwapChainAndImages(const DeviceComp& device, const Window&
 	createInfo.minImageCount = numImages;
 	createInfo.imageFormat = mFormat.format;
 	createInfo.imageColorSpace = mFormat.colorSpace;
-	createInfo.presentMode = presentMode;
+	createInfo.presentMode = mPresentMode;
 	createInfo.imageExtent = mExtent;
 	createInfo.imageArrayLayers = 1;
 	createInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
@@ -102,8 +102,8 @@ void SwapChain::createSwapChainAndImages(const DeviceComp& device, const Window&
 
 
 	// Check if the graphics family and the present family are different
-	if (device.getGraphicsFamilyIdx() != device.getPresentFamilyIdx()) {
-		std::array<uint32_t, 2> indices = { device.getGraphicsFamilyIdx(),  device.getPresentFamilyIdx() };
+	if (context.getGraphicsFamilyIdx() != context.getPresentFamilyIdx()) {
+		std::array<uint32_t, 2> indices = { context.getGraphicsFamilyIdx(),  context.getPresentFamilyIdx() };
 
 		createInfo.imageSharingMode = vk::SharingMode::eConcurrent;
 		createInfo.queueFamilyIndexCount = static_cast<uint32_t>(indices.size());
@@ -113,9 +113,9 @@ void SwapChain::createSwapChainAndImages(const DeviceComp& device, const Window&
 		createInfo.imageSharingMode = vk::SharingMode::eExclusive;
 	}
 
-	mSwapChain = static_cast<vk::Device>(device).createSwapchainKHR(createInfo);
+	mSwapChain = static_cast<vk::Device>(context).createSwapchainKHR(createInfo);
 
-	mImages = static_cast<vk::Device>(device).getSwapchainImagesKHR(mSwapChain);
+	mImages = static_cast<vk::Device>(context).getSwapchainImagesKHR(mSwapChain);
 
 
 	// Create the image views
@@ -136,14 +136,14 @@ void SwapChain::createSwapChainAndImages(const DeviceComp& device, const Window&
 	);
 	for (uint32_t i = 0; i < numImages; ++i) {
 		ivCreateInfo.image = mImages[i];
-		mImageViews[i] = device.getVkDevice().createImageView(ivCreateInfo);
+		mImageViews[i] = context.getDevice().createImageView(ivCreateInfo);
 	}
 }
 
-void SwapChain::recreateSwapChain(const DeviceComp& device, const Window& window)
+void SwapChain::recreateSwapChain(const RenderContext& context, const Window& window)
 {
 	destroy();
-	createSwapChainAndImages(device, window);
+	createSwapChainAndImages(context, window);
 }
 
 void SwapChain::destroy()
@@ -170,12 +170,20 @@ bool SwapChain::acquireNextImageBlock(const vk::Semaphore semaphore, uint32_t* i
 	return result.result != vk::Result::eErrorOutOfDateKHR;
 }
 
-std::vector<vk::Framebuffer> SwapChain::createFramebuffersOfSwapImages(const vk::RenderPass renderPass) const
+std::vector<vk::Framebuffer> SwapChain::createFramebuffersOfSwapImages(
+	const vk::RenderPass renderPass,
+	const uint32_t numAttachments,
+	const vk::ImageView* attachments_) const
 {
+	std::vector<vk::ImageView> attachments(numAttachments + 1);
+	for (uint32_t i = 0; i < numAttachments; ++i) {
+		attachments[i+1] = attachments_[i];
+	}
 	vk::FramebufferCreateInfo createInfo = vk::FramebufferCreateInfo(
 		{},			// flags
 		renderPass,
-		1, nullptr,
+		numAttachments + 1,
+		attachments.data(),
 		mExtent.width,
 		mExtent.height,
 		1
@@ -186,7 +194,7 @@ std::vector<vk::Framebuffer> SwapChain::createFramebuffersOfSwapImages(const vk:
 	std::vector<vk::Framebuffer> framebuffers(size);
 
 	for (uint32_t i = 0; i < size; ++i) {
-		createInfo.setPAttachments(mImageViews.data() + i);
+		attachments.front() = mImageViews[i];
 
 		framebuffers[i] = mDevice.createFramebuffer(createInfo);
 	}

@@ -74,7 +74,7 @@ uint32_t RenderPassBuilder::pushGraphicsSubpassDescriptionSimple(
 		vk::SubpassDescription(
 			{},									// flags
 			vk::PipelineBindPoint::eGraphics,	// Bind point
-			0, nullptr,							// no imput attachments
+			0, nullptr,							// no input attachments
 			1, pColorAttachment,				// One color attachment
 			pResolveAttachment,					// Associated resolve attachment (may be null)
 			pDepthStencilAttachment,			// may also be null
@@ -90,7 +90,7 @@ void RenderPassBuilder::pushSubpassDependency(const vk::SubpassDependency& depen
 	mDependencies.push_back(dependency);
 }
 
-RenderPass RenderPassBuilder::buildRenderPass(const DeviceComp& device) const
+RenderPass RenderPassBuilder::buildRenderPass(const RenderContext& context) const
 {
 	RenderPass pass;
 
@@ -103,7 +103,7 @@ RenderPass RenderPassBuilder::buildRenderPass(const DeviceComp& device) const
 		static_cast<uint32_t>(mDependencies.size()),	
 		mDependencies.data());
 
-	pass.mRenderPass = device.getVkDevice().createRenderPass(info);
+	pass.mRenderPass = context.getDevice().createRenderPass(info);
 
 	return pass;
 }

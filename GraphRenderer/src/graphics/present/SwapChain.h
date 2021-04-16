@@ -1,7 +1,7 @@
 #pragma once
 #define NOMINMAX
-#include "../DeviceComp.h"
 #include "../Window.h"
+#include "../RenderContext.h"
 
 namespace gr
 {
@@ -14,11 +14,15 @@ namespace vkg
 
 		SwapChain() = default;
 
-		SwapChain(const DeviceComp& device,
+		SwapChain(const RenderContext& device,
 			const Window& window);
 
 		vk::Format getFormat() const { return mFormat.format; }
 		vk::ColorSpaceKHR getColorSpace() const { return mFormat.colorSpace; }
+		vk::PresentModeKHR getPresentMode() const { return mPresentMode; }
+
+		vk::SurfaceFormatKHR getSurfaceFormat() const { return mFormat; }
+
 		const vk::Extent2D& getExtent() const { return mExtent; }
 
 		const std::vector<vk::Image>& getImagesVector() const { return mImages; }
@@ -26,7 +30,7 @@ namespace vkg
 
 		uint32_t getNumImages() const { return static_cast<uint32_t>(mImages.size()); }
 
-		void recreateSwapChain(const DeviceComp& device,
+		void recreateSwapChain(const RenderContext& device,
 			const Window& window);
 
 		void destroy();
@@ -35,7 +39,11 @@ namespace vkg
 
 		bool acquireNextImageBlock(const vk::Semaphore semaphore, uint32_t* imageIdx) const;
 
-		std::vector<vk::Framebuffer> createFramebuffersOfSwapImages(const vk::RenderPass renderPass) const;
+		// The first attachment of the renderpass must be the resolve color image
+		std::vector<vk::Framebuffer> createFramebuffersOfSwapImages(
+			const vk::RenderPass renderPass,
+			const uint32_t numAttachments = 0,
+			const vk::ImageView* attachments =  nullptr) const;
 
 
 	protected:
@@ -48,8 +56,9 @@ namespace vkg
 
 		vk::Extent2D mExtent;
 		vk::SurfaceFormatKHR mFormat;
+		vk::PresentModeKHR mPresentMode;
 
-		void createSwapChainAndImages(const DeviceComp& device, const Window& window);
+		void createSwapChainAndImages(const RenderContext& device, const Window& window);
 	};
 
 }; // namespace vkg

@@ -8,6 +8,8 @@
 #include <memory>
 #include <iostream>
 
+#include "../utils/serialization.h"
+
 #include "Mesh.h"
 #include "Texture.h"
 #include "Sampler.h"
@@ -17,6 +19,7 @@
 #include "Pipeline.h"
 #include "Scene.h"
 #include "GameObject.h"
+
 
 
 namespace gr
@@ -75,6 +78,16 @@ protected:
 	// Create new unique name from string. Does not lock!
 	std::string createUniqueName(const std::string& string);
 
+
+	// Serialization functions
+	template<class Archive>
+	void serialize(Archive& archive)
+	{
+		archive(GR_SERIALIZE_NVP_MEMBER(mNextId));
+		archive(GR_SERIALIZE_NVP_MEMBER(mName2Id));
+	}
+
+	GR_SERIALIZE_PRIVATE_MEMBERS
 };
 
 template<typename T>

@@ -1,5 +1,9 @@
 #include "GlobalContext.h"
 
+#include "../utils/serialization.h"
+#include <cereal/cereal.hpp>
+#include <fstream>
+
 void gr::GlobalContext::setTime(double_t newTime)
 {
 	double_t dt = newTime - this->getTime();
@@ -18,6 +22,17 @@ double_t gr::GlobalContext::computeDeltaTime() const
 		dt += this->mDeltaTimes[i] / this->mDeltaTimes.size();
 	}
     return dt;
+}
+
+void gr::GlobalContext::saveProject() const
+{
+	std::filesystem::path resourcesPath = mProjectPath;
+	resourcesPath /= "Resources.json";
+	std::ofstream stream(resourcesPath, std::ofstream::out | std::ofstream::trunc);
+
+	cereal::JSONOutputArchive archive(stream, cereal::JSONOutputArchive::Options::Default());
+
+	archive( GR_SERIALIZE_NVP_MEMBER(mDict));
 }
 
 void gr::GlobalContext::destroy()

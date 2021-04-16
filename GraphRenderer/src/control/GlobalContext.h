@@ -4,6 +4,8 @@
 #include "../graphics/Window.h"
 #include "../meshes/ResourceDictionary.h"
 
+#include <filesystem>
+
 namespace gr
 {
 
@@ -27,6 +29,12 @@ public:
 	ResId getBoundScene() const { return mBoundScene; }
 	void setBoundScene(ResId id) { mBoundScene = id; }
 
+	const std::filesystem::path& getProjectPath() const { return mProjectPath; }
+	std::filesystem::path& getProjectPath() { return mProjectPath; }
+	void setProjectPath(const std::filesystem::path& newPath) { mProjectPath = newPath; }
+
+	void saveProject() const;
+
 	void destroy();
 
 private:
@@ -38,6 +46,9 @@ private:
 	ResourceDictionary mDict;
 
 	ResId mBoundScene;
+
+	std::filesystem::path mProjectPath = {};
+
 };
 
 } // namespace gr

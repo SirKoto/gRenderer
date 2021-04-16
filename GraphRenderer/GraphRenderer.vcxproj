@@ -267,6 +267,7 @@
     <ClInclude Include="src\utils\grjob.h" />
     <ClInclude Include="src\utils\math\BBox.h" />
     <ClInclude Include="src\utils\math\Quaternion.h" />
+    <ClInclude Include="src\utils\serialization.h" />
     <ClInclude Include="src_lib\ImGuiFileDialog\dirent\dirent.h" />
     <ClInclude Include="src_lib\ImGuiFileDialog\ImGuiFileDialog.h" />
     <ClInclude Include="src_lib\ImGuiFileDialog\ImGuiFileDialogConfig.h" />

@@ -11,9 +11,9 @@ ResId ResourceDictionary::getAndUpdateId()
 {
 	std::unique_lock idLock(mNextIdMutex);
 
-	mNextId.value += 1;
+	mLastIdUsed.value += 1;
 
-	return mNextId;
+	return mLastIdUsed;
 }
 
 void ResourceDictionary::destroy(FrameContext* fc)
@@ -25,8 +25,10 @@ void ResourceDictionary::destroy(FrameContext* fc)
 
 void ResourceDictionary::flushDataAndFree(FrameContext* fc)
 {
+	std::unique_lock lock(mEraseObjectMutex);
+
 	for (const ResId& id : mObjectsToFree) {
-		for (std::set<ResId>& s : mObjectsByType) {
+		for (std::unordered_set<ResId>& s : mObjectsByType) {
 			s.erase(id);
 		}
 		decltype(mObjectsDictionary)::iterator it = mObjectsDictionary.find(id);
@@ -51,6 +53,35 @@ void ResourceDictionary::erase(ResId id)
 {
 	std::unique_lock lock(mEraseObjectMutex);
 	mObjectsToFree.push_back(id);
+}
+
+uint32_t ResourceDictionary::size() const
+{
+	std::shared_lock slock(mObjectsMutex);
+	return uint32_t( mObjectsDictionary.size() );
+}
+
+bool ResourceDictionary::empty() const
+{
+	return this->size() == 0;
+}
+
+void ResourceDictionary::clear(FrameContext* fc)
+{
+	std::unique_lock ulock(mObjectsMutex);
+	flushDataAndFree(fc);
+
+	for (std::unordered_set<ResId>& s : mObjectsByType) {
+		s.clear();
+	}
+
+	for (decltype(mObjectsDictionary)::iterator it = mObjectsDictionary.begin();
+		it != mObjectsDictionary.end(); ++it) {
+		it->second->scheduleDestroy(fc);
+	}
+
+	mObjectsDictionary.clear();
+	mName2Id.clear();
 }
 
 ResId ResourceDictionary::getId(const std::string& name) const

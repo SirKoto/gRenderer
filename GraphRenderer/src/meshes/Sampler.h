@@ -13,6 +13,7 @@ class Sampler : public IObject
 {
 public:
 
+	Sampler() = default;
 	Sampler(FrameContext* fc) : IObject(fc) {}
 
 
@@ -33,6 +34,19 @@ protected:
 
 	vk::SamplerAddressMode mAddresMode = vk::SamplerAddressMode::eRepeat;
 
+	// Serialization functions
+	template<class Archive>
+	void serialize(Archive& archive)
+	{
+		archive(cereal::base_class<IObject>(this));
+		//TODO
+	}
+
+	GR_SERIALIZE_PRIVATE_MEMBERS
+
 };
 
 } // namespace gr
+
+GR_SERIALIZE_TYPE(gr::Sampler)
+GR_SERIALIZE_POLYMORPHIC_RELATION(gr::IObject, gr::Sampler)

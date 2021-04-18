@@ -9,6 +9,7 @@
 namespace gr
 {
 
+class FrameContext;
 
 class GlobalContext
 {
@@ -34,6 +35,7 @@ public:
 	void setProjectPath(const std::filesystem::path& newPath) { mProjectPath = newPath; }
 
 	void saveProject() const;
+	void reloadProject(FrameContext *fc);
 
 	void destroy();
 

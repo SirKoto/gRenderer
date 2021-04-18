@@ -16,6 +16,7 @@ class Texture : public IObject
 {
 public:
 
+	Texture() = default;
 	Texture(FrameContext* fc) : IObject(fc) {}
 
 
@@ -32,6 +33,19 @@ protected:
 
 	vkg::Image2D mImage2d;
 	std::string mPath;
+
+	// Serialization functions
+	template<class Archive>
+	void serialize(Archive& archive)
+	{
+		archive(cereal::base_class<IObject>(this));
+		archive(GR_SERIALIZE_NVP_MEMBER(mPath));
+	}
+
+	GR_SERIALIZE_PRIVATE_MEMBERS
 };
 
 } // namespace gr
+
+GR_SERIALIZE_TYPE(gr::Texture)
+GR_SERIALIZE_POLYMORPHIC_RELATION(gr::IObject, gr::Texture)

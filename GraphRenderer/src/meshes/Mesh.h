@@ -22,6 +22,7 @@ class Mesh : public IObject
 {
 public:
 
+	Mesh() = default;
 	Mesh(FrameContext* fc) : IObject(fc) {}
 
 	Mesh(const Mesh&) = default;
@@ -88,6 +89,20 @@ protected:
 
 	void parseObj(const char* fileName);
 	void parsePly(const char* fileName);
+
+
+	// Serialization functions
+	template<class Archive>
+	void serialize(Archive& archive)
+	{
+		archive(cereal::base_class<IObject>(this));
+		archive(GR_SERIALIZE_NVP_MEMBER(mPath));
+	}
+
+	GR_SERIALIZE_PRIVATE_MEMBERS
 };
 
 } // namespace gr
+
+GR_SERIALIZE_TYPE(gr::Mesh)
+GR_SERIALIZE_POLYMORPHIC_RELATION(gr::IObject, gr::Mesh)

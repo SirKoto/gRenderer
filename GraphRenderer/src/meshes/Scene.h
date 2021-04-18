@@ -16,6 +16,7 @@ class Scene :
 {
 public:
 
+    Scene() = default;
     Scene(FrameContext* fc);
 
 
@@ -36,6 +37,17 @@ private:
 
     std::set<ResId> mGameObjects;
 
+    // Serialization functions
+    template<class Archive>
+    void serialize(Archive& archive)
+    {
+        archive(cereal::base_class<IObject>(this));
+        archive(mUiCameraGameObj);
+        archive(mGameObjects);
+    }
+
+    GR_SERIALIZE_PRIVATE_MEMBERS
+
 };
 
 struct SceneRenderContext {
@@ -43,3 +55,6 @@ struct SceneRenderContext {
 };
 
 } // namespace gr
+
+GR_SERIALIZE_TYPE(gr::Scene)
+GR_SERIALIZE_POLYMORPHIC_RELATION(gr::IObject, gr::Scene)

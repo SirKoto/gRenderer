@@ -13,11 +13,14 @@ namespace addon
 class Transform : public IAddon
 {
 public:
+	Transform() = default;
 
 	Transform(FrameContext* fc) : IAddon(fc) {}
 
 
 	void drawImGuiInspector(FrameContext* fc, GameObject* parent) override final;
+
+	const char* getAddonName() override { return Transform::s_getAddonName(); }
 
 	static const char* s_getAddonName() { return "Transform"; }
 
@@ -41,8 +44,21 @@ private:
 
 	glm::quat mRotation = glm::quat(1.f, glm::vec3(0.f));
 
+	// Serialization functions
+	template<class Archive>
+	void serialize(Archive& ar)
+	{
+		ar(GR_SERIALIZE_NVP_MEMBER(mPos));
+		ar(GR_SERIALIZE_NVP_MEMBER(mScale));
+		ar(GR_SERIALIZE_NVP_MEMBER(mRotation));
+	}
+
+	GR_SERIALIZE_PRIVATE_MEMBERS
 };
 
 
 } // namespace addon
 } // namespace gr
+
+GR_SERIALIZE_TYPE(gr::addon::Transform)
+GR_SERIALIZE_POLYMORPHIC_RELATION(gr::addon::IAddon, gr::addon::Transform)

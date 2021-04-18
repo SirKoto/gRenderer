@@ -120,10 +120,12 @@ static uint32_t __glsl_shader_frag_spv[] =
 };
 
 
-constexpr const char * IMPORT_MESH_STRING_KEY = "ImportMeshChooserKeyImGuiFileDialog";
+constexpr const char* IMPORT_MESH_STRING_KEY = "ImportMeshChooserKeyImGuiFileDialog";
 constexpr const char* IMPORT_TEX_STRING_KEY = "ImportTextureChooserKeyImGuiFileDialog";
 constexpr const char* IMPORT_SPIRV_STRING_KEY = "ImportSPIRVChooserKeyImGuiFileDialog";
 constexpr const char* NEW_PROJECT_STRING_KEY = "NewProjectKeyImGuiFileDialog";
+constexpr const char* LOAD_PROJECT_STRING_KEY = "LoadProjectKeyImGuiFileDialog";
+
 
 
 
@@ -614,6 +616,17 @@ void Gui::drawMainMenuBar(FrameContext* fc)
                 );
             }
 
+            if (ImGui::MenuItem("Load project")) {
+                mFilePickerInUse = true;
+                // open dialog
+                ImGuiFileDialog::Instance()->OpenDialog(
+                    LOAD_PROJECT_STRING_KEY,
+                    "Chose folder with project",
+                    0, // directory
+                    "." // from where
+                );
+            }
+
             if (ImGui::MenuItem("Save project", nullptr, nullptr, projectLoaded)) {
                 fc->gc().saveProject();
             }
@@ -750,6 +763,27 @@ void Gui::drawFilePicker(FrameContext* fc)
             std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
 
             fc->gc().setProjectPath(filePath);
+
+        }
+
+        // close
+        ImGuiFileDialog::Instance()->Close();
+    }
+
+    if (ImGuiFileDialog::Instance()->Display(
+        LOAD_PROJECT_STRING_KEY, // Key
+        ImGuiWindowFlags_NoCollapse,
+        ImVec2(0, 20 * ImGui::GetFontSize()) // minSize
+    )) {
+        assert(mFilePickerInUse);
+        mFilePickerInUse = false;
+        // action if OK
+        if (ImGuiFileDialog::Instance()->IsOk())
+        {
+            std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+
+            fc->gc().setProjectPath(filePath);
+            fc->gc().reloadProject(fc);
 
         }
 

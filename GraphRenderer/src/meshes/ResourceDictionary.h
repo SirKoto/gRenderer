@@ -46,6 +46,12 @@ public:
 	// erase will schedule destroy on the item
 	void erase(ResId id);
 
+	uint32_t size() const;
+	bool empty() const;
+
+	// clear the data structure
+	void clear(FrameContext* fc);
+
 	ResId getId(const std::string&  name) const;
 	std::string getName(const ResId id) const;
 	bool existsName(const std::string& name) const;
@@ -63,11 +69,11 @@ protected:
 
 	std::vector<ResId> mObjectsToFree;
 	std::unordered_map<ResId, std::unique_ptr<IObject>> mObjectsDictionary;
-	std::array<std::set<ResId>, ctools::length<ResourceTypesList>()> mObjectsByType;
+	std::array<std::unordered_set<ResId>, ctools::length<ResourceTypesList>()> mObjectsByType;
 
 	std::unordered_map<std::string, ResId> mName2Id;
 
-	ResId mNextId = ResId(1);
+	ResId mLastIdUsed = ResId(1);
 
 	mutable std::mutex mEraseObjectMutex;
 	mutable std::shared_mutex mObjectsMutex;
@@ -83,8 +89,12 @@ protected:
 	template<class Archive>
 	void serialize(Archive& archive)
 	{
-		archive(GR_SERIALIZE_NVP_MEMBER(mNextId));
+		std::shared_lock slock(mObjectsMutex);
+
+		archive(GR_SERIALIZE_NVP_MEMBER(mLastIdUsed));
 		archive(GR_SERIALIZE_NVP_MEMBER(mName2Id));
+		archive(GR_SERIALIZE_NVP_MEMBER(mObjectsByType));
+		archive(GR_SERIALIZE_NVP_MEMBER(mObjectsDictionary));
 	}
 
 	GR_SERIALIZE_PRIVATE_MEMBERS
@@ -116,7 +126,7 @@ ResId ResourceDictionary::allocateObject(
 		std::pair<decltype(mObjectsDictionary)::iterator, bool> itObj =
 			mObjectsDictionary.emplace(id, std::unique_ptr<IObject>(new T(fc)));
 		assert(itObj.second); // assert inserted
-		std::pair<std::set<ResId>::iterator, bool> itObjType =
+		std::pair<std::unordered_set<ResId>::iterator, bool> itObjType =
 			mObjectsByType[typeIdx].insert(id);
 		assert(itObjType.second);
 

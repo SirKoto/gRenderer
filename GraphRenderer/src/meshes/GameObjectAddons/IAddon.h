@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../../utils/serialization.h"
+
 namespace gr {
 
 class FrameContext;
@@ -11,7 +13,7 @@ namespace addon {
 class IAddon
 {
 public:
-	
+	IAddon() = default;
 	IAddon(FrameContext* fc) {}
 
 	virtual void drawImGuiInspector(FrameContext* fc, GameObject* parent) = 0;
@@ -23,6 +25,8 @@ public:
 	virtual void destroy(FrameContext* fc) {}
 
 	virtual ~IAddon() {}
+
+	virtual const char* getAddonName() = 0;
 
 	static const char* s_getAddonName() { return "Addon"; }
 

@@ -11,6 +11,7 @@ class Pipeline :
 {
 public:
 
+    Pipeline() = default;
     Pipeline(FrameContext* fc) : IObject(fc) {}
 
 
@@ -27,6 +28,19 @@ private:
 
     gr::ResId mMaterialDescriptorLayout;
 
-};
+    // Serialization functions
+    template<class Archive>
+    void serialize(Archive& archive)
+    {
+        archive(cereal::base_class<IObject>(this));
+        //TODO
+    }
+
+    GR_SERIALIZE_PRIVATE_MEMBERS
+
+}; // class Pipeline
 
 } // namespace gr
+
+GR_SERIALIZE_TYPE(gr::Pipeline)
+GR_SERIALIZE_POLYMORPHIC_RELATION(gr::IObject, gr::Pipeline)

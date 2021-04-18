@@ -13,6 +13,7 @@ class Camera : public IAddon
 {
 public:
 
+	Camera() = default;
 	Camera(FrameContext* fc) : IAddon(fc) { createUbos(fc); }
 
 	void drawImGuiInspector(FrameContext* fc, GameObject* parent) override;
@@ -20,6 +21,9 @@ public:
 	void updateBeforeRender(FrameContext* fc, GameObject* parent, const SceneRenderContext& src) override;
 
 	void destroy(FrameContext* fc) override;
+
+	const char* getAddonName() override { return Camera::s_getAddonName(); }
+
 
 	static const char* s_getAddonName() { return "Camera"; }
 
@@ -36,8 +40,24 @@ protected:
 
 	void createUbos(FrameContext* fc);
 
+	// Serialization functions
+	template<class Archive>
+	void serialize(Archive& ar)
+	{
+		ar(GR_SERIALIZE_NVP_MEMBER(mFov),
+			GR_SERIALIZE_NVP_MEMBER(mNear),
+			GR_SERIALIZE_NVP_MEMBER(mFar),
+			GR_SERIALIZE_NVP_MEMBER(mAspectRatio)
+			);
+	}
+
+	GR_SERIALIZE_PRIVATE_MEMBERS
+
 };
 
 
 } // namespace addon
 } // namespace gr
+
+GR_SERIALIZE_TYPE(gr::addon::Camera)
+GR_SERIALIZE_POLYMORPHIC_RELATION(gr::addon::IAddon, gr::addon::Camera)

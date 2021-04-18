@@ -14,7 +14,7 @@ class DescriptorSetLayout :
     public IObject
 {
 public:
-
+	DescriptorSetLayout() = default;
 	DescriptorSetLayout(FrameContext* fc) : IObject(fc) {}
 
 
@@ -37,6 +37,20 @@ private:
 	std::list<DSL> mBindings;
 
 	void createDescriptorLayout(FrameContext* fc);
+
+	// Serialization functions
+	template<class Archive>
+	void serialize(Archive& archive)
+	{
+		archive(cereal::base_class<IObject>(this));
+		// TODO
+	}
+
+	GR_SERIALIZE_PRIVATE_MEMBERS
+
 };
 
 } // namespace gr
+
+GR_SERIALIZE_TYPE(gr::DescriptorSetLayout)
+GR_SERIALIZE_POLYMORPHIC_RELATION(gr::IObject, gr::DescriptorSetLayout)

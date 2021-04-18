@@ -15,7 +15,7 @@ class GameObject :
     public IObject
 {
 public:
-
+    GameObject() = default;
     GameObject(FrameContext* fc);
 
 
@@ -42,8 +42,41 @@ protected:
     addon::Transform mTransform;
 
     std::map<const char*, std::unique_ptr<addon::IAddon>> mAddons;
-};
 
+    // Serialization functions
+
+    template<class Archive>
+    void save(Archive& ar) const
+    {
+        ar(cereal::base_class<IObject>(this));
+        ar(GR_SERIALIZE_NVP_MEMBER(mTransform));
+
+        uint32_t numAddons = static_cast<uint32_t>(mAddons.size());
+        ar(numAddons);
+        for (decltype(mAddons)::const_iterator it = mAddons.begin(); it != mAddons.end(); ++it) {
+            ar(it->second);
+        }
+    }
+
+    template<class Archive>
+    void load(Archive& ar)
+    {
+        ar(cereal::base_class<IObject>(this));
+        ar(GR_SERIALIZE_NVP_MEMBER(mTransform));
+
+        uint32_t numAddons;
+        ar(numAddons);
+        decltype(mAddons)::mapped_type ty;
+        while (numAddons-- > 0) {
+            ar(ty);
+            const char* name = ty->getAddonName();
+            mAddons.emplace(name, std::move(ty));
+        }
+
+    }
+
+    GR_SERIALIZE_PRIVATE_MEMBERS
+};
 
 template<typename Addon>
 inline Addon* gr::GameObject::getAddon()
@@ -89,3 +122,7 @@ inline bool gr::GameObject::addAddon<addon::Transform>(FrameContext* fc)
 }
 
 } // namespace gr
+
+CEREAL_SPECIALIZE_FOR_ALL_ARCHIVES(gr::GameObject, cereal::specialization::member_load_save)
+GR_SERIALIZE_TYPE(gr::GameObject)
+GR_SERIALIZE_POLYMORPHIC_RELATION(gr::IObject, gr::GameObject)

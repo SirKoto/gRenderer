@@ -4,6 +4,8 @@
 #include <stdint.h>
 
 #include <vulkan/vulkan.hpp>
+
+#include "../utils/serialization.h"
 #include "ResourcesHeader.h"
 
 namespace gr
@@ -15,6 +17,7 @@ class GlobalContext;
 class IObject
 {
 public:
+	IObject() = default;
 
 	IObject(FrameContext* fc) {}
 
@@ -40,6 +43,15 @@ private:
 protected:
 
 	void markUpdated(FrameContext* fc);
+
+	// Serialization functions
+	template<class Archive>
+	void serialize(Archive& archive)
+	{
+		archive(GR_SERIALIZE_NVP_MEMBER(mObjectName));
+	}
+
+	GR_SERIALIZE_PRIVATE_MEMBERS
 
 };
 

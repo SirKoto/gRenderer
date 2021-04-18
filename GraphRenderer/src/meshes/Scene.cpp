@@ -12,6 +12,7 @@
 
 namespace gr
 {
+
 Scene::Scene(FrameContext* fc) : IObject(fc)
 {
 	mUiCameraGameObj = std::make_unique<GameObject>(fc);
@@ -19,6 +20,7 @@ Scene::Scene(FrameContext* fc) : IObject(fc)
 	res &= mUiCameraGameObj->addAddon<addon::SimplePlayerControl>(fc);
 	assert(res);
 }
+
 void Scene::scheduleDestroy(FrameContext* fc)
 {
 	if (mUiCameraGameObj) {

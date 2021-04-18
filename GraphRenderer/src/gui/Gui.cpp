@@ -782,9 +782,9 @@ void Gui::drawFilePicker(FrameContext* fc)
         {
             std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
 
-            fc->gc().setProjectPath(filePath);
-            fc->gc().reloadProject(fc);
+            bool res = fc->gc().loadProject(fc, filePath);
 
+            std::cerr << "Error: project can't be loaded" << std::endl;
         }
 
         // close
@@ -811,7 +811,7 @@ void Gui::drawFilePicker(FrameContext* fc)
                 map.begin()->first,
                 &mesh
             );
-            mesh->load(&fc->rc(), map.begin()->second.c_str());
+            mesh->load(fc, map.begin()->second.c_str());
         }
 
         // close
@@ -838,7 +838,7 @@ void Gui::drawFilePicker(FrameContext* fc)
                 map.begin()->first,
                 &tex
             );
-            tex->load(&fc->rc(), map.begin()->second.c_str());
+            tex->load(fc, map.begin()->second.c_str());
         }
 
         // close

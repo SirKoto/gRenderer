@@ -35,7 +35,7 @@ public:
 	void setProjectPath(const std::filesystem::path& newPath) { mProjectPath = newPath; }
 
 	void saveProject() const;
-	void reloadProject(FrameContext *fc);
+	bool loadProject(FrameContext *fc, const std::filesystem::path& projectPath);
 
 	void destroy();
 

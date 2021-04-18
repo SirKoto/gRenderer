@@ -39,11 +39,15 @@ void gr::GlobalContext::saveProject() const
 	archive( GR_SERIALIZE_NVP_MEMBER(mDict));
 }
 
-void gr::GlobalContext::reloadProject(FrameContext* fc)
+bool gr::GlobalContext::loadProject(FrameContext* fc, const std::filesystem::path& newPath)
 {
 	std::filesystem::path resourcesPath = mProjectPath;
 	resourcesPath /= RESOURCES_FILE;
 	std::ifstream stream(resourcesPath, std::ofstream::in);
+
+	if (!stream) {
+		return false;
+	}
 
 	cereal::JSONInputArchive archive(stream);
 
@@ -52,6 +56,10 @@ void gr::GlobalContext::reloadProject(FrameContext* fc)
 	}
 
 	archive( mDict );
+
+	this->setProjectPath(newPath);
+
+	return true;
 }
 
 void gr::GlobalContext::destroy()

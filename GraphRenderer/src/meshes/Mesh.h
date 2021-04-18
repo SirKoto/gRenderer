@@ -31,7 +31,7 @@ public:
 	Mesh& operator=(Mesh&&) = default;
 
 	// Catch exception if it can fail
-	void load(vkg::RenderContext* rc,
+	void load(FrameContext* fc,
 		const char* filePath);
 
 	void scheduleDestroy(FrameContext* fc) override final;

@@ -10,16 +10,22 @@
 #include <imgui/imgui.h>
 #include <tiny_obj_loader/tiny_obj_loader.h>
 #include <tiny_ply_loader/tinyply.h>
-#include<unordered_map>
+#include <unordered_map>
+#include <filesystem>
 
 namespace gr
 {
 
-void Mesh::load(vkg::RenderContext* rc,
+void Mesh::load(FrameContext* fc,
 	const char* filePath)
 {
 
-	mPath.assign(filePath);
+	std::filesystem::path path(filePath);
+	path = std::filesystem::relative(path, fc->gc().getProjectPath());
+
+	mPath.assign(path.string());
+
+	vkg::RenderContext* rc = &fc->rc();
 
 	mVertices.clear();
 	mIndices.clear();

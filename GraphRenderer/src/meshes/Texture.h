@@ -20,7 +20,7 @@ public:
 	Texture(FrameContext* fc) : IObject(fc) {}
 
 
-	bool load(vkg::RenderContext* rc,
+	bool load(FrameContext* fc,
 		const char* filePath);
 
 	void scheduleDestroy(FrameContext* fc) override final;

@@ -621,7 +621,7 @@ void Gui::drawMainMenuBar(FrameContext* fc)
                 // open dialog
                 ImGuiFileDialog::Instance()->OpenDialog(
                     LOAD_PROJECT_STRING_KEY,
-                    "Chose folder with project",
+                    "Chose folder with project to load",
                     0, // directory
                     "." // from where
                 );

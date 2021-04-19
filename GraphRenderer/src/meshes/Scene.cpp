@@ -12,7 +12,10 @@
 
 namespace gr
 {
-
+Scene::Scene()
+{
+	mUiCameraGameObj = std::make_unique<GameObject>();
+}
 void Scene::scheduleDestroy(FrameContext* fc)
 {
 	if (mUiCameraGameObj) {
@@ -152,11 +155,9 @@ void Scene::logicUpdate(FrameContext* fc)
 
 void Scene::start(FrameContext* fc)
 {
-	mUiCameraGameObj = std::make_unique<GameObject>();
 	mUiCameraGameObj->start(fc);
-	bool res = mUiCameraGameObj->addAddon<addon::Camera>(fc);
-	res &= mUiCameraGameObj->addAddon<addon::SimplePlayerControl>(fc);
-	assert(res);
+	mUiCameraGameObj->addAddon<addon::Camera>(fc);
+	mUiCameraGameObj->addAddon<addon::SimplePlayerControl>(fc);
 }
 
 } // namespace gr

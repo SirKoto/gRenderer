@@ -36,6 +36,7 @@ void gr::GlobalContext::saveProject() const
 
 	cereal::JSONOutputArchive archive(stream, cereal::JSONOutputArchive::Options::Default());
 
+	archive(GR_SERIALIZE_NVP_MEMBER(mBoundScene));
 	archive( GR_SERIALIZE_NVP_MEMBER(mDict));
 }
 
@@ -50,6 +51,8 @@ bool gr::GlobalContext::loadProject(FrameContext* fc, const std::filesystem::pat
 	}
 
 	cereal::JSONInputArchive archive(stream);
+
+	archive(mBoundScene);
 
 	if (!mDict.empty()) {
 		mDict.clear(fc);

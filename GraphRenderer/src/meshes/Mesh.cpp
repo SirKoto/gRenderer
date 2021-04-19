@@ -182,6 +182,8 @@ void Mesh::parsePly(const char* fileName)
 
 	try { texcoords = file.request_properties_from_element("vertex", { "u", "v" }); }
 	catch (const std::exception&) {}
+	try { texcoords = file.request_properties_from_element("vertex", { "s", "t" }); }
+	catch (const std::exception&) {}
 
 	try { faces = file.request_properties_from_element("face", { "vertex_indices" }, 3); }
 	catch (const std::exception&) {}

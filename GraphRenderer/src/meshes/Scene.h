@@ -16,7 +16,7 @@ class Scene :
 {
 public:
 
-    Scene() = default;
+    Scene();
 
     static constexpr const char* s_getClassName() { return "Scene"; }
 

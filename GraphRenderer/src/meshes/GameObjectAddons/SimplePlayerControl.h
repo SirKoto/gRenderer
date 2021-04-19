@@ -13,7 +13,6 @@ class SimplePlayerControl :
 {
 public:
     SimplePlayerControl() = default;
-    SimplePlayerControl(FrameContext* fc) : IAddon(fc) {}
 
     void drawImGuiInspector(FrameContext* fc, GameObject* parent) override;
 

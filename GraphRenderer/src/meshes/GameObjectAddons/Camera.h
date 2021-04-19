@@ -14,12 +14,12 @@ class Camera : public IAddon
 public:
 
 	Camera() = default;
-	Camera(FrameContext* fc) : IAddon(fc) { createUbos(fc); }
 
 	void drawImGuiInspector(FrameContext* fc, GameObject* parent) override;
 
 	void updateBeforeRender(FrameContext* fc, GameObject* parent, const SceneRenderContext& src) override;
 
+	void start(FrameContext* fc) override { createUbos(fc); };
 	void destroy(FrameContext* fc) override;
 
 	const char* getAddonName() override { return Camera::s_getAddonName(); }

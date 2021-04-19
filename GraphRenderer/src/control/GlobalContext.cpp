@@ -41,7 +41,7 @@ void gr::GlobalContext::saveProject() const
 
 bool gr::GlobalContext::loadProject(FrameContext* fc, const std::filesystem::path& newPath)
 {
-	std::filesystem::path resourcesPath = mProjectPath;
+	std::filesystem::path resourcesPath = newPath;
 	resourcesPath /= RESOURCES_FILE;
 	std::ifstream stream(resourcesPath, std::ofstream::in);
 
@@ -58,6 +58,8 @@ bool gr::GlobalContext::loadProject(FrameContext* fc, const std::filesystem::pat
 	archive( mDict );
 
 	this->setProjectPath(newPath);
+
+	mDict.startAll(fc);
 
 	return true;
 }

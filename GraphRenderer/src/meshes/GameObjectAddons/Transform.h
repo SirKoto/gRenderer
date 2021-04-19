@@ -15,8 +15,6 @@ class Transform : public IAddon
 public:
 	Transform() = default;
 
-	Transform(FrameContext* fc) : IAddon(fc) {}
-
 
 	void drawImGuiInspector(FrameContext* fc, GameObject* parent) override final;
 

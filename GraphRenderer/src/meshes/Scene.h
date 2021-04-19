@@ -17,14 +17,14 @@ class Scene :
 public:
 
     Scene() = default;
-    Scene(FrameContext* fc);
-
 
     static constexpr const char* s_getClassName() { return "Scene"; }
 
-    virtual void scheduleDestroy(FrameContext* fc) override;
+    void scheduleDestroy(FrameContext* fc) override;
 
-    virtual void renderImGui(FrameContext* fc, GuiFeedback* feedback = nullptr) override;
+    void renderImGui(FrameContext* fc, GuiFeedback* feedback = nullptr) override;
+
+    void start(FrameContext* fc) override;
 
     void graphicsUpdate(FrameContext* fc);
 

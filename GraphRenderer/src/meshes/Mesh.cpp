@@ -21,9 +21,13 @@ void Mesh::load(FrameContext* fc,
 {
 
 	std::filesystem::path path(filePath);
-	path = std::filesystem::relative(path, fc->gc().getProjectPath());
+	if (path.is_absolute()) {
+		path = std::filesystem::relative(path, fc->gc().getProjectPath());
+	}
 
 	mPath.assign(path.string());
+	
+	std::filesystem::path absolutePath = fc->gc().getProjectPath() / path;
 
 	vkg::RenderContext* rc = &fc->rc();
 
@@ -32,10 +36,10 @@ void Mesh::load(FrameContext* fc,
 	mBBox.reset();
 
 	if (mPath.find(".obj") != std::string::npos) {
-		parseObj(mPath.c_str());
+		parseObj(absolutePath.string().c_str());
 	}
 	else if (mPath.find(".ply") != std::string::npos) {
-		parsePly(mPath.c_str());
+		parsePly(absolutePath.string().c_str());
 	}
 
 
@@ -264,6 +268,13 @@ void Mesh::renderImGui(FrameContext* fc, GuiFeedback* feedback)
 		ImGuiInputTextFlags_ReadOnly
 	);
 
+}
+
+void Mesh::start(FrameContext* fc)
+{
+	if (!mPath.empty()) {
+		this->load(fc, mPath.c_str());
+	}
 }
 
 } // namespace gr

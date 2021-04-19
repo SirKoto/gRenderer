@@ -13,14 +13,6 @@
 namespace gr
 {
 
-Scene::Scene(FrameContext* fc) : IObject(fc)
-{
-	mUiCameraGameObj = std::make_unique<GameObject>(fc);
-	bool res = mUiCameraGameObj->addAddon<addon::Camera>(fc);
-	res &= mUiCameraGameObj->addAddon<addon::SimplePlayerControl>(fc);
-	assert(res);
-}
-
 void Scene::scheduleDestroy(FrameContext* fc)
 {
 	if (mUiCameraGameObj) {
@@ -156,6 +148,15 @@ void Scene::logicUpdate(FrameContext* fc)
 	grjob::Counter* c = nullptr;
 	grjob::runJobBatch(grjob::Priority::eMid, jobs.data(), (uint32_t)jobs.size(), &c);
 	grjob::waitForCounterAndFree(c, 0);
+}
+
+void Scene::start(FrameContext* fc)
+{
+	mUiCameraGameObj = std::make_unique<GameObject>();
+	mUiCameraGameObj->start(fc);
+	bool res = mUiCameraGameObj->addAddon<addon::Camera>(fc);
+	res &= mUiCameraGameObj->addAddon<addon::SimplePlayerControl>(fc);
+	assert(res);
 }
 
 } // namespace gr

@@ -17,8 +17,6 @@ class Texture : public IObject
 public:
 
 	Texture() = default;
-	Texture(FrameContext* fc) : IObject(fc) {}
-
 
 	bool load(FrameContext* fc,
 		const char* filePath);

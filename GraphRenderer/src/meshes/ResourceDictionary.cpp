@@ -84,6 +84,15 @@ void ResourceDictionary::clear(FrameContext* fc)
 	mName2Id.clear();
 }
 
+void ResourceDictionary::startAll(FrameContext* fc)
+{
+	std::unique_lock ulock(mObjectsMutex);
+	for (decltype(mObjectsDictionary)::iterator it = mObjectsDictionary.begin();
+		it != mObjectsDictionary.end(); ++it) {
+		it->second->start(fc);
+	}
+}
+
 ResId ResourceDictionary::getId(const std::string& name) const
 {
 	std::shared_lock slock(mObjectsMutex);

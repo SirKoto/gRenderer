@@ -14,13 +14,14 @@ class IAddon
 {
 public:
 	IAddon() = default;
-	IAddon(FrameContext* fc) {}
 
 	virtual void drawImGuiInspector(FrameContext* fc, GameObject* parent) = 0;
 	
-	virtual void updateBeforeRender(FrameContext* fc, GameObject* parent, const SceneRenderContext& src) {};
+	virtual void updateBeforeRender(FrameContext* fc, GameObject* parent, const SceneRenderContext& src) {}
 
-	virtual void update(FrameContext* fc, GameObject* parent) {};
+	virtual void start(FrameContext* fc) {}
+
+	virtual void update(FrameContext* fc, GameObject* parent) {}
 
 	virtual void destroy(FrameContext* fc) {}
 

@@ -12,7 +12,6 @@ class Material :
 public:
 
 	Material() = default;
-    Material(FrameContext* fc) : IObject(fc) {}
 
 
     virtual void scheduleDestroy(FrameContext* fc) override final;

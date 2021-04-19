@@ -16,13 +16,13 @@ class Renderable :
 {
 public:
     Renderable() = default;
-    Renderable(FrameContext* fc);
 
     void drawImGuiInspector(FrameContext* fc, GameObject* parent) override;
 
     void updateBeforeRender(FrameContext* fc, GameObject* parent, const SceneRenderContext& src) override;
 
     void destroy(FrameContext* fc) override;
+    void start(FrameContext* fc) override;
 
     void setMesh(ResId meshId);
 

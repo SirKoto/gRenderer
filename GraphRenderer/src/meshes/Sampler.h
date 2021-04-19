@@ -14,7 +14,6 @@ class Sampler : public IObject
 public:
 
 	Sampler() = default;
-	Sampler(FrameContext* fc) : IObject(fc) {}
 
 
 	virtual void scheduleDestroy(FrameContext* fc) override final;

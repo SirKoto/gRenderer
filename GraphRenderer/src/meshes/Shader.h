@@ -16,8 +16,6 @@ class Shader :
 public:
 
     Shader() = default;
-    Shader(FrameContext* fc) : IObject(fc) {}
-
 
     virtual void scheduleDestroy(FrameContext* fc) override;
     virtual void renderImGui(FrameContext* fc, GuiFeedback* feedback = nullptr) override;

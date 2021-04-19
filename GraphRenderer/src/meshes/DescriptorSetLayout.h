@@ -15,7 +15,6 @@ class DescriptorSetLayout :
 {
 public:
 	DescriptorSetLayout() = default;
-	DescriptorSetLayout(FrameContext* fc) : IObject(fc) {}
 
 
 	virtual void scheduleDestroy(FrameContext * fc) override final;

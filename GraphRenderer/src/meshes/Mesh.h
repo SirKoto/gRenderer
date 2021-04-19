@@ -23,7 +23,6 @@ class Mesh : public IObject
 public:
 
 	Mesh() = default;
-	Mesh(FrameContext* fc) : IObject(fc) {}
 
 	Mesh(const Mesh&) = default;
 	Mesh(Mesh&&) = default;
@@ -36,6 +35,7 @@ public:
 
 	void scheduleDestroy(FrameContext* fc) override final;
 	void renderImGui(FrameContext* fc, GuiFeedback* feedback = nullptr) override final;
+	void start(FrameContext* fc) override final;
 
 	static constexpr const char* s_getClassName() { return "Mesh"; }
 

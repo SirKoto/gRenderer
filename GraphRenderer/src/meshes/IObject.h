@@ -19,8 +19,6 @@ class IObject
 public:
 	IObject() = default;
 
-	IObject(FrameContext* fc) {}
-
 	virtual ~IObject() = default;
 
 	const std::string& getObjectName() const { return mObjectName; }
@@ -32,6 +30,8 @@ public:
 		ResId selectResource;
 	};
 	virtual void renderImGui(FrameContext* fc, GuiFeedback* feedback = nullptr) = 0;
+
+	virtual void start(FrameContext* fc) {}
 
 	static constexpr const char* s_getClassName() { return "IObject"; }
 

@@ -12,7 +12,6 @@ class Pipeline :
 public:
 
     Pipeline() = default;
-    Pipeline(FrameContext* fc) : IObject(fc) {}
 
 
     virtual void scheduleDestroy(FrameContext* fc) override final;

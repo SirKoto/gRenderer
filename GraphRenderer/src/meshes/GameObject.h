@@ -16,11 +16,11 @@ class GameObject :
 {
 public:
     GameObject() = default;
-    GameObject(FrameContext* fc);
 
 
-    virtual void scheduleDestroy(FrameContext* fc) override;
-    virtual void renderImGui(FrameContext* fc, GuiFeedback* feedback = nullptr) override;
+    void scheduleDestroy(FrameContext* fc) override;
+    void renderImGui(FrameContext* fc, GuiFeedback* feedback = nullptr) override;
+    void start(FrameContext* fc) override;
 
     static constexpr const char* s_getClassName() { return "GameObjects"; }
 
@@ -111,7 +111,8 @@ inline const addon::Transform* gr::GameObject::getAddon<addon::Transform>() cons
 template<typename Addon>
 inline bool gr::GameObject::addAddon(FrameContext* fc)
 {
-    auto it = mAddons.emplace(Addon::s_getAddonName(), new Addon(fc));
+    auto it = mAddons.emplace(Addon::s_getAddonName(), new Addon());
+    it.first->second->start(fc);
     return it.second;
 }
 

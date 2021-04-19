@@ -12,10 +12,6 @@ namespace gr
 namespace addon
 {
 
-Renderable::Renderable(FrameContext* fc) : IAddon(fc) {
-    createUbos(fc);
-}
-
 void Renderable::drawImGuiInspector(FrameContext* fc, GameObject* parent)
 {
     ImGui::PushID(Renderable::s_getAddonName());
@@ -103,6 +99,11 @@ void Renderable::destroy(FrameContext* fc)
     for (vk::DescriptorSet set : mObjectDescriptorSets) {
         fc->rc().freeDescriptorSet(set, fc->rc().getBasicTransformLayout());
     }
+}
+
+void Renderable::start(FrameContext* fc)
+{
+    createUbos(fc);
 }
 
 void Renderable::setMesh(ResId meshId)

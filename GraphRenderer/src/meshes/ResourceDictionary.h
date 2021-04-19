@@ -52,6 +52,8 @@ public:
 	// clear the data structure
 	void clear(FrameContext* fc);
 
+	void startAll(FrameContext* fc);
+
 	ResId getId(const std::string&  name) const;
 	std::string getName(const ResId id) const;
 	bool existsName(const std::string& name) const;
@@ -124,8 +126,10 @@ ResId ResourceDictionary::allocateObject(
 		assert(itName.second);
 		// Create object and reference
 		std::pair<decltype(mObjectsDictionary)::iterator, bool> itObj =
-			mObjectsDictionary.emplace(id, std::unique_ptr<IObject>(new T(fc)));
+			mObjectsDictionary.emplace(id, std::unique_ptr<IObject>(new T()));
 		assert(itObj.second); // assert inserted
+		itObj.first->second->start(fc);
+
 		std::pair<std::unordered_set<ResId>::iterator, bool> itObjType =
 			mObjectsByType[typeIdx].insert(id);
 		assert(itObjType.second);

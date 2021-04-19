@@ -784,7 +784,9 @@ void Gui::drawFilePicker(FrameContext* fc)
 
             bool res = fc->gc().loadProject(fc, filePath);
 
-            std::cerr << "Error: project can't be loaded" << std::endl;
+            if (!res) {
+                std::cerr << "Error: project can't be loaded" << std::endl;
+            }
         }
 
         // close

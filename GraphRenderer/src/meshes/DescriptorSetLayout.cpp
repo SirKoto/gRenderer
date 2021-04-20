@@ -13,7 +13,7 @@ void DescriptorSetLayout::scheduleDestroy(FrameContext* fc)
     fc->scheduleToDestroy(mDescSetLayout);
 }
 
-void DescriptorSetLayout::renderImGui(FrameContext* fc, GuiFeedback* feedback)
+void DescriptorSetLayout::renderImGui(FrameContext* fc, Gui* gui)
 {
 
     ImGui::TextDisabled("Descriptor Set Layout");

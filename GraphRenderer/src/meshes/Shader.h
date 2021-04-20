@@ -18,7 +18,7 @@ public:
     Shader() = default;
 
     virtual void scheduleDestroy(FrameContext* fc) override;
-    virtual void renderImGui(FrameContext* fc, GuiFeedback* feedback = nullptr) override;
+    virtual void renderImGui(FrameContext* fc, Gui* gui) override;
 
     static constexpr const char* s_getClassName() { return "Shader"; }
 

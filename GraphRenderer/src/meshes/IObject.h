@@ -13,6 +13,7 @@ namespace gr
 
 class FrameContext;
 class GlobalContext;
+class Gui;
 
 class IObject
 {
@@ -26,10 +27,7 @@ public:
 
 	virtual void scheduleDestroy(FrameContext* fc) = 0;
 
-	struct GuiFeedback {
-		ResId selectResource;
-	};
-	virtual void renderImGui(FrameContext* fc, GuiFeedback* feedback = nullptr) = 0;
+	virtual void renderImGui(FrameContext* fc, Gui* gui) = 0;
 
 	virtual void start(FrameContext* fc) {}
 

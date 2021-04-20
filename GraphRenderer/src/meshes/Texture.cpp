@@ -60,7 +60,7 @@ void Texture::scheduleDestroy(FrameContext* fc)
 }
 
 
-void Texture::renderImGui(FrameContext* fc, GuiFeedback* feedback)
+void Texture::renderImGui(FrameContext* fc, Gui* gui)
 {
 	ImGui::TextDisabled("Texture 2D");
 	ImGui::Separator();

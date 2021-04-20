@@ -949,7 +949,7 @@ void Gui::drawInspectorWindow(FrameContext* fc)
             if (!appendRenamePopupItem(fc, itemName)) {
                 IObject* obj;
                 fc->gc().getDict().get(mInspectorResourceId, &obj);
-                obj->renderImGui(fc);
+                obj->renderImGui(fc, this);
             }
             ImGui::PopID();
 
@@ -995,12 +995,8 @@ void Gui::drawSceneWindow(FrameContext* fc)
             if (!appendRenamePopupItem(fc, itemName)) {
                 IObject* obj;
                 fc->gc().getDict().get(fc->gc().getBoundScene(), &obj);
-                IObject::GuiFeedback feedback;
-                obj->renderImGui(fc, &feedback);
+                obj->renderImGui(fc, this);
 
-                if (feedback.selectResource) {
-                    mInspectorResourceId = feedback.selectResource;
-                }
             }
 
             ImGui::PopID();

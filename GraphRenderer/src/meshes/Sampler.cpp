@@ -14,7 +14,7 @@ void Sampler::scheduleDestroy(FrameContext* fc)
 	fc->scheduleToDestroy(mSampler);
 }
 
-void Sampler::renderImGui(FrameContext* fc, GuiFeedback* feedback)
+void Sampler::renderImGui(FrameContext* fc, Gui* gui)
 {
 
 	ImGui::TextDisabled("Sampler");

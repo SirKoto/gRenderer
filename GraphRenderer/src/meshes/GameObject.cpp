@@ -25,7 +25,7 @@ void GameObject::scheduleDestroy(FrameContext* fc)
     }
 }
 
-void GameObject::renderImGui(FrameContext* fc, GuiFeedback* feedback)
+void GameObject::renderImGui(FrameContext* fc, Gui* gui)
 {
 
     ImGui::TextDisabled("GameObject");

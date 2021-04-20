@@ -18,7 +18,7 @@ public:
 
 
 	virtual void scheduleDestroy(FrameContext * fc) override final;
-	virtual void renderImGui(FrameContext * fc, GuiFeedback* feedback = nullptr) override final;
+	virtual void renderImGui(FrameContext * fc, Gui* feedback) override final;
 
 	static constexpr const char* s_getClassName() { return "DescriptorSetLayout"; }
 

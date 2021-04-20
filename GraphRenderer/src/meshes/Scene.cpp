@@ -8,6 +8,7 @@
 #include "GameObjectAddons/SimplePlayerControl.h"
 #include "../control/FrameContext.h"
 #include "../utils/grjob.h"
+#include "../gui/Gui.h"
 
 
 namespace gr
@@ -23,9 +24,9 @@ void Scene::scheduleDestroy(FrameContext* fc)
 	}
 }
 
-void Scene::renderImGui(FrameContext* fc, GuiFeedback* feedback)
+void Scene::renderImGui(FrameContext* fc, Gui* gui)
 {
-	assert(feedback != nullptr);
+	
 
 	if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_NoOpenOverItems | ImGuiPopupFlags_MouseButtonRight)) {
 		
@@ -77,20 +78,24 @@ void Scene::renderImGui(FrameContext* fc, GuiFeedback* feedback)
 
 			ImGui::PushID((void*)std::hash<ResId>()(id));
 			if (ImGui::Button(fc->gc().getDict().getName(id).c_str())) {
-				feedback->selectResource = id;
+				gui->selectResourceInspector( id );
 			}
 
 			// context on button
 			if (ImGui::BeginPopupContextItem()) {
 
-				if (ImGui::Button("Remove")) {
+				if (ImGui::Button("Remove from scene")) {
 					it = mGameObjects.erase(it);
 					advance = false;
 					ImGui::CloseCurrentPopup();
 				}
 
+				ImGui::Separator();
+
 				ImGui::EndPopup();
 			}
+
+			gui->appendRenamePopupItem(fc, fc->gc().getDict().getName(id));
 
 			ImGui::PopID();
 		}

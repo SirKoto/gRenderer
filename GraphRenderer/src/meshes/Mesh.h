@@ -34,7 +34,7 @@ public:
 		const char* filePath);
 
 	void scheduleDestroy(FrameContext* fc) override final;
-	void renderImGui(FrameContext* fc, GuiFeedback* feedback = nullptr) override final;
+	void renderImGui(FrameContext* fc, Gui* gui) override final;
 	void start(FrameContext* fc) override final;
 
 	static constexpr const char* s_getClassName() { return "Mesh"; }

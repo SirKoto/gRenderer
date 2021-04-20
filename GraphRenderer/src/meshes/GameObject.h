@@ -19,7 +19,7 @@ public:
 
 
     void scheduleDestroy(FrameContext* fc) override;
-    void renderImGui(FrameContext* fc, GuiFeedback* feedback = nullptr) override;
+    void renderImGui(FrameContext* fc, Gui* gui) override;
     void start(FrameContext* fc) override;
 
     static constexpr const char* s_getClassName() { return "GameObjects"; }

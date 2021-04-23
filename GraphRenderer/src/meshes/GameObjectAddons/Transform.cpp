@@ -69,7 +69,7 @@ void gr::addon::Transform::rotateArround(float angle, glm::vec3 axis)
     //angle = std::fmod(angle, 
     float sinA = std::sinf(angle * 0.5f);
     float cosA = std::cosf(angle * 0.5f);
-    mRotation *= glm::quat(cosA, axis * sinA);
+    mRotation = glm::quat(cosA, axis * sinA) * mRotation;
 
     // normalize if needed
     float dot = glm::dot(mRotation, mRotation);

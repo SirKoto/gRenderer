@@ -58,7 +58,7 @@ void SimplePlayerControl::update(FrameContext* fc, GameObject* parent)
 			trns->rotateArround( glm::radians(dPos.x * mMouseSpeed), glm::vec3(0, 1, 0));
 		}
 		if (std::abs(dPos.y) > 1e-5) {
-			trns->rotateArround(glm::radians(dPos.y * mMouseSpeed), glm::vec3(1,0,0));
+			trns->rotateArround(glm::radians(dPos.y * mMouseSpeed), trns->right());
 		}
 
 		mPreMousePos = mousePos;

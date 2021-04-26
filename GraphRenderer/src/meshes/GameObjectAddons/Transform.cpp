@@ -83,7 +83,7 @@ glm::vec3 gr::addon::Transform::forward() const
     return  glm::rotate(mRotation, glm::vec3(0.f, 0.f, 1.f));
 }
 
-glm::vec3 gr::addon::Transform::right() const
+glm::vec3 gr::addon::Transform::left() const
 {
     return  glm::rotate(mRotation, glm::vec3(1.f, 0.f, 0.f));
 }

@@ -58,7 +58,7 @@ void Renderable::updateBeforeRender(FrameContext* fc, GameObject* parent, const 
         ubo.M = glm::mat4(1.0);
 
         ubo.M = glm::translate(ubo.M, transf->getPos());
-        ubo.M = glm::mat4_cast(transf->getRotation()) * ubo.M;
+        ubo.M = ubo.M * glm::mat4_cast(transf->getRotation());
         ubo.M = glm::scale(ubo.M, transf->getScale());
 
         size_t sizePadd = fc->rc().padUniformBuffer(sizeof(vkg::RenderContext::BasicTransformUBO));

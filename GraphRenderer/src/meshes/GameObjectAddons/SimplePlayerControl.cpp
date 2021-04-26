@@ -39,10 +39,10 @@ void SimplePlayerControl::update(FrameContext* fc, GameObject* parent)
 		pos -= fc->dtf() * mSpeed * trns->forward();
 	}
 	if (w.isDown(vkg::Window::Input::KeyD)) {
-		pos += fc->dtf() * mSpeed * trns->right();
+		pos -= fc->dtf() * mSpeed * trns->left();
 	}
 	if (w.isDown(vkg::Window::Input::KeyA)) {
-		pos -= fc->dtf() * mSpeed * trns->right();
+		pos += fc->dtf() * mSpeed * trns->left();
 	}
 
 	trns->setPos(pos);
@@ -55,10 +55,10 @@ void SimplePlayerControl::update(FrameContext* fc, GameObject* parent)
 		}
 		glm::vec2 dPos = mousePos - mPreMousePos;
 		if (std::abs(dPos.x) > 1e-5) {
-			trns->rotateArround( glm::radians(dPos.x * mMouseSpeed), glm::vec3(0, 1, 0));
+			trns->rotateArround( -glm::radians(dPos.x * mMouseSpeed), glm::vec3(0, 1, 0));
 		}
 		if (std::abs(dPos.y) > 1e-5) {
-			trns->rotateArround(glm::radians(dPos.y * mMouseSpeed), trns->right());
+			trns->rotateArround( glm::radians(dPos.y * mMouseSpeed), trns->left());
 		}
 
 		mPreMousePos = mousePos;

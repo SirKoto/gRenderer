@@ -47,6 +47,7 @@ void Camera::updateBeforeRender(FrameContext* fc, GameObject* parent, const Scen
 		mNear, mFar);
     ubo.P[1][1] *= -1.0;
 
+
     size_t sizePadd = fc->rc().padUniformBuffer(sizeof(vkg::RenderContext::BasicCameraTransformUBO));
 
     std::memcpy(mUbosGpuPtr + sizePadd * fc->getIdx(), &ubo, sizeof(vkg::RenderContext::BasicCameraTransformUBO));

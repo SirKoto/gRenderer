@@ -33,7 +33,7 @@ public:
 	void rotateArround(float angle, glm::vec3 axis);
 
 	glm::vec3 forward() const;
-	glm::vec3 right() const;
+	glm::vec3 left() const;
 	glm::vec3 up() const;
 
 private:

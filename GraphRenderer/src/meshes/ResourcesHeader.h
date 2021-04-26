@@ -4,6 +4,8 @@
 #include <limits>
 #include <functional>
 #include <string>
+#include "../utils/serialization.h"
+
 #include "../utils/ConstExprHelp.h"
 
 
@@ -51,6 +53,21 @@ struct ResId {
 
 	void reset() {
 		this->value = std::numeric_limits<uint64_t>::max();
+	}
+
+	// serialization
+	template <class Archive>
+	uint64_t save_minimal(
+		Archive const&) const
+	{
+		return this->value;
+	}
+
+	template <class Archive>
+	void load_minimal(Archive const&,
+		uint64_t const& value)
+	{
+		this->value = value;
 	}
 };
 

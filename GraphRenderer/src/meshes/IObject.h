@@ -4,6 +4,8 @@
 #include <stdint.h>
 
 #include <vulkan/vulkan.hpp>
+
+#include "../utils/serialization.h"
 #include "ResourcesHeader.h"
 
 namespace gr
@@ -11,12 +13,12 @@ namespace gr
 
 class FrameContext;
 class GlobalContext;
+class Gui;
 
 class IObject
 {
 public:
-
-	IObject(FrameContext* fc) {}
+	IObject() = default;
 
 	virtual ~IObject() = default;
 
@@ -25,10 +27,9 @@ public:
 
 	virtual void scheduleDestroy(FrameContext* fc) = 0;
 
-	struct GuiFeedback {
-		ResId selectResource;
-	};
-	virtual void renderImGui(FrameContext* fc, GuiFeedback* feedback = nullptr) = 0;
+	virtual void renderImGui(FrameContext* fc, Gui* gui) = 0;
+
+	virtual void start(FrameContext* fc) {}
 
 	static constexpr const char* s_getClassName() { return "IObject"; }
 
@@ -40,6 +41,15 @@ private:
 protected:
 
 	void markUpdated(FrameContext* fc);
+
+	// Serialization functions
+	template<class Archive>
+	void serialize(Archive& archive)
+	{
+		archive(GR_SERIALIZE_NVP_MEMBER(mObjectName));
+	}
+
+	GR_SERIALIZE_PRIVATE_MEMBERS
 
 };
 

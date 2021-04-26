@@ -1,5 +1,13 @@
 #include "GlobalContext.h"
 
+#include "../utils/serialization.h"
+#include "FrameContext.h"
+
+#include <cereal/cereal.hpp>
+#include <fstream>
+
+constexpr const char* RESOURCES_FILE = "Resources.json";
+
 void gr::GlobalContext::setTime(double_t newTime)
 {
 	double_t dt = newTime - this->getTime();
@@ -18,6 +26,45 @@ double_t gr::GlobalContext::computeDeltaTime() const
 		dt += this->mDeltaTimes[i] / this->mDeltaTimes.size();
 	}
     return dt;
+}
+
+void gr::GlobalContext::saveProject() const
+{
+	std::filesystem::path resourcesPath = mProjectPath;
+	resourcesPath /= RESOURCES_FILE;
+	std::ofstream stream(resourcesPath, std::ofstream::out | std::ofstream::trunc);
+
+	cereal::JSONOutputArchive archive(stream, cereal::JSONOutputArchive::Options::Default());
+
+	archive(GR_SERIALIZE_NVP_MEMBER(mBoundScene));
+	archive( GR_SERIALIZE_NVP_MEMBER(mDict));
+}
+
+bool gr::GlobalContext::loadProject(FrameContext* fc, const std::filesystem::path& newPath)
+{
+	std::filesystem::path resourcesPath = newPath;
+	resourcesPath /= RESOURCES_FILE;
+	std::ifstream stream(resourcesPath, std::ofstream::in);
+
+	if (!stream) {
+		return false;
+	}
+
+	cereal::JSONInputArchive archive(stream);
+
+	archive(mBoundScene);
+
+	if (!mDict.empty()) {
+		mDict.clear(fc);
+	}
+
+	archive( mDict );
+
+	this->setProjectPath(newPath);
+
+	mDict.startAll(fc);
+
+	return true;
 }
 
 void gr::GlobalContext::destroy()

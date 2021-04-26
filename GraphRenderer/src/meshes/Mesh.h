@@ -22,7 +22,7 @@ class Mesh : public IObject
 {
 public:
 
-	Mesh(FrameContext* fc) : IObject(fc) {}
+	Mesh() = default;
 
 	Mesh(const Mesh&) = default;
 	Mesh(Mesh&&) = default;
@@ -30,11 +30,12 @@ public:
 	Mesh& operator=(Mesh&&) = default;
 
 	// Catch exception if it can fail
-	void load(vkg::RenderContext* rc,
+	void load(FrameContext* fc,
 		const char* filePath);
 
 	void scheduleDestroy(FrameContext* fc) override final;
-	void renderImGui(FrameContext* fc, GuiFeedback* feedback = nullptr) override final;
+	void renderImGui(FrameContext* fc, Gui* gui) override final;
+	void start(FrameContext* fc) override final;
 
 	static constexpr const char* s_getClassName() { return "Mesh"; }
 
@@ -88,6 +89,20 @@ protected:
 
 	void parseObj(const char* fileName);
 	void parsePly(const char* fileName);
+
+
+	// Serialization functions
+	template<class Archive>
+	void serialize(Archive& archive)
+	{
+		archive(cereal::base_class<IObject>(this));
+		archive(GR_SERIALIZE_NVP_MEMBER(mPath));
+	}
+
+	GR_SERIALIZE_PRIVATE_MEMBERS
 };
 
 } // namespace gr
+
+GR_SERIALIZE_TYPE(gr::Mesh)
+GR_SERIALIZE_POLYMORPHIC_RELATION(gr::IObject, gr::Mesh)

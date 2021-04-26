@@ -10,26 +10,36 @@
 #include <imgui/imgui.h>
 #include <tiny_obj_loader/tiny_obj_loader.h>
 #include <tiny_ply_loader/tinyply.h>
-#include<unordered_map>
+#include <unordered_map>
+#include <filesystem>
 
 namespace gr
 {
 
-void Mesh::load(vkg::RenderContext* rc,
+void Mesh::load(FrameContext* fc,
 	const char* filePath)
 {
 
-	mPath.assign(filePath);
+	std::filesystem::path path(filePath);
+	if (path.is_absolute()) {
+		path = std::filesystem::relative(path, fc->gc().getProjectPath());
+	}
+
+	mPath.assign(path.string());
+	
+	std::filesystem::path absolutePath = fc->gc().getProjectPath() / path;
+
+	vkg::RenderContext* rc = &fc->rc();
 
 	mVertices.clear();
 	mIndices.clear();
 	mBBox.reset();
 
 	if (mPath.find(".obj") != std::string::npos) {
-		parseObj(mPath.c_str());
+		parseObj(absolutePath.string().c_str());
 	}
 	else if (mPath.find(".ply") != std::string::npos) {
-		parsePly(mPath.c_str());
+		parsePly(absolutePath.string().c_str());
 	}
 
 
@@ -172,6 +182,8 @@ void Mesh::parsePly(const char* fileName)
 
 	try { texcoords = file.request_properties_from_element("vertex", { "u", "v" }); }
 	catch (const std::exception&) {}
+	try { texcoords = file.request_properties_from_element("vertex", { "s", "t" }); }
+	catch (const std::exception&) {}
 
 	try { faces = file.request_properties_from_element("face", { "vertex_indices" }, 3); }
 	catch (const std::exception&) {}
@@ -236,7 +248,7 @@ std::size_t Mesh::VertexHash::operator()(const Vertex& o) const
 		(std::hash<glm::vec2>()(o.texCoord) << 1);
 }
 
-void Mesh::renderImGui(FrameContext* fc, GuiFeedback* feedback)
+void Mesh::renderImGui(FrameContext* fc, Gui* gui)
 {
 	ImGui::TextDisabled("Triangle Mesh");
 	ImGui::Separator();
@@ -258,6 +270,13 @@ void Mesh::renderImGui(FrameContext* fc, GuiFeedback* feedback)
 		ImGuiInputTextFlags_ReadOnly
 	);
 
+}
+
+void Mesh::start(FrameContext* fc)
+{
+	if (!mPath.empty()) {
+		this->load(fc, mPath.c_str());
+	}
 }
 
 } // namespace gr

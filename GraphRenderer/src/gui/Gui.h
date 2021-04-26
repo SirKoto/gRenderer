@@ -31,6 +31,12 @@ public:
 
 	bool isWireframeRenderModeEnabled() const { return mWireframeModeEnabled; }
 
+	void selectResourceInspector(const ResId& id) { mInspectorResourceId = id; }
+
+	// make sure to push id before
+	// returns true if need to reload resId and check for existance
+	bool appendRenamePopupItem(FrameContext* fc, const std::string& name);
+
 protected:
 
 	vk::Pipeline mPipeline;
@@ -75,10 +81,6 @@ protected:
 	void drawSceneWindow(FrameContext* fc);
 
 	void helpMarker(const char* text);
-
-	// make sure to push id before
-	// returns true if need to reload resId and check for existance
-	bool appendRenamePopupItem(FrameContext* fc, const std::string& name);
 
 	static int s_stringTextCallback(void* data);
 

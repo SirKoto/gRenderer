@@ -16,14 +16,15 @@ class Scene :
 {
 public:
 
-    Scene(FrameContext* fc);
-
+    Scene();
 
     static constexpr const char* s_getClassName() { return "Scene"; }
 
-    virtual void scheduleDestroy(FrameContext* fc) override;
+    void scheduleDestroy(FrameContext* fc) override;
 
-    virtual void renderImGui(FrameContext* fc, GuiFeedback* feedback = nullptr) override;
+    void renderImGui(FrameContext* fc, Gui* gui) override;
+
+    void start(FrameContext* fc) override;
 
     void graphicsUpdate(FrameContext* fc);
 
@@ -36,6 +37,17 @@ private:
 
     std::set<ResId> mGameObjects;
 
+    // Serialization functions
+    template<class Archive>
+    void serialize(Archive& archive)
+    {
+        archive(cereal::base_class<IObject>(this));
+        archive(mUiCameraGameObj);
+        archive(mGameObjects);
+    }
+
+    GR_SERIALIZE_PRIVATE_MEMBERS
+
 };
 
 struct SceneRenderContext {
@@ -43,3 +55,6 @@ struct SceneRenderContext {
 };
 
 } // namespace gr
+
+GR_SERIALIZE_TYPE(gr::Scene)
+GR_SERIALIZE_POLYMORPHIC_RELATION(gr::IObject, gr::Scene)

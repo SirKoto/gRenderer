@@ -8,16 +8,14 @@
 #include "GameObjectAddons/SimplePlayerControl.h"
 #include "../control/FrameContext.h"
 #include "../utils/grjob.h"
+#include "../gui/Gui.h"
 
 
 namespace gr
 {
-Scene::Scene(FrameContext* fc) : IObject(fc)
+Scene::Scene()
 {
-	mUiCameraGameObj = std::make_unique<GameObject>(fc);
-	bool res = mUiCameraGameObj->addAddon<addon::Camera>(fc);
-	res &= mUiCameraGameObj->addAddon<addon::SimplePlayerControl>(fc);
-	assert(res);
+	mUiCameraGameObj = std::make_unique<GameObject>();
 }
 void Scene::scheduleDestroy(FrameContext* fc)
 {
@@ -26,9 +24,9 @@ void Scene::scheduleDestroy(FrameContext* fc)
 	}
 }
 
-void Scene::renderImGui(FrameContext* fc, GuiFeedback* feedback)
+void Scene::renderImGui(FrameContext* fc, Gui* gui)
 {
-	assert(feedback != nullptr);
+	
 
 	if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_NoOpenOverItems | ImGuiPopupFlags_MouseButtonRight)) {
 		
@@ -80,20 +78,24 @@ void Scene::renderImGui(FrameContext* fc, GuiFeedback* feedback)
 
 			ImGui::PushID((void*)std::hash<ResId>()(id));
 			if (ImGui::Button(fc->gc().getDict().getName(id).c_str())) {
-				feedback->selectResource = id;
+				gui->selectResourceInspector( id );
 			}
 
 			// context on button
 			if (ImGui::BeginPopupContextItem()) {
 
-				if (ImGui::Button("Remove")) {
+				if (ImGui::Button("Remove from scene")) {
 					it = mGameObjects.erase(it);
 					advance = false;
 					ImGui::CloseCurrentPopup();
 				}
 
+				ImGui::Separator();
+
 				ImGui::EndPopup();
 			}
+
+			gui->appendRenamePopupItem(fc, fc->gc().getDict().getName(id));
 
 			ImGui::PopID();
 		}
@@ -154,6 +156,13 @@ void Scene::logicUpdate(FrameContext* fc)
 	grjob::Counter* c = nullptr;
 	grjob::runJobBatch(grjob::Priority::eMid, jobs.data(), (uint32_t)jobs.size(), &c);
 	grjob::waitForCounterAndFree(c, 0);
+}
+
+void Scene::start(FrameContext* fc)
+{
+	mUiCameraGameObj->start(fc);
+	mUiCameraGameObj->addAddon<addon::Camera>(fc);
+	mUiCameraGameObj->addAddon<addon::SimplePlayerControl>(fc);
 }
 
 } // namespace gr

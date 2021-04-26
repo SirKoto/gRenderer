@@ -11,19 +11,30 @@ class Material :
 {
 public:
 
-    Material(FrameContext* fc) : IObject(fc) {}
+	Material() = default;
 
 
     virtual void scheduleDestroy(FrameContext* fc) override final;
-    virtual void renderImGui(FrameContext* fc, GuiFeedback* feedback = nullptr) override final;
+    virtual void renderImGui(FrameContext* fc, Gui* gui) override final;
 
     static constexpr const char* s_getClassName() { return "Material"; }
 
 private:
 
 
-protected:
+	// Serialization functions
+	template<class Archive>
+	void serialize(Archive& archive)
+	{
+		archive(cereal::base_class<IObject>(this));
+		//TODO
+	}
+
+	GR_SERIALIZE_PRIVATE_MEMBERS
 
 }; // class Material
 
 } // namespace gr
+
+GR_SERIALIZE_TYPE(gr::Material)
+GR_SERIALIZE_POLYMORPHIC_RELATION(gr::IObject, gr::Material)

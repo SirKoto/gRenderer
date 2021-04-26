@@ -4,9 +4,12 @@
 #include "../graphics/Window.h"
 #include "../meshes/ResourceDictionary.h"
 
+#include <filesystem>
+
 namespace gr
 {
 
+class FrameContext;
 
 class GlobalContext
 {
@@ -27,6 +30,13 @@ public:
 	ResId getBoundScene() const { return mBoundScene; }
 	void setBoundScene(ResId id) { mBoundScene = id; }
 
+	const std::filesystem::path& getProjectPath() const { return mProjectPath; }
+	std::filesystem::path& getProjectPath() { return mProjectPath; }
+	void setProjectPath(const std::filesystem::path& newPath) { mProjectPath = newPath; }
+
+	void saveProject() const;
+	bool loadProject(FrameContext *fc, const std::filesystem::path& projectPath);
+
 	void destroy();
 
 private:
@@ -38,6 +48,9 @@ private:
 	ResourceDictionary mDict;
 
 	ResId mBoundScene;
+
+	std::filesystem::path mProjectPath = {};
+
 };
 
 } // namespace gr

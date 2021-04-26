@@ -13,12 +13,12 @@ class Sampler : public IObject
 {
 public:
 
-	Sampler(FrameContext* fc) : IObject(fc) {}
+	Sampler() = default;
 
 
 	virtual void scheduleDestroy(FrameContext* fc) override final;
 
-	virtual void renderImGui(FrameContext* fc, GuiFeedback* feedback = nullptr) override final;
+	virtual void renderImGui(FrameContext* fc, Gui* gui) override final;
 
 	static constexpr const char* s_getClassName() { return "Sampler"; }
 
@@ -33,6 +33,19 @@ protected:
 
 	vk::SamplerAddressMode mAddresMode = vk::SamplerAddressMode::eRepeat;
 
+	// Serialization functions
+	template<class Archive>
+	void serialize(Archive& archive)
+	{
+		archive(cereal::base_class<IObject>(this));
+		//TODO
+	}
+
+	GR_SERIALIZE_PRIVATE_MEMBERS
+
 };
 
 } // namespace gr
+
+GR_SERIALIZE_TYPE(gr::Sampler)
+GR_SERIALIZE_POLYMORPHIC_RELATION(gr::IObject, gr::Sampler)

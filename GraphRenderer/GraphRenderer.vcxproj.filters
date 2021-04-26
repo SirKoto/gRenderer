@@ -16,9 +16,6 @@
     <Filter Include="Header Files\vkg">
       <UniqueIdentifier>{7d6c4984-b9f9-4be0-b07e-acba7809a550}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\tools">
-      <UniqueIdentifier>{824bc77b-f628-4cf7-8f87-0283f1b22322}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\grjob">
       <UniqueIdentifier>{f40ab6d3-33b7-4df1-9cad-03877551736d}</UniqueIdentifier>
     </Filter>
@@ -58,7 +55,10 @@
     <Filter Include="Header Files\meshes\addons">
       <UniqueIdentifier>{ca4c143d-76fd-4ab1-916a-736364f85711}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\tools\math">
+    <Filter Include="Header Files\utils">
+      <UniqueIdentifier>{824bc77b-f628-4cf7-8f87-0283f1b22322}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\utils\math">
       <UniqueIdentifier>{5417f02a-fcfc-48c7-8bad-250657043825}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -276,7 +276,7 @@
       <Filter>Header Files\grjob\Fibers</Filter>
     </ClInclude>
     <ClInclude Include="src\utils\ConstExprHelp.h">
-      <Filter>Header Files\tools</Filter>
+      <Filter>Header Files\utils</Filter>
     </ClInclude>
     <ClInclude Include="src\utils\grjob.h">
       <Filter>Header Files\grjob</Filter>
@@ -375,7 +375,7 @@
       <Filter>Header Files\meshes</Filter>
     </ClInclude>
     <ClInclude Include="src\utils\grTools.h">
-      <Filter>Header Files\tools</Filter>
+      <Filter>Header Files\utils</Filter>
     </ClInclude>
     <ClInclude Include="src\meshes\Texture.h">
       <Filter>Header Files\meshes</Filter>
@@ -432,10 +432,13 @@
       <Filter>Header Files\meshes\addons</Filter>
     </ClInclude>
     <ClInclude Include="src\utils\math\Quaternion.h">
-      <Filter>Header Files\tools\math</Filter>
+      <Filter>Header Files\utils\math</Filter>
     </ClInclude>
     <ClInclude Include="src\utils\math\BBox.h">
-      <Filter>Header Files\tools\math</Filter>
+      <Filter>Header Files\utils\math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\serialization.h">
+      <Filter>Header Files\utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

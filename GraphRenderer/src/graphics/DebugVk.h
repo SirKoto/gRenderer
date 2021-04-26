@@ -11,7 +11,7 @@ namespace DebugVk
 #ifdef _DEBUG 
 	const bool validationLayersVkEnabled = true;
 #else
-	const bool validationLayersVkEnabled = false;
+	const bool validationLayersVkEnabled = true;
 #endif // DEBUG
 
 	constexpr const char* debugExtensionName  =

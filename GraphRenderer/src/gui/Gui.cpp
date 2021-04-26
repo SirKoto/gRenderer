@@ -120,9 +120,13 @@ static uint32_t __glsl_shader_frag_spv[] =
 };
 
 
-constexpr const char * IMPORT_MESH_STRING_KEY = "ImportMeshChooserKeyImGuiFileDialog";
+constexpr const char* IMPORT_MESH_STRING_KEY = "ImportMeshChooserKeyImGuiFileDialog";
 constexpr const char* IMPORT_TEX_STRING_KEY = "ImportTextureChooserKeyImGuiFileDialog";
 constexpr const char* IMPORT_SPIRV_STRING_KEY = "ImportSPIRVChooserKeyImGuiFileDialog";
+constexpr const char* NEW_PROJECT_STRING_KEY = "NewProjectKeyImGuiFileDialog";
+constexpr const char* LOAD_PROJECT_STRING_KEY = "LoadProjectKeyImGuiFileDialog";
+
+
 
 
 void Gui::init(GlobalContext* gc)
@@ -599,8 +603,39 @@ void Gui::drawMainMenuBar(FrameContext* fc)
 
         if (ImGui::BeginMenu("File")) {
 
+            bool projectLoaded = !fc->gc().getProjectPath().empty();
+
+            if (ImGui::MenuItem("New project")) {
+                mFilePickerInUse = true;
+                // open dialog
+                ImGuiFileDialog::Instance()->OpenDialog(
+                    NEW_PROJECT_STRING_KEY,
+                    "Chose folder where to create project",
+                    0, // directory
+                    "." // from where
+                );
+            }
+
+            if (ImGui::MenuItem("Load project")) {
+                mFilePickerInUse = true;
+                // open dialog
+                ImGuiFileDialog::Instance()->OpenDialog(
+                    LOAD_PROJECT_STRING_KEY,
+                    "Chose folder with project to load",
+                    0, // directory
+                    "." // from where
+                );
+            }
+
+            if (ImGui::MenuItem("Save project", nullptr, nullptr, projectLoaded)) {
+                fc->gc().saveProject();
+            }
+
+
+            ImGui::Separator();
+
             if (ImGui::MenuItem("Import mesh", nullptr,
-                nullptr, !mFilePickerInUse)) {
+                nullptr, !mFilePickerInUse && projectLoaded)) {
 
                 mFilePickerInUse = true;
                 // open dialog
@@ -613,7 +648,7 @@ void Gui::drawMainMenuBar(FrameContext* fc)
 
             }
             if (ImGui::MenuItem("Import image", nullptr,
-                nullptr, !mFilePickerInUse)) {
+                nullptr, !mFilePickerInUse && projectLoaded)) {
 
                 mFilePickerInUse = true;
                 // open dialog
@@ -626,7 +661,7 @@ void Gui::drawMainMenuBar(FrameContext* fc)
 
             }
             if (ImGui::MenuItem("Import SPIR-V", nullptr,
-                nullptr, !mFilePickerInUse)) {
+                nullptr, !mFilePickerInUse && projectLoaded)) {
 
                 mFilePickerInUse = true;
                 // open dialog
@@ -638,6 +673,8 @@ void Gui::drawMainMenuBar(FrameContext* fc)
                 );
 
             }
+
+            ImGui::Separator();
 
             if (ImGui::MenuItem("Quit", "Alt+F4")) {
                 mCloseAppFlag = true;
@@ -714,6 +751,49 @@ void Gui::drawFilePicker(FrameContext* fc)
 {
 
     if (ImGuiFileDialog::Instance()->Display(
+        NEW_PROJECT_STRING_KEY, // Key
+        ImGuiWindowFlags_NoCollapse,
+        ImVec2(0, 20 * ImGui::GetFontSize()) // minSize
+    )) {
+        assert(mFilePickerInUse);
+        mFilePickerInUse = false;
+        // action if OK
+        if (ImGuiFileDialog::Instance()->IsOk())
+        {
+            std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+
+            fc->gc().setProjectPath(filePath);
+
+        }
+
+        // close
+        ImGuiFileDialog::Instance()->Close();
+    }
+
+    if (ImGuiFileDialog::Instance()->Display(
+        LOAD_PROJECT_STRING_KEY, // Key
+        ImGuiWindowFlags_NoCollapse,
+        ImVec2(0, 20 * ImGui::GetFontSize()) // minSize
+    )) {
+        assert(mFilePickerInUse);
+        mFilePickerInUse = false;
+        // action if OK
+        if (ImGuiFileDialog::Instance()->IsOk())
+        {
+            std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+
+            bool res = fc->gc().loadProject(fc, filePath);
+
+            if (!res) {
+                std::cerr << "Error: project can't be loaded" << std::endl;
+            }
+        }
+
+        // close
+        ImGuiFileDialog::Instance()->Close();
+    }
+
+    if (ImGuiFileDialog::Instance()->Display(
         IMPORT_MESH_STRING_KEY, // Key
         ImGuiWindowFlags_NoCollapse,
         ImVec2(0, 20 * ImGui::GetFontSize()) // minSize
@@ -733,7 +813,7 @@ void Gui::drawFilePicker(FrameContext* fc)
                 map.begin()->first,
                 &mesh
             );
-            mesh->load(&fc->rc(), map.begin()->second.c_str());
+            mesh->load(fc, map.begin()->second.c_str());
         }
 
         // close
@@ -760,7 +840,7 @@ void Gui::drawFilePicker(FrameContext* fc)
                 map.begin()->first,
                 &tex
             );
-            tex->load(&fc->rc(), map.begin()->second.c_str());
+            tex->load(fc, map.begin()->second.c_str());
         }
 
         // close
@@ -869,7 +949,7 @@ void Gui::drawInspectorWindow(FrameContext* fc)
             if (!appendRenamePopupItem(fc, itemName)) {
                 IObject* obj;
                 fc->gc().getDict().get(mInspectorResourceId, &obj);
-                obj->renderImGui(fc);
+                obj->renderImGui(fc, this);
             }
             ImGui::PopID();
 
@@ -915,12 +995,8 @@ void Gui::drawSceneWindow(FrameContext* fc)
             if (!appendRenamePopupItem(fc, itemName)) {
                 IObject* obj;
                 fc->gc().getDict().get(fc->gc().getBoundScene(), &obj);
-                IObject::GuiFeedback feedback;
-                obj->renderImGui(fc, &feedback);
+                obj->renderImGui(fc, this);
 
-                if (feedback.selectResource) {
-                    mInspectorResourceId = feedback.selectResource;
-                }
             }
 
             ImGui::PopID();

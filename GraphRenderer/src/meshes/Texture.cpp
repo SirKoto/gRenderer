@@ -1,6 +1,7 @@
 #include "Texture.h"
 
 #include <imgui/imgui.h>
+#include <filesystem>
 
 #include "../control/FrameContext.h"
 #include "../graphics/RenderContext.h"
@@ -11,16 +12,20 @@ namespace gr
 
 
 
-bool Texture::load(vkg::RenderContext* rc, const char* filePath)
+bool Texture::load(FrameContext* fc, const char* filePath)
 {
+
+	std::filesystem::path path(filePath);
+	mPath = std::filesystem::relative(path, fc->gc().getProjectPath()).string();
+
+	vkg::RenderContext* rc = &fc->rc();
+
 	uint32_t width, height;
 	uint8_t* img;
-	tools::loadImageRGBA(filePath, &img, &width, &height);
+	tools::loadImageRGBA(mPath.c_str(), &img, &width, &height);
 	if (img == nullptr) {
 		return false;
 	}
-
-	mPath = filePath;
 
 	vk::DeviceSize imSize = 4 * width * height;
 
@@ -55,7 +60,7 @@ void Texture::scheduleDestroy(FrameContext* fc)
 }
 
 
-void Texture::renderImGui(FrameContext* fc, GuiFeedback* feedback)
+void Texture::renderImGui(FrameContext* fc, Gui* gui)
 {
 	ImGui::TextDisabled("Texture 2D");
 	ImGui::Separator();

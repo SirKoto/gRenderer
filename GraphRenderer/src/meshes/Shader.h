@@ -15,11 +15,10 @@ class Shader :
 {
 public:
 
-    Shader(FrameContext* fc) : IObject(fc) {}
-
+    Shader() = default;
 
     virtual void scheduleDestroy(FrameContext* fc) override;
-    virtual void renderImGui(FrameContext* fc, GuiFeedback* feedback = nullptr) override;
+    virtual void renderImGui(FrameContext* fc, Gui* gui) override;
 
     static constexpr const char* s_getClassName() { return "Shader"; }
 
@@ -85,8 +84,21 @@ private:
     typedef std::map<uint32_t, std::unique_ptr<BindingInfo>> DescriptorSet;
     std::map<uint32_t, DescriptorSet> mDescriptorSets;
 
+    // Serialization functions
+    template<class Archive>
+    void serialize(Archive& archive)
+    {
+        archive(cereal::base_class<IObject>(this));
+        //TODO
+    }
+
+    GR_SERIALIZE_PRIVATE_MEMBERS
 
 }; // class Shader
 
 
 } // namespace gr
+
+
+GR_SERIALIZE_TYPE(gr::Shader)
+GR_SERIALIZE_POLYMORPHIC_RELATION(gr::IObject, gr::Shader)

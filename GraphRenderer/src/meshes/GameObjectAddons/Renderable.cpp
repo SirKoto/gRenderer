@@ -42,6 +42,16 @@ void Renderable::drawImGuiInspector(FrameContext* fc, GameObject* parent)
         ImGui::EndDragDropTarget();
     }
 
+    ImGui::Separator();
+
+    int32_t step = 1;
+    ImGui::InputScalar("LOD", ImGuiDataType_U32, (void*)&mLod, &step, nullptr, "%d", ImGuiInputTextFlags_None);
+    if (this->mMesh) {
+        Mesh* mesh;
+        fc->gc().getDict().get(mMesh, &mesh);
+
+        mLod = std::min(mLod, mesh->getNumLODs());
+    }
 
     ImGui::PopID();
 }
@@ -73,10 +83,10 @@ void Renderable::updateBeforeRender(FrameContext* fc, GameObject* parent, const 
 
         if (*mesh) {
 
-            vkg::RenderSubmitter::DrawData drawData;
+            vkg::RenderSubmitter::DrawData drawData{};
             drawData.vertexBuffer = mesh->getVB();
             drawData.indexBuffer = mesh->getIB();
-            drawData.numIndices = mesh->getNumIndices();
+            mesh->getDrawDataLod(mLod, &drawData.numIndices, &drawData.firstIndex, &drawData.vertexBufferOffset);
             drawData.objectDescriptorSet = mObjectDescriptorSets[fc->getIdx()];
 
             fc->renderSubmitter().pushPredefinedDraw(drawData);

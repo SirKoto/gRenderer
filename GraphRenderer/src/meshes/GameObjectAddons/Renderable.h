@@ -36,6 +36,8 @@ private:
 
     ResId mMesh;
 
+    uint32_t mLod = 0;
+
     vkg::Buffer mUbos;
     uint8_t* mUbosGpuPtr = nullptr;
     std::vector<vk::DescriptorSet> mObjectDescriptorSets;

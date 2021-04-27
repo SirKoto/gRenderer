@@ -44,6 +44,9 @@ public:
 	const vk::Buffer& getIB() const { return mIndexBuffer.getVkBuffer(); }
 
 	uint32_t getNumIndices() const { return static_cast<uint32_t>(mIndices.size()); }
+	uint32_t getNumLODs() const { return (uint32_t) mLODsDrawData.size(); }
+
+	void getDrawDataLod(uint32_t lod, uint32_t* numIndices, uint32_t* firstIndex, vk::DeviceSize* vertexOffset) const;
 
 	const mth::AABBox& getBBox() const { return mBBox; }
 
@@ -81,11 +84,16 @@ protected:
 
 	struct LOD {
 		uint32_t depth;
-		uint32_t IndexOffset;
 		std::vector<Vertex> vertices;
 		std::vector<uint32_t> indices;
 	};
 	std::vector<LOD> mLODs;
+	struct LOD_DrawData {
+		uint32_t numIndices;
+		uint32_t firstIndex;
+		vk::DeviceSize vertexOffset;
+	};
+	std::vector<LOD_DrawData> mLODsDrawData;
 	
 
 	vkg::Buffer mIndexBuffer;
@@ -102,6 +110,7 @@ protected:
 	void parseObj(const char* fileName);
 	void parsePly(const char* fileName);
 
+	void uploadDataToGPU(FrameContext* fc);
 
 	// Serialization functions
 	template<class Archive>

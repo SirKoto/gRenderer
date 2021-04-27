@@ -43,28 +43,7 @@ void Mesh::load(FrameContext* fc,
 		parsePly(absolutePath.string().c_str());
 	}
 
-
-	// create buffers
-	{
-		if (mIndexBuffer) {
-			throw std::logic_error("Error! Buffer previously alocated");
-		}
-		mIndexBufferSize = sizeof(uint32_t) * mIndices.size();
-		mIndexBuffer = rc->createIndexBuffer(mIndexBufferSize);
-		if (mVertexBuffer) {
-			throw std::logic_error("Error! Buffer previously alocated");
-		}
-		mVertexBufferSize = sizeof(Vertex) * mVertices.size();
-		mVertexBuffer = rc->createVertexBuffer(mVertexBufferSize);
-	}
-
-	// upload to gpu
-	rc->getTransferer()->transferToBuffer(*rc,
-		mVertices.data(), mVertices.size() * sizeof(mVertices[0]),
-		mVertexBuffer);
-	rc->getTransferer()->transferToBuffer(*rc,
-		mIndices.data(), mIndices.size() * sizeof(mIndices[0]),
-		mIndexBuffer);
+	this->uploadDataToGPU(fc);
 }
 
 void Mesh::scheduleDestroy(FrameContext* fc)
@@ -77,9 +56,27 @@ void Mesh::scheduleDestroy(FrameContext* fc)
 		fc->scheduleToDestroy(mVertexBuffer);
 		mVertexBuffer = nullptr;
 	}
+
+	mLODsDrawData.clear();
 }
 
 
+
+void Mesh::getDrawDataLod(uint32_t lod, uint32_t* numIndices, uint32_t* firstIndex, vk::DeviceSize* vertexOffset) const
+{
+	assert(numIndices != nullptr && firstIndex != nullptr && vertexOffset != nullptr);
+
+	if (lod == 0) {
+		*numIndices = this->getNumIndices();
+		*firstIndex = 0;
+		*vertexOffset = 0;
+	}
+	else {
+		*numIndices = mLODsDrawData[lod - 1].numIndices;
+		*firstIndex = mLODsDrawData[lod - 1].firstIndex;
+		*vertexOffset = mLODsDrawData[lod - 1].vertexOffset;
+	}
+}
 
 void Mesh::addToVertexInputDescription(
 	uint32_t binding,
@@ -233,6 +230,63 @@ void Mesh::parsePly(const char* fileName)
 
 }
 
+void Mesh::uploadDataToGPU(FrameContext* fc)
+{
+
+	// destroy buffers if exist there
+	scheduleDestroy(fc);
+
+	vkg::RenderContext* rc = &fc->rc();
+	// create buffers
+	{
+		if (mIndexBuffer) {
+			throw std::logic_error("Error! Buffer previously alocated");
+		}
+		mIndexBufferSize = sizeof(uint32_t) * mIndices.size();
+		for (const LOD& lod : mLODs) {
+			mIndexBufferSize += sizeof(uint32_t) * lod.indices.size();
+		}
+		mIndexBuffer = rc->createIndexBuffer(mIndexBufferSize);
+		if (mVertexBuffer) {
+			throw std::logic_error("Error! Buffer previously alocated");
+		}
+		mVertexBufferSize = sizeof(Vertex) * mVertices.size();
+		for (const LOD& lod : mLODs) {
+			mVertexBufferSize += sizeof(Vertex) * lod.vertices.size();
+		}
+		mVertexBuffer = rc->createVertexBuffer(mVertexBufferSize);
+	}
+
+	// upload to gpu
+	rc->getTransferer()->transferToBuffer(*rc,
+		mVertices.data(), mVertices.size() * sizeof(mVertices[0]),
+		mVertexBuffer);
+	rc->getTransferer()->transferToBuffer(*rc,
+		mIndices.data(), mIndices.size() * sizeof(mIndices[0]),
+		mIndexBuffer);
+
+	vk::DeviceSize vertexOffset = mVertices.size() * sizeof(mVertices[0]);
+	vk::DeviceSize indexOffset = mIndices.size() * sizeof(mIndices[0]);
+	uint32_t nextFirstIndice = static_cast<uint32_t>(mIndices.size());
+	mLODsDrawData.resize(mLODs.size());
+	for (uint32_t i = 0; i < (uint32_t)mLODs.size(); ++i) {
+		rc->getTransferer()->transferToBuffer(*rc,
+			mLODs[i].vertices.data(), mLODs[i].vertices.size() * sizeof(mLODs[i].vertices[0]),
+			mVertexBuffer, vertexOffset);
+		rc->getTransferer()->transferToBuffer(*rc,
+			mLODs[i].indices.data(), mLODs[i].indices.size() * sizeof(mLODs[i].indices[0]),
+			mIndexBuffer, indexOffset);
+
+		mLODsDrawData[i].firstIndex = nextFirstIndice;
+		mLODsDrawData[i].numIndices = static_cast<uint32_t>(mLODs[i].indices.size());
+		mLODsDrawData[i].vertexOffset = vertexOffset;
+
+		vertexOffset += mLODs[i].vertices.size() * sizeof(mLODs[i].vertices[0]);
+		indexOffset += mLODs[i].indices.size() * sizeof(mLODs[i].indices[0]);
+		nextFirstIndice += static_cast<uint32_t>(mLODs[i].indices.size());
+	}
+}
+
 bool Mesh::Vertex::operator==(const Vertex& o) const
 {
 	return this->pos == o.pos &&
@@ -292,6 +346,7 @@ void Mesh::renderImGui(FrameContext* fc, Gui* gui)
 	}
 	if (ImGui::Button("Regenerate LODs")) {
 		this->regenerateLODs(fc);
+		this->uploadDataToGPU(fc);
 	}
 
 	ImGui::Separator();

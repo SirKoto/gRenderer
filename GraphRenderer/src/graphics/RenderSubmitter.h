@@ -21,11 +21,14 @@ class RenderSubmitter
 public:
 
 
-	struct DrawData {
-		vk::Buffer vertexBuffer;
-		vk::Buffer indexBuffer;
-		uint32_t numIndices;
-		vk::DescriptorSet objectDescriptorSet;
+	class DrawData {
+	public:
+		vk::Buffer vertexBuffer = nullptr;
+		vk::DeviceSize vertexBufferOffset = 0;
+		vk::Buffer indexBuffer = nullptr;
+		uint32_t numIndices = 0;
+		uint32_t firstIndex = 0;
+		vk::DescriptorSet objectDescriptorSet = nullptr;
 	};
 
 	void pushPredefinedDraw(const DrawData& drawData);

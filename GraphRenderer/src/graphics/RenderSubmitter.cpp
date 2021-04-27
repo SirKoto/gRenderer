@@ -94,11 +94,10 @@ void RenderSubmitter::flushDraws(vk::CommandBuffer cmd)
             }
 
             // bind to 0
-            vk::DeviceSize offsets = 0;
-            cmd.bindVertexBuffers(0, 1, &dd.vertexBuffer, &offsets);
+            cmd.bindVertexBuffers(0, 1, &dd.vertexBuffer, &dd.vertexBufferOffset);
             cmd.bindIndexBuffer(dd.indexBuffer, 0, vk::IndexType::eUint32);
 
-            cmd.drawIndexed(dd.numIndices, 1, 0, 0, 0);
+            cmd.drawIndexed(dd.numIndices, 1, dd.firstIndex, 0, 0);
         }
 
         material.second.renderList.clear();

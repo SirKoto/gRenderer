@@ -192,6 +192,7 @@
     <ClCompile Include="src\meshes\IObject.cpp" />
     <ClCompile Include="src\meshes\Material.cpp" />
     <ClCompile Include="src\meshes\Mesh.cpp" />
+    <ClCompile Include="src\meshes\Mesh\LODGeneration.cpp" />
     <ClCompile Include="src\meshes\Pipeline.cpp" />
     <ClCompile Include="src\meshes\ResourceDictionary.cpp" />
     <ClCompile Include="src\meshes\Sampler.cpp" />

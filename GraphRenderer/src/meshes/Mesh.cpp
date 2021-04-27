@@ -5,6 +5,7 @@
 #include "Mesh.h"
 #include "../control/FrameContext.h"
 #include "../graphics/RenderContext.h"
+#include "../gui/GuiUtils.h"
 
 #include <fstream>
 #include <imgui/imgui.h>
@@ -255,6 +256,45 @@ void Mesh::renderImGui(FrameContext* fc, Gui* gui)
 	ImGui::Text("Num vertices: %u", mVertices.size());
 	ImGui::Text("Num indices: %u", mIndices.size());
 
+	
+	ImGui::Separator();
+	if (ImGui::TreeNode("Levels of detail:")) {
+		bool minus = ImGui::Button("-"); ImGui::SameLine();
+		ImGui::TextDisabled("%u", static_cast<uint32_t>(mLODs.size())); ImGui::SameLine();
+		bool plus = ImGui::Button("+");
+		if (minus && !mLODs.empty()) {
+			mLODs.resize(mLODs.size() - 1);
+		}
+		if (plus) {
+			mLODs.resize(mLODs.size() + 1);
+		}
+
+		ImGui::PushID("Lods");
+		for (size_t i = 0; i < mLODs.size(); ++i) {
+			if (ImGui::TreeNode((void*)(intptr_t)i,"LOD %d", i + 1)) {
+				ImGui::Text("Num vertices: %u", mLODs[i].vertices.size());
+				ImGui::Text("Num indices: %u", mLODs[i].indices.size());
+				ImGui::Text("Computed on depth: %u", mLODs[i].depth);
+				std::string str = std::string("Depth##") + std::to_string(i);
+				int32_t step = 1;
+				ImGui::InputScalar(str.c_str(), ImGuiDataType_U32, (void*)&mLODs[i].depth, &step, nullptr, "%d", ImGuiInputTextFlags_None);
+
+				gui::helpMarker("The depth marks how much detail should be preserved. Consecutive LODs must have decreasing depth.");
+
+				if (i > 0) {
+					mLODs[i].depth = std::min(mLODs[i].depth, std::min(mLODs[i - 1].depth, mLODs[i - 1].depth - 1));
+				}
+				ImGui::TreePop();
+			}
+		}
+		ImGui::TreePop();
+		ImGui::PopID();
+	}
+	if (ImGui::Button("Regenerate LODs")) {
+		this->regenerateLODs(fc);
+	}
+
+	ImGui::Separator();
 	ImGui::Text("BBox\n\t(%.2f,%.2f,%.2f)\n\t(%.2f,%.2f,%.2f)", 
 		mBBox.getMin().x, mBBox.getMin().y, mBBox.getMin().z,
 		mBBox.getMax().x, mBBox.getMax().y, mBBox.getMax().z);

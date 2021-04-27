@@ -57,6 +57,9 @@ public:
 
 	operator bool()const { return mIndexBuffer; }
 
+	
+	void regenerateLODs(FrameContext* fc);
+
 protected:
 
 	struct Vertex {
@@ -75,6 +78,15 @@ protected:
 
 	std::vector<Vertex> mVertices;
 	std::vector<uint32_t> mIndices;
+
+	struct LOD {
+		uint32_t depth;
+		uint32_t IndexOffset;
+		std::vector<Vertex> vertices;
+		std::vector<uint32_t> indices;
+	};
+	std::vector<LOD> mLODs;
+	
 
 	vkg::Buffer mIndexBuffer;
 	vkg::Buffer mVertexBuffer;

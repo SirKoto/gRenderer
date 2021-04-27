@@ -1,0 +1,242 @@
+{
+    "BoundScene": 3,
+    "Dict": {
+        "LastIdUsed": 6,
+        "Name2Id": [
+            {
+                "key": "viking_room.ply",
+                "value": 2
+            },
+            {
+                "key": "cone.ply",
+                "value": 6
+            },
+            {
+                "key": "scene",
+                "value": 3
+            },
+            {
+                "key": "Cone",
+                "value": 5
+            },
+            {
+                "key": "Test GameObject",
+                "value": 4
+            }
+        ],
+        "ObjectsByType": {
+            "value0": [
+                2,
+                6
+            ],
+            "value1": [],
+            "value2": [],
+            "value3": [],
+            "value4": [],
+            "value5": [],
+            "value6": [],
+            "value7": [
+                3
+            ],
+            "value8": [
+                4,
+                5
+            ]
+        },
+        "ObjectsDictionary": [
+            {
+                "key": 2,
+                "value": {
+                    "polymorphic_id": 2147483649,
+                    "polymorphic_name": "gr::Mesh",
+                    "ptr_wrapper": {
+                        "valid": 1,
+                        "data": {
+                            "value0": {
+                                "ObjectName": "viking_room.ply"
+                            },
+                            "Path": "..\\..\\GraphRenderer\\resources\\models\\viking_room.ply"
+                        }
+                    }
+                }
+            },
+            {
+                "key": 3,
+                "value": {
+                    "polymorphic_id": 2147483650,
+                    "polymorphic_name": "gr::Scene",
+                    "ptr_wrapper": {
+                        "valid": 1,
+                        "data": {
+                            "value0": {
+                                "ObjectName": "scene"
+                            },
+                            "value1": {
+                                "polymorphic_id": 1073741824,
+                                "ptr_wrapper": {
+                                    "valid": 1,
+                                    "data": {
+                                        "value0": {
+                                            "ObjectName": ""
+                                        },
+                                        "Transform": {
+                                            "Pos": {
+                                                "x": 1.6783061027526856,
+                                                "y": 0.9172975420951843,
+                                                "z": 3.4819722175598146
+                                            },
+                                            "Scale": {
+                                                "x": 1.0,
+                                                "y": 1.0,
+                                                "z": 1.0
+                                            },
+                                            "Rotation": {
+                                                "w": 0.04324644058942795,
+                                                "x": 0.0056855399161577229,
+                                                "y": -0.9904752969741821,
+                                                "z": 0.13041669130325318
+                                            }
+                                        },
+                                        "value1": 2,
+                                        "value2": {
+                                            "polymorphic_id": 2147483651,
+                                            "polymorphic_name": "gr::addon::Camera",
+                                            "ptr_wrapper": {
+                                                "valid": 1,
+                                                "data": {
+                                                    "Fov": 90.0,
+                                                    "Near": 0.10000000149011612,
+                                                    "Far": 100.0,
+                                                    "AspectRatio": {
+                                                        "x": 16.0,
+                                                        "y": 9.0
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "value3": {
+                                            "polymorphic_id": 2147483652,
+                                            "polymorphic_name": "gr::addon::SimplePlayerControl",
+                                            "ptr_wrapper": {
+                                                "valid": 1,
+                                                "data": {
+                                                    "Speed": 2.0,
+                                                    "MouseSpeed": 1.0
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "value2": [
+                                4,
+                                5
+                            ]
+                        }
+                    }
+                }
+            },
+            {
+                "key": 4,
+                "value": {
+                    "polymorphic_id": 2147483653,
+                    "polymorphic_name": "gr::GameObject",
+                    "ptr_wrapper": {
+                        "valid": 1,
+                        "data": {
+                            "value0": {
+                                "ObjectName": "Test GameObject"
+                            },
+                            "Transform": {
+                                "Pos": {
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "z": 0.0
+                                },
+                                "Scale": {
+                                    "x": 1.0,
+                                    "y": 1.0,
+                                    "z": 1.0
+                                },
+                                "Rotation": {
+                                    "w": 1.0,
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "z": 0.0
+                                }
+                            },
+                            "value1": 1,
+                            "value2": {
+                                "polymorphic_id": 2147483654,
+                                "polymorphic_name": "gr::addon::Renderable",
+                                "ptr_wrapper": {
+                                    "valid": 1,
+                                    "data": {
+                                        "Mesh": 2
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "key": 5,
+                "value": {
+                    "polymorphic_id": 5,
+                    "ptr_wrapper": {
+                        "valid": 1,
+                        "data": {
+                            "value0": {
+                                "ObjectName": "Cone"
+                            },
+                            "Transform": {
+                                "Pos": {
+                                    "x": 2.9000000953674318,
+                                    "y": 0.0,
+                                    "z": 0.14999999105930329
+                                },
+                                "Scale": {
+                                    "x": 1.0,
+                                    "y": 1.0,
+                                    "z": 1.0
+                                },
+                                "Rotation": {
+                                    "w": 1.0,
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "z": 0.0
+                                }
+                            },
+                            "value1": 1,
+                            "value2": {
+                                "polymorphic_id": 6,
+                                "ptr_wrapper": {
+                                    "valid": 1,
+                                    "data": {
+                                        "Mesh": 6
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "key": 6,
+                "value": {
+                    "polymorphic_id": 1,
+                    "ptr_wrapper": {
+                        "valid": 1,
+                        "data": {
+                            "value0": {
+                                "ObjectName": "cone.ply"
+                            },
+                            "Path": "..\\..\\GraphRenderer\\resources\\models\\cone.ply"
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

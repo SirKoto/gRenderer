@@ -1,0 +1,174 @@
+{
+    "BoundScene": 3,
+    "Dict": {
+        "LastIdUsed": 4,
+        "Name2Id": [
+            {
+                "key": "Armadillo.ply",
+                "value": 2
+            },
+            {
+                "key": "Scene",
+                "value": 3
+            },
+            {
+                "key": "Armadillo",
+                "value": 4
+            }
+        ],
+        "ObjectsByType": {
+            "value0": [
+                2
+            ],
+            "value1": [],
+            "value2": [],
+            "value3": [],
+            "value4": [],
+            "value5": [],
+            "value6": [],
+            "value7": [
+                3
+            ],
+            "value8": [
+                4
+            ]
+        },
+        "ObjectsDictionary": [
+            {
+                "key": 2,
+                "value": {
+                    "polymorphic_id": 2147483649,
+                    "polymorphic_name": "gr::Mesh",
+                    "ptr_wrapper": {
+                        "valid": 1,
+                        "data": {
+                            "value0": {
+                                "ObjectName": "Armadillo.ply"
+                            },
+                            "Path": "..\\..\\GraphRenderer\\resources\\models\\Armadillo.ply"
+                        }
+                    }
+                }
+            },
+            {
+                "key": 3,
+                "value": {
+                    "polymorphic_id": 2147483650,
+                    "polymorphic_name": "gr::Scene",
+                    "ptr_wrapper": {
+                        "valid": 1,
+                        "data": {
+                            "value0": {
+                                "ObjectName": "Scene"
+                            },
+                            "value1": {
+                                "polymorphic_id": 1073741824,
+                                "ptr_wrapper": {
+                                    "valid": 1,
+                                    "data": {
+                                        "value0": {
+                                            "ObjectName": ""
+                                        },
+                                        "Transform": {
+                                            "Pos": {
+                                                "x": 0.4601510763168335,
+                                                "y": 1.8227072954177857,
+                                                "z": -3.2014195919036867
+                                            },
+                                            "Scale": {
+                                                "x": 1.0,
+                                                "y": 1.0,
+                                                "z": 1.0
+                                            },
+                                            "Rotation": {
+                                                "w": 0.982271671295166,
+                                                "x": 0.15557661652565003,
+                                                "y": -0.10324101150035858,
+                                                "z": 0.016351088881492616
+                                            }
+                                        },
+                                        "value1": 2,
+                                        "value2": {
+                                            "polymorphic_id": 2147483651,
+                                            "polymorphic_name": "gr::addon::Camera",
+                                            "ptr_wrapper": {
+                                                "valid": 1,
+                                                "data": {
+                                                    "Fov": 90.0,
+                                                    "Near": 0.10000000149011612,
+                                                    "Far": 100.0,
+                                                    "AspectRatio": {
+                                                        "x": 16.0,
+                                                        "y": 9.0
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "value3": {
+                                            "polymorphic_id": 2147483652,
+                                            "polymorphic_name": "gr::addon::SimplePlayerControl",
+                                            "ptr_wrapper": {
+                                                "valid": 1,
+                                                "data": {
+                                                    "Speed": 2.0,
+                                                    "MouseSpeed": 1.0
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "value2": [
+                                4
+                            ]
+                        }
+                    }
+                }
+            },
+            {
+                "key": 4,
+                "value": {
+                    "polymorphic_id": 2147483653,
+                    "polymorphic_name": "gr::GameObject",
+                    "ptr_wrapper": {
+                        "valid": 1,
+                        "data": {
+                            "value0": {
+                                "ObjectName": "Armadillo"
+                            },
+                            "Transform": {
+                                "Pos": {
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "z": 0.0
+                                },
+                                "Scale": {
+                                    "x": 0.029999999329447748,
+                                    "y": 0.029999999329447748,
+                                    "z": 0.029999999329447748
+                                },
+                                "Rotation": {
+                                    "w": 1.0,
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "z": 0.0
+                                }
+                            },
+                            "value1": 1,
+                            "value2": {
+                                "polymorphic_id": 2147483654,
+                                "polymorphic_name": "gr::addon::Renderable",
+                                "ptr_wrapper": {
+                                    "valid": 1,
+                                    "data": {
+                                        "Mesh": 2
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

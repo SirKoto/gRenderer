@@ -102,7 +102,7 @@ bool Window::isWindowMinimized() const
 
 void Window::destroy(const vk::Instance& instance)
 {
-	if (mSurface != VK_NULL_HANDLE) {
+	if (mSurface) {
 		instance.destroySurfaceKHR(mSurface, nullptr);
 	}
 	glfwDestroyWindow(reinterpret_cast<GLFWwindow*>(mWindow));

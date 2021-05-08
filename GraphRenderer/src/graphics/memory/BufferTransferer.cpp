@@ -47,81 +47,84 @@ void BufferTransferer::updateAndFlushTransfers(
 		}
 
 		// image transferences
-		// First transition image to dstOptimal
-		std::vector<vk::ImageMemoryBarrier> barriers(
-			ts.imageTransfersFragmentOps.size(),
-			vk::ImageMemoryBarrier(
-				vk::AccessFlags{}, // src AccessMask
-				vk::AccessFlagBits::eTransferWrite, // dst AccessMask
-				vk::ImageLayout::eUndefined,// old layout
-				vk::ImageLayout::eTransferDstOptimal,// new layout
-				VK_QUEUE_FAMILY_IGNORED,	// src queue family
-				VK_QUEUE_FAMILY_IGNORED,	// dst queue family
-				nullptr,					// image
-				{}							// range
-			));
-		const uint32_t numImgTransfers = static_cast<uint32_t>(ts.imageTransfersFragmentOps.size());
-		for (uint32_t i = 0; i < numImgTransfers; ++i) {		
-			const ImageTransferOp& op = ts.imageTransfersFragmentOps[i];
-			barriers[i].setImage(op.dstImage)
-				.setSubresourceRange(vk::ImageSubresourceRange(
-					op.layersInfo.aspectMask,
-					op.layersInfo.mipLevel,
-					VK_REMAINING_MIP_LEVELS,
-					op.layersInfo.baseArrayLayer,
-					op.layersInfo.layerCount
-				));
-		}
-
-		transferCmd.pipelineBarrier(
-			vk::PipelineStageFlagBits::eTopOfPipe, // src stage mask
-			vk::PipelineStageFlagBits::eTransfer, // dst stage mask
-			vk::DependencyFlagBits{},
-			0, nullptr, 0, nullptr, // buffer and memory barrier
-			static_cast<uint32_t>(barriers.size()), barriers.data() // image memory barrier
-		);
-		// copy image data
-		for (uint32_t i = 0; i < numImgTransfers; ++i) {
-			const ImageTransferOp& op = ts.imageTransfersFragmentOps[i];
-
-			vk::BufferImageCopy regionInfo(
-				op.srcOffset, 0u, 0u,	// offset, row length, image height
-				op.layersInfo,		// subresource layers
-				vk::Offset3D(0),
-				op.extent
-			);
-			transferCmd.copyBufferToImage(
-				mStagingBuffers[op.stageBuffIdx].buffer.getVkBuffer(), // src buffer
-				op.dstImage,	// dst image
-				vk::ImageLayout::eTransferDstOptimal,			// dst image layout
-				1, &regionInfo									// regions
-			);
-		}
-
-		// Second barriers to set final layout
 		uint32_t numGraphicsAcquire = 0;
-		for (uint32_t i = 0; i < numImgTransfers; ++i) {
-			const ImageTransferOp& op = ts.imageTransfersFragmentOps[i];
-			barriers[i]
-				.setSrcAccessMask(vk::AccessFlagBits::eTransferWrite)
-				.setDstAccessMask(op.dstAccessMask)
-				.setOldLayout(vk::ImageLayout::eTransferDstOptimal)
-				.setNewLayout(op.dstImageLayout);
-
-			if (op.acquireGraphics) {
-				numGraphicsAcquire += 1;
-				barriers[i]
-					.setSrcQueueFamilyIndex(rc->getTransferFamilyIdx())
-					.setDstQueueFamilyIndex(rc->getGraphicsFamilyIdx());
+		std::vector<vk::ImageMemoryBarrier> barriers;
+		if (!ts.imageTransfersFragmentOps.empty()) {
+			// First transition image to dstOptimal
+			barriers = std::vector<vk::ImageMemoryBarrier>(
+				ts.imageTransfersFragmentOps.size(),
+				vk::ImageMemoryBarrier(
+					vk::AccessFlags{}, // src AccessMask
+					vk::AccessFlagBits::eTransferWrite, // dst AccessMask
+					vk::ImageLayout::eUndefined,// old layout
+					vk::ImageLayout::eTransferDstOptimal,// new layout
+					VK_QUEUE_FAMILY_IGNORED,	// src queue family
+					VK_QUEUE_FAMILY_IGNORED,	// dst queue family
+					nullptr,					// image
+					{}							// range
+			));
+			const uint32_t numImgTransfers = static_cast<uint32_t>(ts.imageTransfersFragmentOps.size());
+			for (uint32_t i = 0; i < numImgTransfers; ++i) {
+				const ImageTransferOp& op = ts.imageTransfersFragmentOps[i];
+				barriers[i].setImage(op.dstImage)
+					.setSubresourceRange(vk::ImageSubresourceRange(
+						op.layersInfo.aspectMask,
+						op.layersInfo.mipLevel,
+						VK_REMAINING_MIP_LEVELS,
+						op.layersInfo.baseArrayLayer,
+						op.layersInfo.layerCount
+						));
 			}
+
+			transferCmd.pipelineBarrier(
+				vk::PipelineStageFlagBits::eTopOfPipe, // src stage mask
+				vk::PipelineStageFlagBits::eTransfer, // dst stage mask
+				vk::DependencyFlagBits{},
+				0, nullptr, 0, nullptr, // buffer and memory barrier
+				static_cast<uint32_t>(barriers.size()), barriers.data() // image memory barrier
+				);
+			// copy image data
+			for (uint32_t i = 0; i < numImgTransfers; ++i) {
+				const ImageTransferOp& op = ts.imageTransfersFragmentOps[i];
+
+				vk::BufferImageCopy regionInfo(
+					op.srcOffset, 0u, 0u,	// offset, row length, image height
+					op.layersInfo,		// subresource layers
+					vk::Offset3D(0),
+					op.extent
+					);
+				transferCmd.copyBufferToImage(
+					mStagingBuffers[op.stageBuffIdx].buffer.getVkBuffer(), // src buffer
+					op.dstImage,	// dst image
+					vk::ImageLayout::eTransferDstOptimal,			// dst image layout
+					1, &regionInfo									// regions
+					);
+			}
+
+			// Second barriers to set final layout
+			for (uint32_t i = 0; i < numImgTransfers; ++i) {
+				const ImageTransferOp& op = ts.imageTransfersFragmentOps[i];
+				barriers[i]
+					.setSrcAccessMask(vk::AccessFlagBits::eTransferWrite)
+					.setDstAccessMask(op.dstAccessMask)
+					.setOldLayout(vk::ImageLayout::eTransferDstOptimal)
+					.setNewLayout(op.dstImageLayout);
+
+				if (op.acquireGraphics) {
+					numGraphicsAcquire += 1;
+					barriers[i]
+						.setSrcQueueFamilyIndex(rc->getTransferFamilyIdx())
+						.setDstQueueFamilyIndex(rc->getGraphicsFamilyIdx());
+				}
+			}
+			transferCmd.pipelineBarrier(
+				vk::PipelineStageFlagBits::eTransfer, // src stage mask
+				vk::PipelineStageFlagBits::eFragmentShader, // dst stage mask
+				vk::DependencyFlagBits{},
+				0, nullptr, 0, nullptr, // buffer and memory barrier
+				static_cast<uint32_t>(barriers.size()), barriers.data() // image memory barrier
+				);
 		}
-		transferCmd.pipelineBarrier(
-			vk::PipelineStageFlagBits::eTransfer, // src stage mask
-			vk::PipelineStageFlagBits::eFragmentShader, // dst stage mask
-			vk::DependencyFlagBits{},
-			0, nullptr, 0, nullptr, // buffer and memory barrier
-			static_cast<uint32_t>(barriers.size()), barriers.data() // image memory barrier
-		);
 
 		transferCmd.end();
 

@@ -186,6 +186,7 @@ void BufferTransferer::updateTransferStates(RenderContext* rc)
 
 	for (TransferSpace& ts : mTransferSpaces) {
 		if (ts.inUse) {
+			// If in use but empty, we have to reset the TransferSpace to mark them as !inUse
 			if (ts.empty()) {
 				ts.reset(rc);
 			}
@@ -290,7 +291,7 @@ uint32_t BufferTransferer::findOrCreateStageBuffer(
 	const uint32_t num = static_cast<uint32_t>(mStagingBuffers.size());
 	for (uint32_t i = 0; i < num; ++i) {
 		const StageBuffer& buf = mStagingBuffers[i];
-		if (buf.size - buf.getLastAvailableByte()) {
+		if (buf.size - buf.getLastAvailableByte() >= numBytes) {
 			return i;
 		}
 	}

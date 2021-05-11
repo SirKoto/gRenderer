@@ -215,6 +215,10 @@ void BufferTransferer::transferToBuffer(
 	const vk::DeviceSize numBytes, const Buffer& dstBuffer,
 	const vk::DeviceSize dstOffset)
 {
+	if (numBytes == 0) {
+		throw std::runtime_error("Transfering buffer of size 0");
+	}
+
 	mBufferMutex.lock();
 
 	const uint32_t buffIdx = findOrCreateStageBuffer(rc, numBytes);

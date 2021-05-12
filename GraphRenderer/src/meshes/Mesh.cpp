@@ -341,12 +341,30 @@ void Mesh::renderImGui(FrameContext* fc, Gui* gui)
 				ImGui::TreePop();
 			}
 		}
+
+		if (ImGui::TreeNode("Regenerate LOD")) {
+			if (ImGui::Button("Representative Mean")) {
+				this->regenerateLODs(fc);
+				this->uploadDataToGPU(fc);
+			}
+			if (ImGui::Button("Representative Mean, Normal Clustering")) {
+				this->regenerateLODs(fc, false, true);
+				this->uploadDataToGPU(fc);
+			}
+			if (ImGui::Button("Quadric Error Metric")) {
+				this->regenerateLODs(fc, true, false);
+				this->uploadDataToGPU(fc);
+			}
+			if (ImGui::Button("Quadric Error Metric, Normal Clustering")) {
+				this->regenerateLODs(fc, true, true);
+				this->uploadDataToGPU(fc);
+			}
+
+			ImGui::TreePop();
+		}
+
 		ImGui::TreePop();
 		ImGui::PopID();
-	}
-	if (ImGui::Button("Regenerate LODs")) {
-		this->regenerateLODs(fc);
-		this->uploadDataToGPU(fc);
 	}
 
 	ImGui::Separator();

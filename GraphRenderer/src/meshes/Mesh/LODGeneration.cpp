@@ -32,7 +32,7 @@ struct SixDirsTris {
 		return n.z >= 0 ? 4 : 5;
 	}
 
-	void push_back(uint32_t idx, const glm::vec3& normal) {
+	void push_back_normal(uint32_t idx, const glm::vec3& normal) {
 		uint32_t dir = classifyNormalDir(normal);
 		vertices[dir].push_back(idx);
 	}
@@ -57,7 +57,7 @@ struct SixDirsTris {
 
 };
 
-struct Task {
+struct OctNodeTask {
 	SixDirsTris sixDirsTris;
 	uint32_t depth;
 	glm::vec3 midCoord;
@@ -66,11 +66,11 @@ struct Task {
 
 
 
-void gr::Mesh::regenerateLODs(FrameContext* fc)
+void gr::Mesh::regenerateLODs(FrameContext* fc, bool useQuadricErrorMetric, bool useNormalClustering)
 {
 	//std::vector<Node> nodes;
 
-	std::stack<Task> tasks;
+	std::stack<OctNodeTask> tasks;
 
 	if (mLODs.empty()) {
 		return;
@@ -90,10 +90,17 @@ void gr::Mesh::regenerateLODs(FrameContext* fc)
 
 
 	{
-		Task root;
-		// Add veretices in 6 directions
-		for (uint32_t i = 0; i < (uint32_t)mVertices.size(); ++i) {
-			root.sixDirsTris.push_back(i, mVertices[i].normal);
+		OctNodeTask root;
+		// Add vertices in 6 directions
+		if (useNormalClustering) {
+			for (uint32_t i = 0; i < (uint32_t)mVertices.size(); ++i) {
+				root.sixDirsTris.push_back_normal(i, mVertices[i].normal);
+			}
+		}
+		else { // only add for the first normal cluster
+			for (uint32_t i = 0; i < (uint32_t)mVertices.size(); ++i) {
+				root.sixDirsTris.vertices.front().push_back(i);
+			}
 		}
 		root.depth = 0;
 		root.midCoord = (mBBox.getMin() + octreeSize * 0.5f);
@@ -101,6 +108,7 @@ void gr::Mesh::regenerateLODs(FrameContext* fc)
 	}
 
 
+	// Only will use the 6 children if requested
 	std::array<SixDirsTris, 8> childsVert = {};
 
 	std::vector<std::vector<uint32_t>> old2newVerticesInLod;
@@ -143,7 +151,7 @@ void gr::Mesh::regenerateLODs(FrameContext* fc)
 
 	while (!tasks.empty()) {
 
-		const Task task = std::move(tasks.top());
+		const OctNodeTask task = std::move(tasks.top());
 		tasks.pop();
 
 		float size = octreeSize / static_cast<float>(1 << task.depth);
@@ -168,7 +176,7 @@ void gr::Mesh::regenerateLODs(FrameContext* fc)
 
 				if (!childsVert[k].empty()) {
 					glm::vec3 dir = { k & 0b1 ? 1 : -1, k & 0b10 ? 1 : -1, k & 0b100 ? 1 : -1 };
-					Task newT;
+					OctNodeTask newT;
 					newT.depth = task.depth + 1;
 					newT.midCoord = task.midCoord + 0.25f * size * dir;
 					newT.sixDirsTris = childsVert[k];
@@ -187,11 +195,11 @@ void gr::Mesh::regenerateLODs(FrameContext* fc)
 				}
 
 				Vertex v;
-				v.pos = task.midCoord;
+				v.pos = glm::vec3(0);
 				v.normal = glm::vec3(0);
 
 				// Quadric error metric
-				{
+				if(useQuadricErrorMetric) {
 					Mat4 K = Mat4::Zero();
 
 					for (const uint32_t& vId : vertices) {
@@ -214,6 +222,14 @@ void gr::Mesh::regenerateLODs(FrameContext* fc)
 					const Vec4 res = svd.solve(rhs);
 
 					v.pos = glm::vec3(res[0], res[1], res[2]) + task.midCoord;
+				}
+				else { // centrod as position
+					for (const uint32_t& vId : vertices) {
+						v.normal += mVertices[vId].normal;
+						v.pos += mVertices[vId].pos;
+					}
+					v.normal /= vertices.size();
+					v.pos /= vertices.size();
 				}
 
 

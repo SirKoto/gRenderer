@@ -61,7 +61,7 @@ public:
 	operator bool()const { return mIndexBuffer; }
 
 	
-	void regenerateLODs(FrameContext* fc);
+	void regenerateLODs(FrameContext* fc, bool useQuadricErrorMetric = false, bool useNormalClustering = false);
 
 protected:
 

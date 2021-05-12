@@ -182,6 +182,10 @@ void gr::Mesh::regenerateLODs(FrameContext* fc)
 		if (it != depthToLod.end()) {
 			for (uint32_t dir = 0; dir < 6; ++dir) {
 				const std::vector<uint32_t>& vertices = task.sixDirsTris[dir];
+				if (vertices.empty()) {
+					continue;
+				}
+
 				Vertex v;
 				v.pos = task.midCoord;
 				v.normal = glm::vec3(0);
@@ -231,7 +235,6 @@ void gr::Mesh::regenerateLODs(FrameContext* fc)
 	alreadyAddedFaces.reserve(mIndices.size() / 3);
 	for (uint32_t lod = 0; lod < (uint32_t)mLODs.size(); ++lod) {
 		alreadyAddedFaces.clear();
-
 		for (uint32_t i = 0; i < mIndices.size() / 3; ++i) {
 			glm::uvec3 f = {	old2newVerticesInLod[lod][mIndices[3 * i + 0]],
 								old2newVerticesInLod[lod][mIndices[3 * i + 1]],
@@ -247,8 +250,6 @@ void gr::Mesh::regenerateLODs(FrameContext* fc)
 			}
 
 		}
-
-
 	}
 
 }

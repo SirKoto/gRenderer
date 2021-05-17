@@ -26,6 +26,10 @@ public:
 
     void setMesh(ResId meshId);
 
+    void setLOD(uint32_t newLod) { mLod = newLod; }
+    const uint32_t getLOD() const { return mLod; }
+    uint32_t getMaxLOD(FrameContext* fc) const;
+
     const char* getAddonName() override { return Renderable::s_getAddonName(); }
 
 

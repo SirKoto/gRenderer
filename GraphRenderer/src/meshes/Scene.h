@@ -37,13 +37,19 @@ private:
 
     std::set<ResId> mGameObjects;
 
+    bool mAutomaticLOD = false;
+
+
+    void lodUpdate(FrameContext* fc);
+
     // Serialization functions
     template<class Archive>
     void serialize(Archive& archive)
     {
         archive(cereal::base_class<IObject>(this));
-        archive(mUiCameraGameObj);
-        archive(mGameObjects);
+        archive(GR_SERIALIZE_NVP_MEMBER(mUiCameraGameObj));
+        archive(GR_SERIALIZE_NVP_MEMBER(mGameObjects));
+        archive(GR_SERIALIZE_NVP_MEMBER(mAutomaticLOD));
     }
 
     GR_SERIALIZE_PRIVATE_MEMBERS

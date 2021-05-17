@@ -71,7 +71,7 @@
                             "value0": {
                                 "ObjectName": "scene"
                             },
-                            "value1": {
+                            "UiCameraGameObj": {
                                 "polymorphic_id": 1073741824,
                                 "ptr_wrapper": {
                                     "valid": 1,
@@ -128,10 +128,11 @@
                                     }
                                 }
                             },
-                            "value2": [
+                            "GameObjects": [
                                 4,
                                 5
-                            ]
+                            ],
+                            "AutomaticLOD": false
                         }
                     }
                 }

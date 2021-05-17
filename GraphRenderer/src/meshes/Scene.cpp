@@ -6,6 +6,7 @@
 #include "GameObject.h"
 #include "GameObjectAddons/Camera.h"
 #include "GameObjectAddons/SimplePlayerControl.h"
+#include "GameObjectAddons/Renderable.h"
 #include "../control/FrameContext.h"
 #include "../utils/grjob.h"
 #include "../gui/Gui.h"
@@ -61,9 +62,14 @@ void Scene::renderImGui(FrameContext* fc, Gui* gui)
 		}
 	}
 
+	if (ImGui::TreeNode("Scene Configuration")) {
+		if (ImGui::TreeNode("Scene Camera")) {
+			mUiCameraGameObj->renderImGui(fc, nullptr);
+			ImGui::TreePop();
+		}
 
-	if (ImGui::TreeNode("Scene Camera")) {
-		mUiCameraGameObj->renderImGui(fc, nullptr);
+		ImGui::Checkbox("Automatic LOD", &mAutomaticLOD);
+
 		ImGui::TreePop();
 	}
 	ImGui::Separator();
@@ -114,6 +120,9 @@ void Scene::renderImGui(FrameContext* fc, Gui* gui)
 
 void Scene::graphicsUpdate(FrameContext* fc)
 {
+
+	this->lodUpdate(fc);
+
 	std::vector<grjob::Job> jobs;
 	jobs.reserve(mGameObjects.size() + 1);
 
@@ -156,6 +165,28 @@ void Scene::logicUpdate(FrameContext* fc)
 	grjob::Counter* c = nullptr;
 	grjob::runJobBatch(grjob::Priority::eMid, jobs.data(), (uint32_t)jobs.size(), &c);
 	grjob::waitForCounterAndFree(c, 0);
+}
+
+void Scene::lodUpdate(FrameContext* fc)
+{
+	// If not automatic LOD, downgrade the LOD if not exists
+	if (!mAutomaticLOD) {
+		for (ResId id : mGameObjects) {
+			GameObject* obj;
+			fc->gc().getDict().get(id, &obj);
+			addon::Renderable* rend = obj->getAddon<addon::Renderable>();
+			if (rend != nullptr) {
+				if (rend->getLOD() > rend->getMaxLOD(fc)) {
+					rend->setLOD(rend->getMaxLOD(fc));
+				}
+			}
+
+		} // end for
+
+		return;
+	}
+
+
 }
 
 void Scene::start(FrameContext* fc)

@@ -121,6 +121,18 @@ void Renderable::setMesh(ResId meshId)
 	mMesh = meshId;
 }
 
+uint32_t Renderable::getMaxLOD(FrameContext* fc) const
+{
+    if (!mMesh) {
+        return 0;
+    }
+
+    const Mesh* mesh;
+    fc->gc().getDict().get(mMesh, &mesh);
+    return mesh->getNumLODs();
+}
+
+
 void Renderable::createUbos(FrameContext* fc)
 {
     if (mUbos) {

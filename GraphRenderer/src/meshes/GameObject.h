@@ -23,6 +23,8 @@ public:
     void renderImGui(FrameContext* fc, Gui* gui) override;
     void start(FrameContext* fc) override;
 
+    void duplicateTo(FrameContext* fc, GameObject* obj) const;
+
     static constexpr const char* s_getClassName() { return "GameObjects"; }
 
     void graphicsUpdate(FrameContext* fc, const SceneRenderContext& src);

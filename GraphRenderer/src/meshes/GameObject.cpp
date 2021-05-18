@@ -72,6 +72,17 @@ void GameObject::start(FrameContext* fc)
     mTransform.start(fc);
 }
 
+void GameObject::duplicateTo(FrameContext* fc, GameObject* obj) const
+{
+    obj->scheduleDestroy(fc);
+    obj->mTransform = mTransform;
+    obj->mAddons.clear();
+    
+    for (const auto& it : mAddons) {
+        obj->mAddons.emplace(it.first, it.second->duplicate(fc, this));
+    }
+}
+
 void GameObject::graphicsUpdate(FrameContext* fc, const SceneRenderContext& src)
 {
     mTransform.updateBeforeRender(fc, this, src);

@@ -6,8 +6,10 @@
 #include <iostream>
 #include "../../utils/math/Quaternion.h"
 
+namespace gr {
+namespace addon {
 
-void gr::addon::Transform::drawImGuiInspector(FrameContext* fc, GameObject* parent)
+void Transform::drawImGuiInspector(FrameContext* fc, GameObject* parent)
 {
 
     ImGui::PushID(Transform::s_getAddonName());
@@ -40,7 +42,7 @@ void gr::addon::Transform::drawImGuiInspector(FrameContext* fc, GameObject* pare
 
     // rotation
     {
-        glm::vec3 euler = glm::degrees( mth::to_euler(mRotation) );
+        glm::vec3 euler = glm::degrees(mth::to_euler(mRotation));
         glm::vec3 eulerCpy = euler;
         ImGui::Text("Rotation");
         ImGui::SetNextItemWidth(width);
@@ -64,7 +66,25 @@ void gr::addon::Transform::drawImGuiInspector(FrameContext* fc, GameObject* pare
     ImGui::PopID();
 }
 
-void gr::addon::Transform::rotateArround(float angle, glm::vec3 axis)
+Transform& Transform::operator=(const Transform& o) {
+    this->mPos = o.mPos;
+    this->mScale = o.mScale;
+    this->mRotation = o.mRotation;
+
+    return *this;
+}
+
+
+std::unique_ptr<IAddon> Transform::duplicate(FrameContext* fc, const GameObject* parent) const
+{
+    Transform* nt = new Transform();
+    nt->mPos = this->mPos;
+    nt->mScale = this->mScale;
+    nt->mRotation = this->mRotation;
+    return std::unique_ptr<IAddon>(nt);
+}
+
+void Transform::rotateArround(float angle, glm::vec3 axis)
 {
     //angle = std::fmod(angle, 
     float sinA = std::sinf(angle * 0.5f);
@@ -78,17 +98,20 @@ void gr::addon::Transform::rotateArround(float angle, glm::vec3 axis)
     }
 }
 
-glm::vec3 gr::addon::Transform::forward() const
+glm::vec3 Transform::forward() const
 {
     return  glm::rotate(mRotation, glm::vec3(0.f, 0.f, 1.f));
 }
 
-glm::vec3 gr::addon::Transform::left() const
+glm::vec3 Transform::left() const
 {
     return  glm::rotate(mRotation, glm::vec3(1.f, 0.f, 0.f));
 }
 
-glm::vec3 gr::addon::Transform::up() const
+glm::vec3 Transform::up() const
 {
     return  glm::rotate(mRotation, glm::vec3(0.f, 1.f, 0.f));
 }
+
+} // namespace addon
+} // namespace gr

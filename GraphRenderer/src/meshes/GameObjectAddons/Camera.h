@@ -17,6 +17,8 @@ public:
 
 	void drawImGuiInspector(FrameContext* fc, GameObject* parent) override;
 
+	std::unique_ptr<addon::IAddon> duplicate(FrameContext* fc, const GameObject* parent) const override final;
+
 	void updateBeforeRender(FrameContext* fc, GameObject* parent, const SceneRenderContext& src) override;
 
 	void start(FrameContext* fc) override { createUbos(fc); };

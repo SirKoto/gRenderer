@@ -2,6 +2,8 @@
 
 #include "../../utils/serialization.h"
 
+#include <memory>
+
 namespace gr {
 
 class FrameContext;
@@ -15,7 +17,11 @@ class IAddon
 public:
 	IAddon() = default;
 
+	IAddon& operator=(const IAddon&) = delete;
+
 	virtual void drawImGuiInspector(FrameContext* fc, GameObject* parent) = 0;
+
+	virtual std::unique_ptr<addon::IAddon> duplicate(FrameContext* fc, const GameObject* parent) const = 0;
 	
 	virtual void updateBeforeRender(FrameContext* fc, GameObject* parent, const SceneRenderContext& src) {}
 

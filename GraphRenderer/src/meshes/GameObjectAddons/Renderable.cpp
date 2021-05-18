@@ -12,6 +12,16 @@ namespace gr
 namespace addon
 {
 
+std::unique_ptr<IAddon> Renderable::duplicate(FrameContext* fc, const GameObject* parent) const
+{
+    Renderable* nr = new Renderable();
+    nr->start(fc);
+    nr->setMesh(this->getMesh());
+    nr->setLOD(this->getLOD());
+
+    return std::unique_ptr<IAddon>(nr);
+}
+
 void Renderable::drawImGuiInspector(FrameContext* fc, GameObject* parent)
 {
     ImGui::PushID(Renderable::s_getAddonName());

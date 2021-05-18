@@ -8,6 +8,15 @@ namespace gr
 {
 namespace addon {
 
+std::unique_ptr<addon::IAddon> SimplePlayerControl::duplicate(FrameContext* fc, const GameObject* parent) const
+{
+	SimplePlayerControl* ns = new SimplePlayerControl();
+	ns->mSpeed = this->mSpeed;
+	ns->mMouseSpeed = this->mMouseSpeed;
+	ns->mPreMousePos = this->mPreMousePos;
+	return std::unique_ptr<addon::IAddon>(ns);
+}
+
 void SimplePlayerControl::drawImGuiInspector(FrameContext* fc, GameObject* parent)
 {
 	ImGui::PushID(SimplePlayerControl::s_getAddonName());

@@ -14,6 +14,8 @@ class SimplePlayerControl :
 public:
     SimplePlayerControl() = default;
 
+    std::unique_ptr<addon::IAddon> duplicate(FrameContext* fc, const GameObject* parent) const override final;
+
     void drawImGuiInspector(FrameContext* fc, GameObject* parent) override;
 
     void update(FrameContext* fc, GameObject* parent) override;

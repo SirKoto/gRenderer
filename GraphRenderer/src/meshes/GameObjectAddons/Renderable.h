@@ -18,6 +18,8 @@ class Renderable :
 public:
     Renderable() = default;
 
+    std::unique_ptr<addon::IAddon> duplicate(FrameContext* fc, const GameObject* parent) const override final;
+
     void drawImGuiInspector(FrameContext* fc, GameObject* parent) override;
 
     void updateBeforeRender(FrameContext* fc, GameObject* parent, const SceneRenderContext& src) override;
@@ -26,6 +28,7 @@ public:
     void start(FrameContext* fc) override;
 
     void setMesh(ResId meshId);
+    ResId getMesh() const { return mMesh; }
 
     void setLOD(uint32_t newLod) { mLod = newLod; }
     const uint32_t getLOD() const { return mLod; }

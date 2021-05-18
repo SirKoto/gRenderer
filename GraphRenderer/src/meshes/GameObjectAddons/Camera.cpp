@@ -32,6 +32,19 @@ void Camera::drawImGuiInspector(FrameContext* fc, GameObject* parent)
 	ImGui::PopID();
 }
 
+std::unique_ptr<addon::IAddon> Camera::duplicate(FrameContext* fc, const GameObject* parent) const
+{
+    Camera* nc = new Camera();
+    nc->start(fc);
+    
+    nc->mFov = this->mFov;
+    nc->mFar = this->mFar;
+    nc->mNear = this->mNear;
+    nc->mAspectRatio = this->mAspectRatio;
+
+    return std::unique_ptr<addon::IAddon>(nc);
+}
+
 void Camera::updateBeforeRender(FrameContext* fc, GameObject* parent, const SceneRenderContext& src)
 {
     fc->renderSubmitter().setSceneDescriptorSet(mCameraDescriptorSets[fc->getIdx()]);

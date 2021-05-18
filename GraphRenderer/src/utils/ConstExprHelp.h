@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string_view>
 
 namespace gr {
 
@@ -28,6 +29,7 @@ namespace ctools
 		}
 		return true;
 	}
+
 
 	struct VoidType {};
 	

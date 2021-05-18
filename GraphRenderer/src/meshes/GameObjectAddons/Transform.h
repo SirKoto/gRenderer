@@ -15,8 +15,11 @@ class Transform : public IAddon
 public:
 	Transform() = default;
 
+	Transform& operator=(const Transform& o);
 
 	void drawImGuiInspector(FrameContext* fc, GameObject* parent) override final;
+
+	std::unique_ptr<addon::IAddon> duplicate(FrameContext* fc, const GameObject* parent) const override final;
 
 	const char* getAddonName() override { return Transform::s_getAddonName(); }
 

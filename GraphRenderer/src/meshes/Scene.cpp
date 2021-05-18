@@ -102,6 +102,21 @@ void Scene::renderImGui(FrameContext* fc, Gui* gui)
 					ImGui::CloseCurrentPopup();
 				}
 
+				if (ImGui::Button("Duplicate")) {
+					GameObject* obj = nullptr;
+					fc->gc().getDict().get(*it, &obj);
+					GameObject* newObj = nullptr;
+					std::string name = fc->gc().getDict().getName(*it);
+					size_t found = name.find_last_of("_");
+					if (found != std::string::npos) {
+						name = name.substr(0, found);
+					}
+					ResId newId = fc->gc().getDict().allocateObject<GameObject>(fc, name, &newObj);
+					obj->duplicateTo(fc, newObj);
+					mGameObjects.insert(newId);
+					ImGui::CloseCurrentPopup();
+				}
+
 				ImGui::Separator();
 
 				ImGui::EndPopup();

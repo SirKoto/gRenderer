@@ -86,8 +86,10 @@ void Scene::renderImGui(FrameContext* fc, Gui* gui)
 
 		if (fc->gc().getDict().exists(id)) {
 
-			ImGui::PushID((void*)std::hash<ResId>()(id));
-			if (ImGui::Button(fc->gc().getDict().getName(id).c_str())) {
+			uint64_t hash = std::hash<ResId>()(id);
+			ImGui::PushID((void*)hash);
+			std::string buttonName = fc->gc().getDict().getName(id) + "###" + std::to_string(hash);
+			if (ImGui::Button(buttonName.c_str())) {
 				gui->selectResourceInspector( id );
 			}
 

@@ -45,6 +45,8 @@ public:
 
 	uint32_t getNumIndices() const { return static_cast<uint32_t>(mIndices.size()); }
 	uint32_t getNumLODs() const { return (uint32_t) mLODsDrawData.size(); }
+	uint32_t getNumIndicesLod(uint32_t lod) const { return static_cast<uint32_t>(mLODs.at(lod).indices.size()); }
+	uint32_t getDepthLod(uint32_t lod) const { return mLODs.at(lod).depth; }
 
 	void getDrawDataLod(uint32_t lod, uint32_t* numIndices, uint32_t* firstIndex, vk::DeviceSize* vertexOffset) const;
 

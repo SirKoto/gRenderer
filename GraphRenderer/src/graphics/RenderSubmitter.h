@@ -2,6 +2,7 @@
 
 #include <vulkan/vulkan.hpp>
 #include <unordered_map>
+#include <mutex>
 
 #include "resources/Buffer.h"
 
@@ -19,6 +20,12 @@ namespace vkg
 class RenderSubmitter
 {
 public:
+
+	RenderSubmitter() = default;
+	RenderSubmitter(const RenderSubmitter& o);
+	RenderSubmitter(RenderSubmitter&&) = default;
+	RenderSubmitter& operator=(const RenderSubmitter& o);
+	RenderSubmitter& operator=(RenderSubmitter&& o) = default;
 
 
 	class DrawData {
@@ -69,6 +76,7 @@ private:
 
 	typedef std::unordered_map<MaterialKey, Material, HashMaterial> MaterialRenderList;
 
+	std::mutex mMutex;
 
 	MaterialRenderList mMaterialRenderList;
 

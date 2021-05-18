@@ -14,11 +14,28 @@ bool RenderSubmitter::MaterialKey::operator==(const MaterialKey& o) const
         this->materialDescriptorSet == o.materialDescriptorSet;
 }
 
+RenderSubmitter::RenderSubmitter(const RenderSubmitter& o)
+{
+    *this = o;
+}
+
+RenderSubmitter& RenderSubmitter::operator=(const RenderSubmitter& o)
+{
+    mMaterialRenderList = o.mMaterialRenderList;
+
+    mDefaultMaterial = o.mDefaultMaterial;
+
+    mSceneDescriptorSet = o.mSceneDescriptorSet;
+
+    return *this;
+}
+
 void RenderSubmitter::pushPredefinedDraw(const DrawData& drawData)
 {
     assert(mDefaultMaterial.pipeline);
-
+    mMutex.lock();
     mMaterialRenderList.at(mDefaultMaterial).renderList.push_back(drawData);
+    mMutex.unlock();
 }
 
 void RenderSubmitter::setDefaultMaterial(

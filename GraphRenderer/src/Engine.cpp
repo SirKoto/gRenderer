@@ -397,9 +397,9 @@ namespace gr
 		 );
 
 		 grjob::Counter* c = nullptr;
-		 grjob::runJobBatch(grjob::Priority::eMid, jobs, 2, &c);
-		 grjob::waitForCounterAndFree(c, 0);
-
+		 //grjob::runJobBatch(grjob::Priority::eMid, jobs, 2, &c);
+		 //grjob::waitForCounterAndFree(c, 0);
+		 jobs[0].run(); jobs[1].run();
 
 		vk::CommandBuffer buff = cmdPool.newCommandBuffer();
 

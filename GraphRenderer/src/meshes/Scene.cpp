@@ -11,6 +11,8 @@
 #include "../utils/grjob.h"
 #include "../gui/Gui.h"
 
+#include <queue>
+
 
 namespace gr
 {
@@ -69,6 +71,8 @@ void Scene::renderImGui(FrameContext* fc, Gui* gui)
 		}
 
 		ImGui::Checkbox("Automatic LOD", &mAutomaticLOD);
+		int32_t step = 1;
+		ImGui::InputFloat("LOD goal FPS", &mGoalFPSLOD, 1.0f, 10.0f);
 
 		ImGui::TreePop();
 	}
@@ -186,6 +190,108 @@ void Scene::lodUpdate(FrameContext* fc)
 		return;
 	}
 
+	// If automatic LOD, but very high framerrate, just use the high lod models
+	if (mGoalFPSLOD >= 1.5 * (1.0 / fc->dt())) {
+		for (ResId id : mGameObjects) {
+			GameObject* obj;
+			fc->gc().getDict().get(id, &obj);
+			addon::Renderable* rend = obj->getAddon<addon::Renderable>();
+			if (rend != nullptr) {
+				rend->setLOD(0);
+			}
+
+		} // end for
+
+		return;
+	}
+
+	// If automatic LOD, use heuristic to maximize
+	struct LodData {
+		addon::Renderable* pRenderable;
+		float_t diagOverDist;
+	};
+	std::vector<LodData> renderables;
+	renderables.reserve(mGameObjects.size());
+	// compute actual number of triangles to render
+	uint64_t numTris = 0;
+	for (ResId id : mGameObjects) {
+		GameObject* obj;
+		fc->gc().getDict().get(id, &obj);
+		addon::Renderable* rend = obj->getAddon<addon::Renderable>();
+		if (rend != nullptr) {
+			numTris += rend->getNumTrisToRender(fc, rend->getLOD());
+			
+			// Compute the division (diagonal / distance)
+			const mth::AABBox gameObjectBB = obj->getRenderBB(fc);
+			const float sqDiagonal = glm::dot(gameObjectBB.getSize(), gameObjectBB.getSize());
+			const glm::vec3 center = gameObjectBB.getMin() + gameObjectBB.getSize() * 0.5f;
+			const glm::vec3 viewToObj = center - obj->getAddon<addon::Transform>()->getPos();
+			const float sqDistance = glm::dot(viewToObj, viewToObj);
+
+			renderables.push_back({ rend, std::sqrtf(sqDiagonal / sqDistance) });
+		}
+
+	} // end for
+
+	const double_t TPS = static_cast<double_t>(numTris) / fc->dt();
+	const uint64_t maxCost = static_cast<uint32_t>(TPS / mGoalFPSLOD);
+	uint64_t cost = 0;
+	typedef std::pair<uint32_t, float_t> QueueVal;
+	auto comparator = [](QueueVal a, QueueVal b) -> bool {
+		return a.second > b.second;
+	};
+	std::priority_queue<QueueVal, std::vector<QueueVal>, decltype(comparator)> queueLods(comparator);
+	auto getDeltaBenefit = [&renderables, fc](uint32_t i, uint32_t lod) -> float_t {
+		const uint32_t actualDepth = renderables[i].pRenderable->getLODDepth(fc, lod);
+		const uint32_t nextDepth = (lod == 1) ? std::min(11u, 2 * actualDepth) : renderables[i].pRenderable->getLODDepth(fc, lod - 1);
+		const uint32_t deltaDepth = nextDepth - actualDepth;
+		float_t num = (float_t)((1 << deltaDepth) - 1);
+		float_t denom = (float_t)(1 << nextDepth);
+		return renderables[i].diagOverDist * num / denom;
+	};
+
+	for (uint32_t i = 0; i < (uint32_t)renderables.size(); ++i) {
+		// Only add those that can be improved
+		const uint32_t maxLod = renderables[i].pRenderable->getMaxLOD(fc);
+		if (maxLod > 0) {
+			// set to lowest definition LOD
+			renderables[i].pRenderable->setLOD(maxLod);
+			// Delta triangles
+			const float_t deltaCost = (float_t) (renderables[i].pRenderable->getNumTrisToRender(fc, maxLod - 1) - renderables[i].pRenderable->getNumTrisToRender(fc, maxLod));
+			// compute value
+			float_t deltaBenefit = getDeltaBenefit(i, maxLod);
+			queueLods.push({ i, deltaBenefit / deltaCost });
+			cost += renderables[i].pRenderable->getNumTrisToRender(fc, maxLod);
+		}
+		else { // else set to lod 0, and add its triangles to the cost
+			renderables[i].pRenderable->setLOD(0);
+			cost += renderables[i].pRenderable->getNumTrisToRender(fc, 0);
+		}
+	}
+
+	while (!queueLods.empty()) {
+		// get and pop best improvement
+		const uint32_t top = queueLods.top().first; queueLods.pop();
+		const uint32_t lod = renderables[top].pRenderable->getLOD();
+		// Check if improvement can be applied. If not, ignore this case
+		const uint32_t deltaCost = renderables[top].pRenderable->getNumTrisToRender(fc, lod - 1) - renderables[top].pRenderable->getNumTrisToRender(fc, lod);
+		if (cost + deltaCost > maxCost) {
+			continue;
+		}
+
+		// Upgrade LOD
+		renderables[top].pRenderable->setLOD(lod - 1);
+		cost += deltaCost;
+
+		// if can keep improving.. store into the priority queue
+		if (lod > 1) {
+			// Delta triangles
+			const float_t newDeltaCost = (float_t)(renderables[top].pRenderable->getNumTrisToRender(fc, lod - 2) - renderables[top].pRenderable->getNumTrisToRender(fc, lod - 1));
+			// compute value
+			float_t deltaBenefit = getDeltaBenefit(top, lod - 1);
+			queueLods.push({ top, deltaBenefit / newDeltaCost });
+		}
+	}
 
 }
 

@@ -90,5 +90,15 @@ void GameObject::logicUpdate(FrameContext* fc)
     }
 }
 
+mth::AABBox GameObject::getRenderBB(FrameContext* fc) const
+{
+    const addon::Renderable* renderable = this->getAddon<addon::Renderable>();
+    if (renderable == nullptr) {
+        return mth::AABBox();
+    }
+
+    return renderable->getBBox(fc);
+}
+
 
 } // namespace gr

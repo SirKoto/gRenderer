@@ -27,6 +27,8 @@ public:
 		mMax = glm::vec3(-std::numeric_limits<float>::infinity());
 	}
 
+	AABBox operator*(const glm::mat4& transform) const;
+
 
 private:
 	glm::vec3 mMin;

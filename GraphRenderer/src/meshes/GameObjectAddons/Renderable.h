@@ -3,6 +3,7 @@
 
 #include "../ResourcesHeader.h"
 #include "../../graphics/resources/Buffer.h"
+#include "../../utils/math/BBox.h"
 
 #include <vulkan/vulkan.hpp>
 
@@ -29,6 +30,11 @@ public:
     void setLOD(uint32_t newLod) { mLod = newLod; }
     const uint32_t getLOD() const { return mLod; }
     uint32_t getMaxLOD(FrameContext* fc) const;
+    uint32_t getLODDepth(FrameContext* fc, uint32_t lod) const;
+
+    uint32_t getNumTrisToRender(FrameContext* fc, uint32_t lod) const;
+
+    mth::AABBox getBBox(FrameContext* fc) const;
 
     const char* getAddonName() override { return Renderable::s_getAddonName(); }
 

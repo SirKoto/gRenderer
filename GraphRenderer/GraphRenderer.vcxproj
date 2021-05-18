@@ -204,6 +204,7 @@
     <ClCompile Include="src\utils\Fibers\FScheduler.cpp" />
     <ClCompile Include="src\utils\grTools.cpp" />
     <ClCompile Include="src\utils\grjob.cpp" />
+    <ClCompile Include="src\utils\math\BBox.cpp" />
     <ClCompile Include="src\utils\math\Quaternion.cpp" />
     <ClCompile Include="src\utils\vk_mem_alloc.cpp" />
     <ClCompile Include="src_lib\ImGuiFileDialog\ImGuiFileDialog.cpp" />

@@ -8,6 +8,7 @@
 
 #include "GameObjectAddons/IAddon.h"
 #include "GameObjectAddons/Transform.h"
+#include "../utils/math/BBox.h"
 
 namespace gr
 {
@@ -35,6 +36,8 @@ public:
 
     template <typename Addon>
     bool addAddon(FrameContext* fc);
+
+    mth::AABBox getRenderBB(FrameContext* fc) const;
 
 protected:
 
@@ -94,7 +97,7 @@ inline const Addon* gr::GameObject::getAddon() const
 {
     decltype(mAddons)::const_iterator it = mAddons.find(Addon::s_getAddonName());
     if (it != mAddons.end()) {
-        return it->second.get();
+        return reinterpret_cast<const Addon*>(it->second.get());
     }
     return nullptr;
 }

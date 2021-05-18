@@ -132,6 +132,47 @@ uint32_t Renderable::getMaxLOD(FrameContext* fc) const
     return mesh->getNumLODs();
 }
 
+uint32_t Renderable::getLODDepth(FrameContext* fc, uint32_t lod) const
+{
+    if (!mMesh) {
+        return std::numeric_limits<uint32_t>::max();
+    }
+
+    if (lod == 0) {
+        return std::numeric_limits<uint32_t>::max();
+    }
+
+    const Mesh* mesh;
+    fc->gc().getDict().get(mMesh, &mesh);
+    return mesh->getDepthLod(lod - 1);
+}
+
+uint32_t Renderable::getNumTrisToRender(FrameContext* fc, uint32_t lod) const
+{
+    if (!mMesh) {
+        return 0;
+    }
+
+    const Mesh* mesh;
+    fc->gc().getDict().get(mMesh, &mesh);
+
+    if (lod == 0) {
+        return mesh->getNumIndices() / 3;
+    }
+
+    return mesh->getNumIndicesLod(lod - 1) / 3;
+}
+
+mth::AABBox Renderable::getBBox(FrameContext* fc) const
+{
+    if (!mMesh) {
+        return {};
+    }
+    const Mesh* mesh;
+    fc->gc().getDict().get(mMesh, &mesh);
+    return mesh->getBBox();
+}
+
 
 void Renderable::createUbos(FrameContext* fc)
 {

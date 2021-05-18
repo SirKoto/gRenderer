@@ -37,6 +37,7 @@ private:
 
     std::set<ResId> mGameObjects;
 
+    float mGoalFPSLOD = 60.0f;
     bool mAutomaticLOD = false;
 
 

@@ -292,6 +292,11 @@ void Mesh::uploadDataToGPU(FrameContext* fc)
 	uint32_t nextFirstIndice = static_cast<uint32_t>(mIndices.size());
 	mLODsDrawData.resize(mLODs.size());
 	for (uint32_t i = 0; i < (uint32_t)mLODs.size(); ++i) {
+
+		if (mLODs[i].indices.empty()) {
+			continue;
+		}
+
 		rc->getTransferer()->transferToBuffer(*rc,
 			mLODs[i].vertices.data(), mLODs[i].vertices.size() * sizeof(mLODs[i].vertices[0]),
 			mVertexBuffer, vertexOffset);

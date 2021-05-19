@@ -88,7 +88,11 @@ protected:
 		uint32_t depth;
 		std::vector<Vertex> vertices;
 		std::vector<uint32_t> indices;
+
+		template<class Archive>
+		void serialize(Archive& archive);
 	};
+
 	std::vector<LOD> mLODs;
 	struct LOD_DrawData {
 		uint32_t numIndices;
@@ -109,10 +113,14 @@ protected:
 	std::string mPath;
 
 
-	void parseObj(const char* fileName);
-	void parsePly(const char* fileName);
+	static void parseObj(const char* fileName, std::vector<Vertex>* outVertices, std::vector<uint32_t>* outIndices, mth::AABBox* outBBox = nullptr);
+	static void parsePly(const char* fileName, std::vector<Vertex>* outVertices, std::vector<uint32_t>* outIndices, mth::AABBox* outBBox = nullptr);
 
 	void uploadDataToGPU(FrameContext* fc);
+
+	void saveLODModels(FrameContext* fc) const;
+	std::string getRelativeLodPath(uint32_t lod) const;
+
 
 	// Serialization functions
 	template<class Archive>
@@ -120,12 +128,19 @@ protected:
 	{
 		archive(cereal::base_class<IObject>(this));
 		archive(GR_SERIALIZE_NVP_MEMBER(mPath));
+		archive(GR_SERIALIZE_NVP_MEMBER(mLODs));
 	}
 
 	GR_SERIALIZE_PRIVATE_MEMBERS
 };
 
 } // namespace gr
+
+template<class Archive>
+inline void gr::Mesh::LOD::serialize(Archive& archive)
+{
+	archive(depth);
+}
 
 GR_SERIALIZE_TYPE(gr::Mesh)
 GR_SERIALIZE_POLYMORPHIC_RELATION(gr::IObject, gr::Mesh)

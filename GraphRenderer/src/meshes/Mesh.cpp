@@ -37,10 +37,22 @@ void Mesh::load(FrameContext* fc,
 	mBBox.reset();
 
 	if (mPath.find(".obj") != std::string::npos) {
-		parseObj(absolutePath.string().c_str());
+		parseObj(absolutePath.string().c_str(), &mVertices, &mIndices, &mBBox);
 	}
 	else if (mPath.find(".ply") != std::string::npos) {
-		parsePly(absolutePath.string().c_str());
+		parsePly(absolutePath.string().c_str(), &mVertices, &mIndices, &mBBox);
+	}
+
+	uint32_t lod_i = 0;
+	for (LOD& lod : mLODs) {
+		std::filesystem::path fileLod = fc->gc().getProjectPath() / getRelativeLodPath(lod_i++);
+		if (std::filesystem::exists(fileLod)) {
+			parsePly(fileLod.string().c_str(), &lod.vertices, &lod.indices);
+		}
+		else {
+			lod.vertices.clear();
+			lod.indices.clear();
+		}
 	}
 
 	this->uploadDataToGPU(fc);
@@ -59,7 +71,6 @@ void Mesh::scheduleDestroy(FrameContext* fc)
 
 	mLODsDrawData.clear();
 }
-
 
 
 void Mesh::getDrawDataLod(uint32_t lod, uint32_t* numIndices, uint32_t* firstIndex, vk::DeviceSize* vertexOffset) const
@@ -93,8 +104,9 @@ void Mesh::addToVertexInputDescription(
 		.addAttributeFloat(3, 2, offsetof(Vertex, Vertex::texCoord));
 }
 
-void Mesh::parseObj(const char* fileName)
+void Mesh::parseObj(const char* fileName, std::vector<Vertex>* outVertices, std::vector<uint32_t>* outIndices, mth::AABBox* outBBox)
 {
+	assert(outVertices != nullptr && outIndices != nullptr);
 
 	tinyobj::ObjReader reader;
 	tinyobj::ObjReaderConfig readerConfig;
@@ -106,7 +118,13 @@ void Mesh::parseObj(const char* fileName)
 			reader.Error() + "\n" + reader.Warning());
 	}
 
-	std::unordered_map<Vertex, uint32_t, VertexHash> mVerticesCache;
+	outIndices->clear();
+	outVertices->clear();
+	if (outBBox != nullptr) {
+		outBBox->reset();
+	}
+
+	std::unordered_map<Vertex, uint32_t, VertexHash> verticesCache;
 
 	const tinyobj::attrib_t& vertAttribs = reader.GetAttrib();
 	const std::vector<tinyobj::shape_t>& shapes = reader.GetShapes();
@@ -141,24 +159,26 @@ void Mesh::parseObj(const char* fileName)
 				vertAttribs.colors[3 * idx.vertex_index + 2]
 			};
 
-			const decltype(mVerticesCache)::const_iterator it =
-				mVerticesCache.find(v);
-			if (it != mVerticesCache.end()) {
-				mIndices.push_back(it->second);
+			const decltype(verticesCache)::const_iterator it =
+				verticesCache.find(v);
+			if (it != verticesCache.end()) {
+				outIndices->push_back(it->second);
 			}
 			else {
-				mIndices.push_back(static_cast<uint32_t>(mVertices.size()));
-				mVertices.push_back(v);
-				mVerticesCache.emplace(v, mIndices.back());
-				mBBox.addPoint(v.pos);
+				outIndices->push_back(static_cast<uint32_t>(outVertices->size()));
+				outVertices->push_back(v);
+				verticesCache.emplace(v, outIndices->back());
+				if (outBBox != nullptr) {
+					outBBox->addPoint(v.pos);
+				}
 			}
 		}
 	}
 }
 
-void Mesh::parsePly(const char* fileName)
+void Mesh::parsePly(const char* fileName, std::vector<Vertex>* outVertices, std::vector<uint32_t>* outIndices, mth::AABBox* outBBox)
 {
-
+	assert(outVertices != nullptr && outIndices != nullptr);
 	std::ifstream stream(fileName, std::ios::binary);
 
 	if (!stream) {
@@ -195,33 +215,35 @@ void Mesh::parsePly(const char* fileName)
 	assert(vertices->t == tinyply::Type::FLOAT32);
 	assert(!normals || normals->t == tinyply::Type::FLOAT32);
 	assert(!texcoords || texcoords->t == tinyply::Type::FLOAT32);
-
-
+	if (outBBox != nullptr) {
+		outBBox->reset();
+	}
 	// copy vertices
-	mVertices.resize(vertices->count);
+	outVertices->resize(vertices->count);
 	for (size_t i = 0; i < vertices->count; ++i) {
-		std::memcpy(&mVertices[i].pos, vertices->buffer.get() + i * 3 * sizeof(float), 3 * sizeof(float));
+		std::memcpy(&(*outVertices)[i].pos, vertices->buffer.get() + i * 3 * sizeof(float), 3 * sizeof(float));
 		if (texcoords) {
-			std::memcpy(&mVertices[i].texCoord, texcoords->buffer.get() + i * 2 * sizeof(float), 2 * sizeof(float));
+			std::memcpy(&(*outVertices)[i].texCoord, texcoords->buffer.get() + i * 2 * sizeof(float), 2 * sizeof(float));
 		}
 		if (normals) {
-			std::memcpy(&mVertices[i].normal, normals->buffer.get() + i * 3 * sizeof(float), 3 * sizeof(float));
+			std::memcpy(&(*outVertices)[i].normal, normals->buffer.get() + i * 3 * sizeof(float), 3 * sizeof(float));
 		}
-
-		mBBox.addPoint(mVertices[i].pos);
+		if (outBBox != nullptr) {
+			outBBox->addPoint((*outVertices)[i].pos);
+		}
 	}
 
-	mIndices.resize(faces->count * 3);
+	outIndices->resize(faces->count * 3);
 	if (faces->t == tinyply::Type::UINT32 || faces->t == tinyply::Type::INT32) {
-		std::memcpy(mIndices.data(), faces->buffer.get(), faces->buffer.size_bytes());
+		std::memcpy(outIndices->data(), faces->buffer.get(), faces->buffer.size_bytes());
 	}
 	else if (faces->t == tinyply::Type::UINT16 || faces->t == tinyply::Type::INT16) {
 		for (size_t i = 0; i < faces->count; ++i) {
 			glm::i16vec3 tmp;
 			std::memcpy(&tmp, faces->buffer.get() + i * 3 * sizeof(uint16_t), 3 * sizeof(uint16_t));
-			mIndices[3 * i + 0] = static_cast<uint32_t>(tmp.x);
-			mIndices[3 * i + 1] = static_cast<uint32_t>(tmp.y);
-			mIndices[3 * i + 2] = static_cast<uint32_t>(tmp.z);
+			(*outIndices)[3 * i + 0] = static_cast<uint32_t>(tmp.x);
+			(*outIndices)[3 * i + 1] = static_cast<uint32_t>(tmp.y);
+			(*outIndices)[3 * i + 2] = static_cast<uint32_t>(tmp.z);
 		}
 	}
 	else {
@@ -285,6 +307,71 @@ void Mesh::uploadDataToGPU(FrameContext* fc)
 		indexOffset += mLODs[i].indices.size() * sizeof(mLODs[i].indices[0]);
 		nextFirstIndice += static_cast<uint32_t>(mLODs[i].indices.size());
 	}
+}
+
+void Mesh::saveLODModels(FrameContext* fc) const
+{
+	std::ofstream stream;
+
+	for (uint32_t i = 0; i < (uint32_t)mLODs.size(); ++i) {
+		std::filesystem::path modelPath = fc->gc().getProjectPath() / getRelativeLodPath(i);
+		stream.open(modelPath, std::ofstream::trunc | std::ofstream::binary);
+		if (!stream) {
+			throw std::runtime_error("Error: Can't store LOD model");
+		}
+		const LOD& lod = mLODs[i];
+
+		tinyply::PlyFile file;
+		// vertex positions
+		std::vector<glm::vec3> vert(lod.vertices.size());
+		{
+			for (uint32_t j = 0; j < (uint32_t)lod.vertices.size(); ++j) {
+				vert[j] = lod.vertices[j].pos;
+			}
+			file.add_properties_to_element(
+				"vertex", { "x", "y", "z" },
+				tinyply::Type::FLOAT32,
+				vert.size(),
+				reinterpret_cast<uint8_t*>(vert.data()),
+				tinyply::Type::INVALID, 0);
+		}
+		// vertex normals
+		std::vector<glm::vec3> norm(lod.vertices.size());
+		{
+			for (uint32_t j = 0; j < (uint32_t)lod.vertices.size(); ++j) {
+				norm[j] = lod.vertices[j].normal;
+			}
+			file.add_properties_to_element(
+				"vertex", { "nx", "ny", "nz" },
+				tinyply::Type::FLOAT32,
+				norm.size(),
+				reinterpret_cast<const uint8_t*>(norm.data()),
+				tinyply::Type::INVALID, 0);
+		}
+		// faces
+		{
+			file.add_properties_to_element(
+				"face", { "vertex_indices" },
+				tinyply::Type::UINT32, lod.indices.size() / 3,
+				reinterpret_cast<const uint8_t*>(lod.indices.data()),
+				tinyply::Type::UINT8, 3);
+		}
+
+		file.write(stream, true);
+
+		stream.close();
+	}
+}
+
+std::string Mesh::getRelativeLodPath(uint32_t lod) const
+{
+	assert(lod < (uint32_t)mLODs.size());
+
+	std::filesystem::path path = std::filesystem::path(mPath).parent_path();
+	std::filesystem::path fileName = std::filesystem::path(mPath).filename();
+
+	std::filesystem::path newFile = path / (fileName.stem().string() + ".lod" + std::to_string(mLODs[lod].depth) + ".ply");
+	return newFile.string();
 }
 
 bool Mesh::Vertex::operator==(const Vertex& o) const
@@ -361,6 +448,10 @@ void Mesh::renderImGui(FrameContext* fc, Gui* gui)
 			}
 
 			ImGui::TreePop();
+		}
+
+		if (ImGui::Button("Save LODs")) {
+			this->saveLODModels(fc);
 		}
 
 		ImGui::TreePop();

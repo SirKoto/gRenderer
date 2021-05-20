@@ -75,11 +75,7 @@ void Renderable::updateBeforeRender(FrameContext* fc, GameObject* parent, const 
     // update UBO
     {
         vkg::RenderContext::BasicTransformUBO ubo;
-        ubo.M = glm::mat4(1.0);
-
-        ubo.M = glm::translate(ubo.M, transf->getPos());
-        ubo.M = ubo.M * glm::mat4_cast(transf->getRotation());
-        ubo.M = glm::scale(ubo.M, transf->getScale());
+        ubo.M = transf->getTransformMatrix();
 
         size_t sizePadd = fc->rc().padUniformBuffer(sizeof(vkg::RenderContext::BasicTransformUBO));
 
@@ -173,14 +169,19 @@ uint32_t Renderable::getNumTrisToRender(FrameContext* fc, uint32_t lod) const
     return mesh->getNumIndicesLod(lod - 1) / 3;
 }
 
-mth::AABBox Renderable::getBBox(FrameContext* fc) const
+mth::AABBox Renderable::getBBox(FrameContext* fc, const GameObject* parent) const
 {
     if (!mMesh) {
         return {};
     }
     const Mesh* mesh;
     fc->gc().getDict().get(mMesh, &mesh);
-    return mesh->getBBox();
+    if (parent == nullptr) {
+        return mesh->getBBox();
+    }
+    else {
+        return mesh->getBBox().getTransformed(parent->getAddon<Transform>()->getTransformMatrix());
+    }
 }
 
 

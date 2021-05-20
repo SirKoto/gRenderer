@@ -37,7 +37,8 @@ public:
 
     uint32_t getNumTrisToRender(FrameContext* fc, uint32_t lod) const;
 
-    mth::AABBox getBBox(FrameContext* fc) const;
+    // If parent set, returns BBox transformed by parent
+    mth::AABBox getBBox(FrameContext* fc, const GameObject* parent) const;
 
     const char* getAddonName() override { return Renderable::s_getAddonName(); }
 

@@ -113,5 +113,15 @@ glm::vec3 Transform::up() const
     return  glm::rotate(mRotation, glm::vec3(0.f, 1.f, 0.f));
 }
 
+glm::mat4 Transform::getTransformMatrix() const
+{
+   glm::mat4 M(1.0);
+
+    M = glm::translate(M, this->getPos());
+    M = M * glm::mat4_cast(this->getRotation());
+    M = glm::scale(M, this->getScale());
+    return M;
+}
+
 } // namespace addon
 } // namespace gr

@@ -3,7 +3,7 @@
 namespace gr {
 namespace mth {
 
-AABBox AABBox::operator*(const glm::mat4& transform) const
+AABBox AABBox::getTransformed(const glm::mat4& transform) const
 {
 	AABBox o;
 

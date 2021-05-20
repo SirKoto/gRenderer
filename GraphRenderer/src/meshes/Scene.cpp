@@ -208,7 +208,7 @@ void Scene::lodUpdate(FrameContext* fc)
 	}
 
 	// If automatic LOD, but very high framerrate, just use the high lod models
-	if (mGoalFPSLOD >= 1.5 * (1.0 / fc->dt())) {
+	if (false && mGoalFPSLOD >= 1.5 * (1.0 / fc->dt())) {
 		for (ResId id : mGameObjects) {
 			GameObject* obj;
 			fc->gc().getDict().get(id, &obj);
@@ -242,7 +242,7 @@ void Scene::lodUpdate(FrameContext* fc)
 			const mth::AABBox gameObjectBB = obj->getRenderBB(fc);
 			const float sqDiagonal = glm::dot(gameObjectBB.getSize(), gameObjectBB.getSize());
 			const glm::vec3 center = gameObjectBB.getMin() + gameObjectBB.getSize() * 0.5f;
-			const glm::vec3 viewToObj = center - obj->getAddon<addon::Transform>()->getPos();
+			const glm::vec3 viewToObj = center - mUiCameraGameObj->getAddon<addon::Transform>()->getPos();
 			const float sqDistance = glm::dot(viewToObj, viewToObj);
 
 			renderables.push_back({ rend, std::sqrtf(sqDiagonal / sqDistance) });
@@ -255,7 +255,7 @@ void Scene::lodUpdate(FrameContext* fc)
 	uint64_t cost = 0;
 	typedef std::pair<uint32_t, float_t> QueueVal;
 	auto comparator = [](QueueVal a, QueueVal b) -> bool {
-		return a.second > b.second;
+		return a.second < b.second;
 	};
 	std::priority_queue<QueueVal, std::vector<QueueVal>, decltype(comparator)> queueLods(comparator);
 	auto getDeltaBenefit = [&renderables, fc](uint32_t i, uint32_t lod) -> float_t {
@@ -288,7 +288,8 @@ void Scene::lodUpdate(FrameContext* fc)
 
 	while (!queueLods.empty()) {
 		// get and pop best improvement
-		const uint32_t top = queueLods.top().first; queueLods.pop();
+		const uint32_t top = queueLods.top().first;
+		queueLods.pop();
 		const uint32_t lod = renderables[top].pRenderable->getLOD();
 		// Check if improvement can be applied. If not, ignore this case
 		const uint32_t deltaCost = renderables[top].pRenderable->getNumTrisToRender(fc, lod - 1) - renderables[top].pRenderable->getNumTrisToRender(fc, lod);

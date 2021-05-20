@@ -108,7 +108,7 @@ mth::AABBox GameObject::getRenderBB(FrameContext* fc) const
         return mth::AABBox();
     }
 
-    return renderable->getBBox(fc);
+    return renderable->getBBox(fc, this);
 }
 
 

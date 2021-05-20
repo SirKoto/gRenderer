@@ -39,6 +39,8 @@ public:
 	glm::vec3 left() const;
 	glm::vec3 up() const;
 
+	glm::mat4 getTransformMatrix() const;
+
 private:
 	glm::vec3 mPos = glm::vec3(0.f);
 	glm::vec3 mScale = glm::vec3(1.f);

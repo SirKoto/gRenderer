@@ -141,6 +141,7 @@ void Scene::renderImGui(FrameContext* fc, Gui* gui)
 
 void Scene::graphicsUpdate(FrameContext* fc)
 {
+	updateNumTrisFrame(fc);
 
 	this->lodUpdate(fc);
 
@@ -207,20 +208,6 @@ void Scene::lodUpdate(FrameContext* fc)
 		return;
 	}
 
-	// If automatic LOD, but very high framerrate, just use the high lod models
-	if (false && mGoalFPSLOD >= 1.5 * (1.0 / fc->dt())) {
-		for (ResId id : mGameObjects) {
-			GameObject* obj;
-			fc->gc().getDict().get(id, &obj);
-			addon::Renderable* rend = obj->getAddon<addon::Renderable>();
-			if (rend != nullptr) {
-				rend->setLOD(0);
-			}
-
-		} // end for
-
-		return;
-	}
 
 	// If automatic LOD, use heuristic to maximize
 	struct LodData {
@@ -250,7 +237,7 @@ void Scene::lodUpdate(FrameContext* fc)
 
 	} // end for
 
-	const double_t TPS = static_cast<double_t>(numTris) / fc->dt();
+	const double_t TPS = mNumTrisFrame / fc->dt();
 	const uint64_t maxCost = static_cast<uint32_t>(TPS / mGoalFPSLOD);
 	uint64_t cost = 0;
 	typedef std::pair<uint32_t, float_t> QueueVal;
@@ -311,6 +298,28 @@ void Scene::lodUpdate(FrameContext* fc)
 		}
 	}
 
+}
+
+void Scene::updateNumTrisFrame(FrameContext* fc)
+{
+	uint64_t numTris = 0;
+	for (ResId id : mGameObjects) {
+		GameObject* obj;
+		fc->gc().getDict().get(id, &obj);
+		addon::Renderable* rend = obj->getAddon<addon::Renderable>();
+		if (rend != nullptr) {
+			numTris += rend->getNumTrisToRender(fc, rend->getLOD());
+		}
+
+	} // end for
+
+	mNumTrisFrame = 0.0;
+	for (uint32_t i = 0; i < (uint32_t)mNumTrisFrameBuff.size() - 1; ++i) {
+		mNumTrisFrameBuff[i] = mNumTrisFrameBuff[i + 1];
+		mNumTrisFrame += static_cast<decltype(mNumTrisFrame)>(mNumTrisFrameBuff[i]) / mNumTrisFrameBuff.size();
+	}
+	mNumTrisFrameBuff.back() = numTris;
+	mNumTrisFrame += static_cast<decltype(mNumTrisFrame)>(mNumTrisFrameBuff.back()) / mNumTrisFrameBuff.size();
 }
 
 void Scene::start(FrameContext* fc)

@@ -37,11 +37,15 @@ private:
 
     std::set<ResId> mGameObjects;
 
+    std::array<uint64_t, 4> mNumTrisFrameBuff;
+    double_t mNumTrisFrame = 0.0;
+
     float mGoalFPSLOD = 60.0f;
     bool mAutomaticLOD = false;
 
 
     void lodUpdate(FrameContext* fc);
+    void updateNumTrisFrame(FrameContext* fc);
 
     // Serialization functions
     template<class Archive>

@@ -115,6 +115,7 @@ protected:
 
 	static void parseObj(const char* fileName, std::vector<Vertex>* outVertices, std::vector<uint32_t>* outIndices, mth::AABBox* outBBox = nullptr);
 	static void parsePly(const char* fileName, std::vector<Vertex>* outVertices, std::vector<uint32_t>* outIndices, mth::AABBox* outBBox = nullptr);
+	static void computeNormals(const std::vector<uint32_t>& indices, std::vector<Vertex>* outVertices);
 
 	void uploadDataToGPU(FrameContext* fc);
 

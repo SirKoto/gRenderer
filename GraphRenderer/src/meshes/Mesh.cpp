@@ -191,12 +191,14 @@ void Mesh::parsePly(const char* fileName, std::vector<Vertex>* outVertices, std:
 		throw std::runtime_error("Error: Can't parse ply header.");
 	}
 
+	bool recomputeNormals = false;
+
 	std::shared_ptr<tinyply::PlyData> vertices, normals, texcoords, faces;
 	try { vertices = file.request_properties_from_element("vertex", { "x", "y", "z" }); }
 	catch (const std::exception&) {}
 
 	try { normals = file.request_properties_from_element("vertex", { "nx", "ny", "nz" }); }
-	catch (const std::exception&) {}
+	catch (const std::exception&) { recomputeNormals = true; }
 
 	try { texcoords = file.request_properties_from_element("vertex", { "u", "v" }); }
 	catch (const std::exception&) {}
@@ -250,6 +252,50 @@ void Mesh::parsePly(const char* fileName, std::vector<Vertex>* outVertices, std:
 		throw std::runtime_error("Error: Cant read face format");
 	}
 
+	if (!normals || recomputeNormals) {
+		computeNormals(*outIndices, outVertices);
+	}
+
+}
+
+void Mesh::computeNormals(const std::vector<uint32_t>& indices, std::vector<Vertex>* outVertices)
+{
+	// Compute the planes of all triangles
+	std::vector<glm::vec3> triangleNormals(indices.size() / 3);
+	for (uint32_t t = 0; t < (uint32_t)indices.size() / 3; ++t) {
+		const glm::vec3& v0 = (*outVertices)[indices[3 * t + 0]].pos;
+		const glm::vec3& v1 = (*outVertices)[indices[3 * t + 1]].pos;
+		const glm::vec3& v2 = (*outVertices)[indices[3 * t + 2]].pos;
+
+		glm::vec3 n = glm::cross(v1 - v0, v2 - v0);
+		triangleNormals[t] = glm::normalize(n);
+	}
+
+	// Compute V:{F}
+	std::vector<std::vector<uint32_t>> vert2faces(outVertices->size());
+	std::vector<uint32_t> vertexArity(outVertices->size(), 0);
+	for (uint32_t t = 0; t < (uint32_t)indices.size() / 3; ++t) {
+		vertexArity[indices[3 * t + 0]] += 1;
+		vertexArity[indices[3 * t + 1]] += 1;
+		vertexArity[indices[3 * t + 2]] += 1;
+	}
+	for (uint32_t v = 0; v < (uint32_t)outVertices->size(); ++v) {
+		vert2faces[v].reserve(vertexArity[v]);
+	}
+	for (uint32_t t = 0; t < (uint32_t)indices.size() / 3; ++t) {
+		vert2faces[indices[3 * t + 0]].push_back(t);
+		vert2faces[indices[3 * t + 1]].push_back(t);
+		vert2faces[indices[3 * t + 2]].push_back(t);
+	}
+
+	for (uint32_t v = 0; v < (uint32_t)outVertices->size(); ++v) {
+		(*outVertices)[v].normal = glm::vec3(0);
+
+		for (const uint32_t& f : vert2faces[v]) {
+			(*outVertices)[v].normal += triangleNormals[f];
+		}
+		(*outVertices)[v].normal /= vert2faces[v].size();
+	}
 }
 
 void Mesh::uploadDataToGPU(FrameContext* fc)

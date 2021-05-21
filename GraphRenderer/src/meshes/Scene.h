@@ -37,7 +37,7 @@ private:
 
     std::set<ResId> mGameObjects;
 
-    std::array<uint64_t, 4> mNumTrisFrameBuff;
+    std::vector<uint64_t> mNumTrisFrameBuff = std::vector<uint64_t>(4, 0);
     double_t mNumTrisFrame = 0.0;
 
     float mGoalFPSLOD = 60.0f;

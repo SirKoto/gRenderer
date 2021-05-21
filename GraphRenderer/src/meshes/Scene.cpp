@@ -10,6 +10,7 @@
 #include "../control/FrameContext.h"
 #include "../utils/grjob.h"
 #include "../gui/Gui.h"
+#include "../gui/GuiUtils.h"
 
 #include <queue>
 
@@ -73,7 +74,13 @@ void Scene::renderImGui(FrameContext* fc, Gui* gui)
 		ImGui::Checkbox("Automatic LOD", &mAutomaticLOD);
 		int32_t step = 1;
 		ImGui::InputFloat("LOD goal FPS", &mGoalFPSLOD, 1.0f, 10.0f);
-
+		uint32_t numSamples = (uint32_t)mNumTrisFrameBuff.size();
+		ImGui::InputScalar("Num samples TPS", ImGuiDataType_U32, (void*)&numSamples, &step, nullptr, "%d", ImGuiInputTextFlags_None);
+		ImGui::SameLine(); gui::helpMarker("Sample the last N frames to compute triangles/second");
+		numSamples = numSamples < 3 ? 3 : numSamples;
+		if (numSamples != (uint32_t)mNumTrisFrameBuff.size()) {
+			mNumTrisFrameBuff.resize(numSamples, mNumTrisFrameBuff.back());
+		}
 		ImGui::TreePop();
 	}
 	ImGui::Separator();

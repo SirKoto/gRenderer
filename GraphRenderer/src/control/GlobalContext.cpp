@@ -28,6 +28,14 @@ double_t gr::GlobalContext::computeDeltaTime() const
     return dt;
 }
 
+std::filesystem::path gr::GlobalContext::getAbsolutePathTo(const std::filesystem::path& relative) const
+{
+	if (relative.is_absolute()) {
+		return relative;
+	}
+	return getProjectPath() / relative;
+}
+
 void gr::GlobalContext::saveProject() const
 {
 	std::filesystem::path resourcesPath = mProjectPath;

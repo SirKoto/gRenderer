@@ -30,6 +30,7 @@ public:
 	ResId getBoundScene() const { return mBoundScene; }
 	void setBoundScene(ResId id) { mBoundScene = id; }
 
+	std::filesystem::path getAbsolutePathTo(const std::filesystem::path& relative) const;
 	const std::filesystem::path& getProjectPath() const { return mProjectPath; }
 	std::filesystem::path& getProjectPath() { return mProjectPath; }
 	void setProjectPath(const std::filesystem::path& newPath) { mProjectPath = newPath; }

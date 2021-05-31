@@ -28,7 +28,7 @@ void Mesh::load(FrameContext* fc,
 
 	mPath.assign(path.string());
 	
-	std::filesystem::path absolutePath = fc->gc().getProjectPath() / path;
+	std::filesystem::path absolutePath = fc->gc().getAbsolutePathTo(path);
 
 	vkg::RenderContext* rc = &fc->rc();
 
@@ -45,7 +45,7 @@ void Mesh::load(FrameContext* fc,
 
 	uint32_t lod_i = 0;
 	for (LOD& lod : mLODs) {
-		std::filesystem::path fileLod = fc->gc().getProjectPath() / getRelativeLodPath(lod_i++);
+		std::filesystem::path fileLod = fc->gc().getAbsolutePathTo(getRelativeLodPath(lod_i++));
 		if (std::filesystem::exists(fileLod)) {
 			parsePly(fileLod.string().c_str(), &lod.vertices, &lod.indices);
 		}
@@ -365,7 +365,7 @@ void Mesh::saveLODModels(FrameContext* fc) const
 	std::ofstream stream;
 
 	for (uint32_t i = 0; i < (uint32_t)mLODs.size(); ++i) {
-		std::filesystem::path modelPath = fc->gc().getProjectPath() / getRelativeLodPath(i);
+		std::filesystem::path modelPath = fc->gc().getAbsolutePathTo( getRelativeLodPath(i) );
 		stream.open(modelPath, std::ofstream::trunc | std::ofstream::binary);
 		if (!stream) {
 			throw std::runtime_error("Error: Can't store LOD model");

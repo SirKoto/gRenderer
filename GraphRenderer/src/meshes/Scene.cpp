@@ -20,11 +20,15 @@ namespace gr
 Scene::Scene()
 {
 	mUiCameraGameObj = std::make_unique<GameObject>();
+	mVisibilityGrid = std::make_unique<VisibilityGrid>();
 }
 void Scene::scheduleDestroy(FrameContext* fc)
 {
 	if (mUiCameraGameObj) {
 		mUiCameraGameObj->scheduleDestroy(fc);
+	}
+	if (mVisibilityGrid) {
+		mVisibilityGrid->scheduleDestroy(fc);
 	}
 }
 
@@ -67,9 +71,11 @@ void Scene::renderImGui(FrameContext* fc, Gui* gui)
 
 	if (ImGui::TreeNode("Scene Configuration")) {
 		if (ImGui::TreeNode("Scene Camera")) {
-			mUiCameraGameObj->renderImGui(fc, nullptr);
+			mUiCameraGameObj->renderImGui(fc, gui);
 			ImGui::TreePop();
 		}
+
+		ImGui::Separator();
 
 		ImGui::Checkbox("Automatic LOD", &mAutomaticLOD);
 		int32_t step = 1;
@@ -81,8 +87,14 @@ void Scene::renderImGui(FrameContext* fc, Gui* gui)
 		if (numSamples != (uint32_t)mNumTrisFrameBuff.size()) {
 			mNumTrisFrameBuff.resize(numSamples, mNumTrisFrameBuff.back());
 		}
+
+		ImGui::Separator();
+
+		mVisibilityGrid->renderImGui(fc, gui);
+
 		ImGui::TreePop();
 	}
+	ImGui::Separator();
 	ImGui::Separator();
 	// Other gameobjects
 	decltype(mGameObjects)::iterator it = mGameObjects.begin();

@@ -3,6 +3,8 @@
 #include "IObject.h"
 #include "GameObject.h"
 #include "GameObjectAddons/Camera.h"
+#include "SceneControl/VisibilityGrid.h"
+
 
 #include <set>
 
@@ -34,6 +36,7 @@ public:
 private:
 
     std::unique_ptr<GameObject> mUiCameraGameObj;
+    std::unique_ptr<VisibilityGrid> mVisibilityGrid;
 
     std::set<ResId> mGameObjects;
 

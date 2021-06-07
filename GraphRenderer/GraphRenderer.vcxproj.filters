@@ -249,6 +249,9 @@
     <ClCompile Include="src\utils\math\BBox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\meshes\SceneControl\VisibilityGrid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engine.h">
@@ -445,6 +448,9 @@
     </ClInclude>
     <ClInclude Include="src\utils\serialization.h">
       <Filter>Header Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\meshes\SceneControl\VisibilityGrid.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

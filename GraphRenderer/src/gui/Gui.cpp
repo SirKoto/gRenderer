@@ -380,7 +380,7 @@ void Gui::render(FrameContext* fc, vk::CommandBuffer cmd)
                 mVertPtrMap = nullptr;
             }
             fc->scheduleToDestroy(mVertexBuffer);
-            mVertexBuffer = fc->rc().createCpuVisibleBuffer(vertexSize,
+            mVertexBuffer = fc->rc().createCpuVisibleBuffer(2*vertexSize,
                 vk::BufferUsageFlagBits::eVertexBuffer);
             fc->rc().mapAllocatable(mVertexBuffer, 
                 reinterpret_cast<void**>(&mVertPtrMap));
@@ -391,7 +391,7 @@ void Gui::render(FrameContext* fc, vk::CommandBuffer cmd)
                 mIdxPtrMap = nullptr;
             }
             fc->scheduleToDestroy(mIndexBuffer);
-            mIndexBuffer = fc->rc().createCpuVisibleBuffer(indexSize,
+            mIndexBuffer = fc->rc().createCpuVisibleBuffer(2*indexSize,
                 vk::BufferUsageFlagBits::eIndexBuffer);
             fc->rc().mapAllocatable(mIndexBuffer, 
                 reinterpret_cast<void**>(&mIdxPtrMap));

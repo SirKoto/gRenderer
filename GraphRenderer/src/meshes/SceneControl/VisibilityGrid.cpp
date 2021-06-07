@@ -1,15 +1,31 @@
 #include "VisibilityGrid.h"
 
 #include <imgui/imgui.h>
+#include <filesystem>
 
 namespace gr
 {
 
 VisibilityGrid::VisibilityGrid()
 {
-	mWallsGrid.resize(1, std::vector<uint8_t>(1, 0));
+	mWallsGrid.resize(1, std::vector<Cell>(1));
 	mResolutionX = 1;
 	mResolutionY = 1;
+
+	mMesh = std::make_unique<Mesh>();
+
+}
+
+void VisibilityGrid::start(FrameContext* fc)
+{
+	mMesh->start(fc);
+	std::filesystem::path p = std::filesystem::current_path() / "resources" / "models" / "plane.ply";
+	mMesh->load(fc, p.string().c_str());
+}
+
+void VisibilityGrid::scheduleDestroy(FrameContext* fc)
+{
+	mMesh->scheduleDestroy(fc);
 }
 
 void VisibilityGrid::renderImGui(FrameContext* fc, Gui* gui)
@@ -24,7 +40,7 @@ void VisibilityGrid::renderImGui(FrameContext* fc, Gui* gui)
 		mResolutionX != (uint32_t)mWallsGrid.front().size()) {
 		mWallsGrid.resize(mResolutionY);
 		for (uint32_t i = 0; i < mResolutionY; ++i) {
-			mWallsGrid[i].resize(mResolutionX, 0);
+			mWallsGrid[i].resize(mResolutionX);
 		}
 	}
 
@@ -32,41 +48,76 @@ void VisibilityGrid::renderImGui(FrameContext* fc, Gui* gui)
 	ImGui::BeginChild("Grid", ImVec2(0, 200), true, ImGuiWindowFlags_HorizontalScrollbar);
 	{
 		int32_t id = 0;
-		int32_t y = 0;
-		for (std::vector<uint8_t>& line : mWallsGrid) {
-			bool first = true;
-			int32_t x = 0;
-			for (uint8_t& p : line) {
+		
+		for (uint32_t y = 0; y < mResolutionY; ++y) {
+			std::vector<Cell>& line = mWallsGrid[y];
+			
+			for (uint32_t x = 0; x < mResolutionX; ++x) {
+				Cell& c = line[x];
 				ImGui::PushID(id++);
 
-				if (x != 0) {
-					ImGui::SameLine();
-				}
-				else if(y % 2 == 0){
-					ImGui::Selectable("", false, ImGuiSelectableFlags_Disabled, ImVec2(15, 15));
-					ImGui::SameLine();
-				}
-
-
-				p = bool(p) != ImGui::Selectable(
-					(y % 2 == 0) ? "-" : "|",
-					p, 0, ImVec2(15, 15));
+				ImGui::Selectable(".", false, ImGuiSelectableFlags_Disabled, ImVec2(15, 15));
 				ImGui::SameLine();
-				ImGui::Selectable("", false, ImGuiSelectableFlags_Disabled, ImVec2(15, 15));
+
+				c.up() = bool(c.up()) != ImGui::Selectable(
+					 "-",
+					c.up(), 0, ImVec2(15, 15));
+				ImGui::SameLine();
 
 				ImGui::PopID();
-				x += 1;
 			}
 
-			y += 1;
+			ImGui::Selectable(".", false, ImGuiSelectableFlags_Disabled, ImVec2(15, 15));
+
+			for (uint32_t x = 0; x < mResolutionX; ++x) {
+				Cell& c = line[x];
+				ImGui::PushID(id++);
+
+				c.left() = bool(c.left()) != ImGui::Selectable(
+					"|",
+					c.left(), 0, ImVec2(15, 15));
+				ImGui::SameLine();
+				ImGui::Selectable("", false, ImGuiSelectableFlags_Disabled, ImVec2(15, 15));
+				ImGui::SameLine();
+
+				ImGui::PopID();
+			}
+
+			ImGui::PushID(id++);
+			line.back().right() = bool(line.back().right()) != ImGui::Selectable(
+				"|",
+				line.back().right(), 0, ImVec2(15, 15));
+			ImGui::PopID();
 		}
+
+		// bottom line
+		for (uint32_t x = 0; x < mResolutionX; ++x) {
+			Cell& c = mWallsGrid.back()[x];
+			ImGui::PushID(id++);
+
+			ImGui::Selectable(".", false, ImGuiSelectableFlags_Disabled, ImVec2(15, 15));
+			ImGui::SameLine();
+
+			c.down() = bool(c.down()) != ImGui::Selectable(
+				"-",
+				c.down(), 0, ImVec2(15, 15));
+			ImGui::SameLine();
+
+			ImGui::PopID();
+		}
+		ImGui::Selectable(".", false, ImGuiSelectableFlags_Disabled, ImVec2(15, 15));
+
 	}
 
 	ImGui::EndChild();
 	ImGui::PopStyleVar();
-
-
 	
+	// TODO: propagate changes to neighbors
+}
+
+VisibilityGrid::Cell::Cell()
+{
+	occupied.fill(0);
 }
 
 } // namespace gr

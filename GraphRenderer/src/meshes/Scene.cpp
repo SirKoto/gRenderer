@@ -346,6 +346,8 @@ void Scene::start(FrameContext* fc)
 	mUiCameraGameObj->start(fc);
 	mUiCameraGameObj->addAddon<addon::Camera>(fc);
 	mUiCameraGameObj->addAddon<addon::SimplePlayerControl>(fc);
+
+	mVisibilityGrid->start(fc);
 }
 
 } // namespace gr

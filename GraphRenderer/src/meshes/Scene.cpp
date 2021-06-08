@@ -89,9 +89,18 @@ void Scene::renderImGui(FrameContext* fc, Gui* gui)
 		}
 
 		ImGui::Separator();
-
-		mVisibilityGrid->renderImGui(fc, gui);
-		if (ImGui::Button("Compute visibility")) {
+		ImGui::Checkbox("Use cell-to-cell visibility", &mCellVisibility);
+		if (ImGui::Button("Edit walls and cells")) {
+			mVisibilityGridMenuOpen = !mVisibilityGridMenuOpen;
+		}
+		if (mVisibilityGridMenuOpen) {
+			ImGui::SetNextWindowSizeConstraints(ImVec2(0, 200), ImVec2(FLT_MAX, FLT_MAX));
+			if (ImGui::Begin("Cell visibility editor", &mVisibilityGridMenuOpen)) {
+				mVisibilityGrid->renderImGui(fc, gui);
+			}
+			ImGui::End();
+		}
+		if (ImGui::Button("Precompute visibility")) {
 			mVisibilityGrid->computeVisibility(fc, mGameObjects);
 		}
 
@@ -163,10 +172,6 @@ void Scene::renderImGui(FrameContext* fc, Gui* gui)
 
 void Scene::graphicsUpdate(FrameContext* fc)
 {
-	updateNumTrisFrame(fc, mGameObjects);
-
-	this->lodUpdate(fc);
-
 	std::vector<grjob::Job> jobs;
 	jobs.reserve(mGameObjects.size() + 1);
 
@@ -175,8 +180,20 @@ void Scene::graphicsUpdate(FrameContext* fc)
 	if (mUiCameraGameObj) {
 		jobs.push_back(grjob::Job(&GameObject::graphicsUpdate, mUiCameraGameObj.get(), fc, src));
 	}
+
+	const std::set<ResId>* gameObjectsToRender = nullptr;
+	if (mCellVisibility) {
+		gameObjectsToRender = &mVisibilityGrid->getVisibleSet(mUiCameraGameObj.get()->getAddon<addon::Transform>()->getPos());
+	}
+	else {
+		gameObjectsToRender = &mGameObjects;
+	}
+
+	this->lodUpdate(fc, *gameObjectsToRender);
 	
-	for (ResId id : mGameObjects) {
+	updateNumTrisFrame(fc, *gameObjectsToRender);
+
+	for (ResId id : (*gameObjectsToRender)) {
 		GameObject* obj;
 		fc->gc().getDict().get(id, &obj);
 
@@ -215,11 +232,11 @@ void Scene::logicUpdate(FrameContext* fc)
 	grjob::waitForCounterAndFree(c, 0);
 }
 
-void Scene::lodUpdate(FrameContext* fc)
+void Scene::lodUpdate(FrameContext* fc, const std::set<ResId>& gameObjectsToRender)
 {
 	// If not automatic LOD, downgrade the LOD if not exists
 	if (!mAutomaticLOD) {
-		for (ResId id : mGameObjects) {
+		for (ResId id : gameObjectsToRender) {
 			GameObject* obj;
 			fc->gc().getDict().get(id, &obj);
 			addon::Renderable* rend = obj->getAddon<addon::Renderable>();
@@ -241,10 +258,10 @@ void Scene::lodUpdate(FrameContext* fc)
 		float_t diagOverDist;
 	};
 	std::vector<LodData> renderables;
-	renderables.reserve(mGameObjects.size());
+	renderables.reserve(gameObjectsToRender.size());
 	// compute actual number of triangles to render
 	uint64_t numTris = 0;
-	for (ResId id : mGameObjects) {
+	for (ResId id : gameObjectsToRender) {
 		GameObject* obj;
 		fc->gc().getDict().get(id, &obj);
 		addon::Renderable* rend = obj->getAddon<addon::Renderable>();

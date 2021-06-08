@@ -55,7 +55,7 @@ void VisibilityGrid::renderImGui(FrameContext* fc, Gui* gui)
 	}
 
 	ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
-	ImGui::BeginChild("Grid", ImVec2(0, 200), true, ImGuiWindowFlags_HorizontalScrollbar);
+	ImGui::BeginChild("Grid", ImVec2(0, 0), true, ImGuiWindowFlags_HorizontalScrollbar);
 	{
 		int32_t id = 0;
 		
@@ -179,7 +179,7 @@ void VisibilityGrid::computeVisibility(FrameContext* fc, const std::set<ResId>& 
 
 	std::set<ResId> gameObjectsInLine;
 	std::vector<glm::ivec2> cellsInLine;
-	constexpr uint32_t SAMPLES_PER_CELL = 100;
+	constexpr uint32_t SAMPLES_PER_CELL = 1000;
 
 
 	// origin rays from all cells, even if it is redundant
@@ -192,7 +192,7 @@ void VisibilityGrid::computeVisibility(FrameContext* fc, const std::set<ResId>& 
 					// start by adding itself
 					cellsInLine.push_back({ i, j });
 					// Compute line direction TODO: precompute
-					const float alpha = 2 * glm::pi<float>() * sample / float(SAMPLES_PER_CELL - 1);
+					const float alpha = 2.f * glm::pi<float>() * sample / float(SAMPLES_PER_CELL - 1);
 					glm::vec2 dir = glm::vec2(std::cosf(alpha), std::sinf(alpha));
 
 					glm::ivec2 step = glm::sign(dir);
@@ -325,6 +325,17 @@ void VisibilityGrid::computeVisibility(FrameContext* fc, const std::set<ResId>& 
 	}
 
 
+}
+
+std::set<ResId> g_stupid_set;
+const std::set<ResId>& VisibilityGrid::getVisibleSet(const glm::vec3& pos) const
+{
+	int32_t x = (int32_t)std::floor(pos.x);
+	int32_t y = (int32_t)std::floor(pos.z);
+	if (x < 0 || y < 0 || y >= (int32_t)mVisibilityGrid.size() || x >= (int32_t)mVisibilityGrid.front().size()) {
+		return g_stupid_set;
+	}
+	return mVisibilityGrid[y][x];
 }
 
 void VisibilityGrid::updateWallCellGameObject(FrameContext* fc, uint32_t x, uint32_t y)

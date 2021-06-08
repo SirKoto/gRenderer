@@ -23,6 +23,7 @@ public:
 	void logicUpdate(FrameContext* fc);
 	void computeVisibility(FrameContext* fc, const std::set<ResId>& gameObjects);
 
+	const std::set<ResId>& getVisibleSet(const glm::vec3& pos) const;
 
 private:
 	

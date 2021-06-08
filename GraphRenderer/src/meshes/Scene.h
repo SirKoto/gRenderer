@@ -45,9 +45,10 @@ private:
 
     float mGoalFPSLOD = 60.0f;
     bool mAutomaticLOD = false;
+    bool mCellVisibility = false;
+    bool mVisibilityGridMenuOpen = false;
 
-
-    void lodUpdate(FrameContext* fc);
+    void lodUpdate(FrameContext* fc, const std::set<ResId>& gameObjectsToRender);
     void updateNumTrisFrame(FrameContext* fc, const std::set<ResId>& renderedObjects);
 
     // Serialization functions

@@ -48,7 +48,7 @@ private:
 
 
     void lodUpdate(FrameContext* fc);
-    void updateNumTrisFrame(FrameContext* fc);
+    void updateNumTrisFrame(FrameContext* fc, const std::set<ResId>& renderedObjects);
 
     // Serialization functions
     template<class Archive>

@@ -91,6 +91,9 @@ void Scene::renderImGui(FrameContext* fc, Gui* gui)
 		ImGui::Separator();
 
 		mVisibilityGrid->renderImGui(fc, gui);
+		if (ImGui::Button("Compute visibility")) {
+			mVisibilityGrid->computeVisibility(fc, mGameObjects);
+		}
 
 		ImGui::TreePop();
 	}
@@ -160,7 +163,7 @@ void Scene::renderImGui(FrameContext* fc, Gui* gui)
 
 void Scene::graphicsUpdate(FrameContext* fc)
 {
-	updateNumTrisFrame(fc);
+	updateNumTrisFrame(fc, mGameObjects);
 
 	this->lodUpdate(fc);
 
@@ -323,10 +326,10 @@ void Scene::lodUpdate(FrameContext* fc)
 
 }
 
-void Scene::updateNumTrisFrame(FrameContext* fc)
+void Scene::updateNumTrisFrame(FrameContext* fc, const std::set<ResId>& renderedObjects)
 {
 	uint64_t numTris = 0;
-	for (ResId id : mGameObjects) {
+	for (ResId id : renderedObjects) {
 		GameObject* obj;
 		fc->gc().getDict().get(id, &obj);
 		addon::Renderable* rend = obj->getAddon<addon::Renderable>();

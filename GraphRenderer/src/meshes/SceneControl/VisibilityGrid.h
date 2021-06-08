@@ -21,6 +21,7 @@ public:
 	void renderImGui(FrameContext* fc, Gui* gui) override final;
 	void graphicsUpdate(FrameContext* fc, const SceneRenderContext& src);
 	void logicUpdate(FrameContext* fc);
+	void computeVisibility(FrameContext* fc, const std::set<ResId>& gameObjects);
 
 
 private:
@@ -80,6 +81,8 @@ private:
 		}
 	};
 	std::unordered_map<WallKey, std::unique_ptr<GameObject>, WallKeyHasher> mWallsGameObjects;
+
+	std::vector<std::vector<std::set<ResId>>> mVisibilityGrid;
 
 	void updateWallCellGameObject(FrameContext* fc, uint32_t x, uint32_t y);
 

@@ -2,6 +2,7 @@
 
 #include <imgui/imgui.h>
 #include <filesystem>
+#include <queue>
 
 #include "../GameObjectAddons/Renderable.h"
 #include "../../control/FrameContext.h"
@@ -37,6 +38,8 @@ void VisibilityGrid::scheduleDestroy(FrameContext* fc)
 
 void VisibilityGrid::renderImGui(FrameContext* fc, Gui* gui)
 {
+	ImGui::PushID("VisibilityGrid");
+
 	int32_t step = 1;
 	ImGui::InputScalar("X-Resolution", ImGuiDataType_U32, (void*)&mResolutionX, &step, nullptr, "%d", ImGuiInputTextFlags_None);
 	ImGui::InputScalar("Y-Resolution", ImGuiDataType_U32, (void*)&mResolutionY, &step, nullptr, "%d", ImGuiInputTextFlags_None);
@@ -134,6 +137,8 @@ void VisibilityGrid::renderImGui(FrameContext* fc, Gui* gui)
 			updateWallCellGameObject(fc, x, y);
 		}
 	}
+
+	ImGui::PopID();
 }
 
 void VisibilityGrid::graphicsUpdate(FrameContext* fc, const SceneRenderContext& src)
@@ -148,6 +153,178 @@ void VisibilityGrid::logicUpdate(FrameContext* fc)
 	for (auto& it : mWallsGameObjects) {
 		it.second->logicUpdate(fc);
 	}
+}
+
+void VisibilityGrid::computeVisibility(FrameContext* fc, const std::set<ResId>& gameObjects)
+{
+	// create tmp rasterization of the gameobjects of the scene
+	std::vector<std::vector<std::set<ResId>>> objectsRasterized(mResolutionY, std::vector<std::set<ResId>>(mResolutionX));
+	// Rebuild visibility grid
+	mVisibilityGrid = std::vector<std::vector<std::set<ResId>>>(mResolutionY, std::vector<std::set<ResId>>(mResolutionX));
+	// rasterize all gameobjects in axis aligned grid
+	for (const ResId& id : gameObjects) {
+		GameObject* obj;
+		fc->gc().getDict().get(id, &obj);
+		gr::mth::AABBox bb = obj->getRenderBB(fc);
+		glm::ivec2 from = glm::floor(glm::vec2(bb.getMin().x, bb.getMin().z));
+		glm::ivec2 to = glm::floor(glm::vec2(bb.getMax().x, bb.getMax().z));
+		from = glm::max(from, glm::ivec2(0, 0));
+		to = glm::min(to, glm::ivec2(mResolutionX, mResolutionY) - 1);
+		for (int32_t j = from.y; j <= to.y; ++j) {
+			for (int32_t i = from.x; i <= to.x; ++i) {
+				objectsRasterized[j][i].insert(id);
+			}
+		}
+	}
+
+	std::set<ResId> gameObjectsInLine;
+	std::vector<glm::ivec2> cellsInLine;
+	constexpr uint32_t SAMPLES_PER_CELL = 100;
+
+
+	// origin rays from all cells, even if it is redundant
+	for (uint32_t j = 0; j < mResolutionY; ++j) {
+		for (uint32_t i = 0; i < mResolutionX; ++i) {
+			for (uint32_t sample = 0; sample < SAMPLES_PER_CELL; ++sample) {
+				cellsInLine.clear();
+				// bresenham line algorithm
+				{
+					// start by adding itself
+					cellsInLine.push_back({ i, j });
+					// Compute line direction TODO: precompute
+					const float alpha = 2 * glm::pi<float>() * sample / float(SAMPLES_PER_CELL - 1);
+					glm::vec2 dir = glm::vec2(std::cosf(alpha), std::sinf(alpha));
+
+					glm::ivec2 step = glm::sign(dir);
+					float error = 0.0f;
+					float errorprev = 0.0f;
+					glm::ivec2 pos(i, j);
+					if (std::abs(dir.x) >= std::abs(dir.y)) {
+						errorprev = error = dir.x * 0.5f; // start in the "middle"
+						while (true) {
+							// check if can advance in the x direction
+							bool canGoThrough = (step.x >= 0) ?
+								!mWallsCells[pos.y][pos.x].right() :
+								!mWallsCells[pos.y][pos.x].left();
+							// advance
+							pos.x += step.x;
+							if (!canGoThrough || pos.x < 0 || pos.x >= (int32_t)mResolutionX) {
+								break; // exit
+							}
+							error += dir.y; // add error in y
+							if (error > dir.x) { // if error is greater that dx
+								canGoThrough = (step.y >= 0) ?
+									!mWallsCells[pos.y][pos.x].down() :
+									!mWallsCells[pos.y][pos.x].up();
+								pos.y += step.y;
+								if (!canGoThrough || pos.y < 0 || pos.y >= (int32_t)mResolutionY) {
+									break; // exit
+								}
+								error -= dir.x; // remove corrected error
+								// 3 cases
+								const Cell& c = mWallsCells[pos.y][pos.x];
+								const bool canVert = (step.y >= 0 ? !c.down() : !c.up()) &&
+									(pos.y - step.y) >= 0 &&
+									(pos.y - step.y) < (int32_t)mResolutionY;
+								const bool canHoriz = (step.x >= 0 ? !c.right() : !c.left()) &&
+									(pos.x - step.x) >= 0 &&
+									(pos.x - step.x) < (int32_t)mResolutionX;
+								if (error + errorprev < dir.x) { // bottom
+									if (canVert) {
+										cellsInLine.push_back({ pos.x, pos.y - step.y });
+									}
+								}
+								else if (error + errorprev > dir.x) { // left
+									if (canHoriz) {
+										cellsInLine.push_back({ pos.x - step.x, pos.y });
+									}
+								}
+								else {
+									if (canVert) {
+										cellsInLine.push_back({ pos.x, pos.y - step.y });
+									}
+									if (canHoriz) {
+										cellsInLine.push_back({ pos.x - step.x, pos.y });
+									}
+								}
+
+							}
+							cellsInLine.push_back({ pos.x, pos.y });
+							errorprev = error;
+						}
+					}
+					else { // The same as the above
+						errorprev = error = dir.y * 0.5f; // start in the "middle"
+						while (true) {
+							// check if can advance in the y direction
+							bool canGoThrough = (step.y >= 0) ?
+								!mWallsCells[pos.y][pos.x].down() :
+								!mWallsCells[pos.y][pos.x].up();
+							// advance
+							pos.y += step.y;
+							if (!canGoThrough || pos.y < 0 || pos.y >= (int32_t)mResolutionY) {
+								break; // exit
+							}
+							error += dir.x; // add error in x
+							if (error > dir.y) { // if error is greater that dy
+								canGoThrough = (step.x >= 0) ?
+									!mWallsCells[pos.y][pos.x].right() :
+									!mWallsCells[pos.y][pos.x].left();
+								pos.x += step.x;
+								if (!canGoThrough || pos.x < 0 || pos.x >= (int32_t)mResolutionX) {
+									break; // exit
+								}
+								error -= dir.y; // remove corrected error
+								// 3 cases
+								const Cell& c = mWallsCells[pos.y][pos.x];
+								const bool canVert = (step.y >= 0 ? !c.down() : !c.up()) &&
+									(pos.y - step.y) >= 0 &&
+									(pos.y - step.y) < (int32_t)mResolutionY;
+								const bool canHoriz = (step.x >= 0 ? !c.right() : !c.left()) &&
+									(pos.x - step.x) >= 0 &&
+									(pos.x - step.x) < (int32_t)mResolutionX;
+								if (error + errorprev < dir.y) {
+									if (canHoriz) {
+										cellsInLine.push_back({ pos.x - step.x, pos.y });
+									}
+								}
+								else if (error + errorprev > dir.y) {
+									if (canVert) {
+										cellsInLine.push_back({ pos.x, pos.y - step.y });
+									}
+								}
+								else {
+									if (canVert) {
+										cellsInLine.push_back({ pos.x, pos.y - step.y });
+									}
+									if (canHoriz) {
+										cellsInLine.push_back({ pos.x - step.x, pos.y });
+									}
+								}
+
+							}
+							cellsInLine.push_back({ pos.x, pos.y });
+							errorprev = error;
+						}
+					}
+				}
+				
+				// accumulate information of the line
+				gameObjectsInLine.clear();
+				for (const glm::ivec2& v : cellsInLine) {
+					const auto& o = objectsRasterized[v.y][v.x];
+					gameObjectsInLine.insert(o.begin(), o.end());
+				}
+
+				// add to visibility grid
+				for (const glm::ivec2& v : cellsInLine) {
+					mVisibilityGrid[v.y][v.x].insert(gameObjectsInLine.begin(), gameObjectsInLine.end());
+				}
+			}
+		}
+	}
+
+
 }
 
 void VisibilityGrid::updateWallCellGameObject(FrameContext* fc, uint32_t x, uint32_t y)

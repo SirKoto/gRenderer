@@ -86,7 +86,8 @@ void ResourceDictionary::clear(FrameContext* fc)
 
 void ResourceDictionary::startAll(FrameContext* fc)
 {
-	std::unique_lock ulock(mObjectsMutex);
+	// TODO: lock somehow without deadlocks
+	//std::unique_lock ulock(mObjectsMutex);
 	for (decltype(mObjectsDictionary)::iterator it = mObjectsDictionary.begin();
 		it != mObjectsDictionary.end(); ++it) {
 		it->second->start(fc);

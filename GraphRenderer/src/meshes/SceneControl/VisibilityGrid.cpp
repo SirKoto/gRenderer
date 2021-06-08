@@ -3,29 +3,31 @@
 #include <imgui/imgui.h>
 #include <filesystem>
 
+#include "../GameObjectAddons/Renderable.h"
+#include "../../control/FrameContext.h"
 namespace gr
 {
 
 VisibilityGrid::VisibilityGrid()
 {
-	mWallsGrid.resize(1, std::vector<Cell>(1));
+	mWallsCells.resize(1, std::vector<Cell>(1));
 	mResolutionX = 1;
 	mResolutionY = 1;
-
-	mMesh = std::make_unique<Mesh>();
 
 }
 
 void VisibilityGrid::start(FrameContext* fc)
 {
-	mMesh->start(fc);
+	Mesh* mesh;
+	mMesh = fc->gc().getDict().allocateObject(fc, "wall", &mesh);
+	mesh->start(fc);
 	std::filesystem::path p = std::filesystem::current_path() / "resources" / "models" / "plane.ply";
-	mMesh->load(fc, p.string().c_str());
+	mesh->load(fc, p.string().c_str());
 }
 
 void VisibilityGrid::scheduleDestroy(FrameContext* fc)
 {
-	mMesh->scheduleDestroy(fc);
+	fc->gc().getDict().erase(mMesh);
 }
 
 void VisibilityGrid::renderImGui(FrameContext* fc, Gui* gui)
@@ -36,11 +38,11 @@ void VisibilityGrid::renderImGui(FrameContext* fc, Gui* gui)
 	mResolutionX = (mResolutionX == 0) ? 1 : mResolutionX;
 	mResolutionY = (mResolutionY == 0) ? 1 : mResolutionY;
 
-	if (mResolutionY != (uint32_t)mWallsGrid.size() || 
-		mResolutionX != (uint32_t)mWallsGrid.front().size()) {
-		mWallsGrid.resize(mResolutionY);
+	if (mResolutionY != (uint32_t)mWallsCells.size() || 
+		mResolutionX != (uint32_t)mWallsCells.front().size()) {
+		mWallsCells.resize(mResolutionY);
 		for (uint32_t i = 0; i < mResolutionY; ++i) {
-			mWallsGrid[i].resize(mResolutionX);
+			mWallsCells[i].resize(mResolutionX);
 		}
 	}
 
@@ -50,7 +52,7 @@ void VisibilityGrid::renderImGui(FrameContext* fc, Gui* gui)
 		int32_t id = 0;
 		
 		for (uint32_t y = 0; y < mResolutionY; ++y) {
-			std::vector<Cell>& line = mWallsGrid[y];
+			std::vector<Cell>& line = mWallsCells[y];
 			
 			for (uint32_t x = 0; x < mResolutionX; ++x) {
 				Cell& c = line[x];
@@ -63,6 +65,11 @@ void VisibilityGrid::renderImGui(FrameContext* fc, Gui* gui)
 					 "-",
 					c.up(), 0, ImVec2(15, 15));
 				ImGui::SameLine();
+
+				// update also upper cell
+				if (y > 0) {
+					mWallsCells[y - 1][x].down() = c.up();
+				}
 
 				ImGui::PopID();
 			}
@@ -80,6 +87,11 @@ void VisibilityGrid::renderImGui(FrameContext* fc, Gui* gui)
 				ImGui::Selectable("", false, ImGuiSelectableFlags_Disabled, ImVec2(15, 15));
 				ImGui::SameLine();
 
+				// update also left cell
+				if (x > 0) {
+					line[x - 1].right() = c.left();
+				}
+
 				ImGui::PopID();
 			}
 
@@ -92,7 +104,7 @@ void VisibilityGrid::renderImGui(FrameContext* fc, Gui* gui)
 
 		// bottom line
 		for (uint32_t x = 0; x < mResolutionX; ++x) {
-			Cell& c = mWallsGrid.back()[x];
+			Cell& c = mWallsCells.back()[x];
 			ImGui::PushID(id++);
 
 			ImGui::Selectable(".", false, ImGuiSelectableFlags_Disabled, ImVec2(15, 15));
@@ -111,9 +123,49 @@ void VisibilityGrid::renderImGui(FrameContext* fc, Gui* gui)
 
 	ImGui::EndChild();
 	ImGui::PopStyleVar();
-	
-	// TODO: propagate changes to neighbors
+
+	for (uint32_t y = 0; y < mResolutionY; ++y) {
+		for (uint32_t x = 0; x < mResolutionX; ++x) {
+			updateWallCellGameObject(fc, x, y);
+		}
+	}
 }
+
+void VisibilityGrid::updateWallCellGameObject(FrameContext* fc, uint32_t x, uint32_t y)
+{
+	const Cell& c = mWallsCells[y][x];
+
+	auto updateSingleWall = [this, fc](uint32_t x, uint32_t y, bool vertical, bool isWallEnabled) {
+		decltype(mWallsGameObjects)::iterator it;
+		it = mWallsGameObjects.find(WallKey{ x, y, vertical });
+		if (it == mWallsGameObjects.end() && isWallEnabled) {
+			// instantiate game object
+			std::unique_ptr<GameObject> obj = std::make_unique<GameObject>();
+			obj->addAddon<addon::Renderable>(fc);
+			addon::Renderable* rnd = obj->getAddon<addon::Renderable>();
+			rnd->setMesh(mMesh);
+
+			obj->getAddon<addon::Transform>()->setPos(glm::vec3(x, 0, y));
+			if (vertical) {
+				obj->getAddon<addon::Transform>()->rotateArround(glm::pi<float>(), glm::vec3(0,1,0));
+			}
+
+		}
+		else if (it != mWallsGameObjects.end() && isWallEnabled == 0) {
+			// destroy object
+			it->second->scheduleDestroy(fc);
+			mWallsGameObjects.erase(it);
+		}
+	};
+	
+	updateSingleWall(x    , y    , false, c.up());
+	updateSingleWall(x	  , y    , true, c.left());
+	updateSingleWall(x + 1, y    , true, c.right());
+	updateSingleWall(x    , y + 1, false, c.down());
+
+
+}
+
 
 VisibilityGrid::Cell::Cell()
 {

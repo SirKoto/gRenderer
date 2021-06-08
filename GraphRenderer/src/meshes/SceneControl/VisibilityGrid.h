@@ -1,9 +1,11 @@
 #pragma once
 
 #include <vector>
+#include <unordered_map>
 
 #include "../IObject.h"
 #include "../Mesh.h"
+#include "../GameObject.h"
 
 namespace gr
 {
@@ -50,10 +52,34 @@ private:
 		std::array<uint8_t, 4> occupied;
 	};
 
-	std::vector<std::vector<Cell>> mWallsGrid;
+	std::vector<std::vector<Cell>> mWallsCells;
 	uint32_t mResolutionX, mResolutionY;
 
-	std::unique_ptr<Mesh> mMesh;
+	ResId mMesh;
+
+	struct WallKey {
+		uint32_t x;
+		uint32_t y;
+		bool vertical;
+
+		bool operator==(const WallKey& o) const {
+			return this->x == o.x && this->y == o.y && this->vertical == o.vertical;
+		}
+	};
+	struct WallKeyHasher
+	{
+		std::size_t operator()(const WallKey& k) const
+		{
+			using std::hash;
+
+			return ((hash<uint32_t>()(k.x)
+				^ (hash<uint32_t>()(k.y) << 1)) >> 1)
+				^ (hash<bool>()(k.vertical) << 1);
+		}
+	};
+	std::unordered_map<WallKey, std::unique_ptr<GameObject>, WallKeyHasher> mWallsGameObjects;
+
+	void updateWallCellGameObject(FrameContext* fc, uint32_t x, uint32_t y);
 
 };
 

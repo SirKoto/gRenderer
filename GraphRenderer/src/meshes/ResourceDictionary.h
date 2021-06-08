@@ -112,7 +112,7 @@ ResId ResourceDictionary::allocateObject(
 	static_assert(typeIdx != -1, "Type not added to Dictionary");
 	const ResId id = getAndUpdateId();
 
-
+	IObject* objectToStart = nullptr;
 	// check if the name is unique or create new
 	{
 		std::unique_lock lock(mObjectsMutex);
@@ -128,7 +128,7 @@ ResId ResourceDictionary::allocateObject(
 		std::pair<decltype(mObjectsDictionary)::iterator, bool> itObj =
 			mObjectsDictionary.emplace(id, std::unique_ptr<IObject>(new T()));
 		assert(itObj.second); // assert inserted
-		itObj.first->second->start(fc);
+		objectToStart = itObj.first->second.get();
 
 		std::pair<std::unordered_set<ResId>::iterator, bool> itObjType =
 			mObjectsByType[typeIdx].insert(id);
@@ -146,6 +146,11 @@ ResId ResourceDictionary::allocateObject(
 				*outPtr = reinterpret_cast<T*>(itObj.first->second.get());
 			}
 		}
+	}
+
+	// start without lock
+	if (objectToStart != nullptr) {
+		objectToStart->start(fc);
 	}
 
 	return id;

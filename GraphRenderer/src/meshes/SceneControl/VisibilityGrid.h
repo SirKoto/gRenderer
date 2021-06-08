@@ -54,6 +54,16 @@ private:
 
 	private:
 		std::array<uint8_t, 4> occupied;
+
+		// Serialization functions
+		template<class Archive>
+		void serialize(Archive& ar)
+		{
+			for (size_t i = 0; i < occupied.size(); ++i) {
+				ar(occupied[i]);
+			}
+		}
+		GR_SERIALIZE_PRIVATE_MEMBERS
 	};
 
 	std::vector<std::vector<Cell>> mWallsCells;
@@ -68,6 +78,15 @@ private:
 
 		bool operator==(const WallKey& o) const {
 			return this->x == o.x && this->y == o.y && this->vertical == o.vertical;
+		}
+
+		// Serialization functions
+		template<class Archive>
+		void serialize(Archive& ar)
+		{
+			ar(CEREAL_NVP(x));
+			ar(CEREAL_NVP(y));
+			ar(CEREAL_NVP(vertical));
 		}
 	};
 	struct WallKeyHasher
@@ -87,6 +106,22 @@ private:
 
 	void updateWallCellGameObject(FrameContext* fc, uint32_t x, uint32_t y);
 
+
+	// Serialization functions
+	template<class Archive>
+	void serialize(Archive& archive)
+	{
+		archive(cereal::base_class<IObject>(this));
+		archive(GR_SERIALIZE_NVP_MEMBER(mResolutionX));
+		archive(GR_SERIALIZE_NVP_MEMBER(mResolutionY));
+		archive(GR_SERIALIZE_NVP_MEMBER(mWallsCells));
+		archive(GR_SERIALIZE_NVP_MEMBER(mVisibilityGrid));
+	}
+
+	GR_SERIALIZE_PRIVATE_MEMBERS
 };
 
 } // namespace gr
+
+GR_SERIALIZE_TYPE(gr::VisibilityGrid)
+GR_SERIALIZE_POLYMORPHIC_RELATION(gr::IObject, gr::VisibilityGrid)

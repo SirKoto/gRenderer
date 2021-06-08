@@ -59,6 +59,8 @@ private:
         archive(GR_SERIALIZE_NVP_MEMBER(mUiCameraGameObj));
         archive(GR_SERIALIZE_NVP_MEMBER(mGameObjects));
         archive(GR_SERIALIZE_NVP_MEMBER(mAutomaticLOD));
+        archive(GR_SERIALIZE_NVP_MEMBER(mCellVisibility));
+        archive(GR_SERIALIZE_NVP_MEMBER(mVisibilityGrid));
     }
 
     GR_SERIALIZE_PRIVATE_MEMBERS

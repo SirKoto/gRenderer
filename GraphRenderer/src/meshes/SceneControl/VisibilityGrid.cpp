@@ -19,11 +19,23 @@ VisibilityGrid::VisibilityGrid()
 
 void VisibilityGrid::start(FrameContext* fc)
 {
-	Mesh* mesh;
-	mMesh = fc->gc().getDict().allocateObject(fc, "wall", &mesh);
+	Mesh* mesh = nullptr;
+	if (fc->gc().getDict().existsName("wall_visibility_grid")) {
+		mMesh = fc->gc().getDict().getId("wall_visibility_grid");
+		fc->gc().getDict().get(mMesh, &mesh);
+	}
+	else {
+		mMesh = fc->gc().getDict().allocateObject(fc, "wall_visibility_grid", &mesh);
+	}
 	mesh->start(fc);
 	std::filesystem::path p = std::filesystem::current_path() / "resources" / "models" / "plane.ply";
 	mesh->load(fc, p.string().c_str());
+
+	for (uint32_t y = 0; y < mResolutionY; ++y) {
+		for (uint32_t x = 0; x < mResolutionX; ++x) {
+			updateWallCellGameObject(fc, x, y);
+		}
+	}
 }
 
 void VisibilityGrid::scheduleDestroy(FrameContext* fc)

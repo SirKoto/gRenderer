@@ -28,6 +28,11 @@ void VisibilityGrid::start(FrameContext* fc)
 void VisibilityGrid::scheduleDestroy(FrameContext* fc)
 {
 	fc->gc().getDict().erase(mMesh);
+
+	for (auto& it : mWallsGameObjects) {
+		it.second->scheduleDestroy(fc);
+	}
+	mWallsGameObjects.clear();
 }
 
 void VisibilityGrid::renderImGui(FrameContext* fc, Gui* gui)
@@ -131,6 +136,20 @@ void VisibilityGrid::renderImGui(FrameContext* fc, Gui* gui)
 	}
 }
 
+void VisibilityGrid::graphicsUpdate(FrameContext* fc, const SceneRenderContext& src)
+{
+	for (auto& it : mWallsGameObjects) {
+		it.second->graphicsUpdate(fc, src);
+	}
+}
+
+void VisibilityGrid::logicUpdate(FrameContext* fc)
+{
+	for (auto& it : mWallsGameObjects) {
+		it.second->logicUpdate(fc);
+	}
+}
+
 void VisibilityGrid::updateWallCellGameObject(FrameContext* fc, uint32_t x, uint32_t y)
 {
 	const Cell& c = mWallsCells[y][x];
@@ -147,9 +166,13 @@ void VisibilityGrid::updateWallCellGameObject(FrameContext* fc, uint32_t x, uint
 
 			obj->getAddon<addon::Transform>()->setPos(glm::vec3(x, 0, y));
 			if (vertical) {
-				obj->getAddon<addon::Transform>()->rotateArround(glm::pi<float>(), glm::vec3(0,1,0));
+				obj->getAddon<addon::Transform>()->rotateArround(0.5f * glm::pi<float>(), glm::vec3(0,1,0));
+			}
+			else {
+				obj->getAddon<addon::Transform>()->rotateArround(glm::pi<float>(), glm::vec3(0, 1, 0));
 			}
 
+			mWallsGameObjects.emplace(WallKey{ x, y, vertical }, std::move(obj));
 		}
 		else if (it != mWallsGameObjects.end() && isWallEnabled == 0) {
 			// destroy object

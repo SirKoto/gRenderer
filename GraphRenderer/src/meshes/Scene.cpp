@@ -183,6 +183,7 @@ void Scene::graphicsUpdate(FrameContext* fc)
 
 	grjob::Counter* c = nullptr;
 	grjob::runJobBatch(grjob::Priority::eMid, jobs.data(), (uint32_t)jobs.size(), &c);
+	mVisibilityGrid->graphicsUpdate(fc, src);
 	grjob::waitForCounterAndFree(c, 0);
 }
 
@@ -205,6 +206,9 @@ void Scene::logicUpdate(FrameContext* fc)
 
 	grjob::Counter* c = nullptr;
 	grjob::runJobBatch(grjob::Priority::eMid, jobs.data(), (uint32_t)jobs.size(), &c);
+
+	mVisibilityGrid->logicUpdate(fc);
+
 	grjob::waitForCounterAndFree(c, 0);
 }
 

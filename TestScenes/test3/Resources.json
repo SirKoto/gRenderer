@@ -1,0 +1,666 @@
+{
+    "BoundScene": 3,
+    "Dict": {
+        "LastIdUsed": 14,
+        "Name2Id": [
+            {
+                "key": "dragon.ply",
+                "value": 2
+            },
+            {
+                "key": "Dragon_0",
+                "value": 5
+            },
+            {
+                "key": "new Scene",
+                "value": 3
+            },
+            {
+                "key": "Dragon_1",
+                "value": 6
+            },
+            {
+                "key": "Dragon",
+                "value": 4
+            },
+            {
+                "key": "Dragon_2",
+                "value": 7
+            },
+            {
+                "key": "Dragon_3",
+                "value": 8
+            },
+            {
+                "key": "Dragon_4",
+                "value": 9
+            },
+            {
+                "key": "Dragon_5",
+                "value": 10
+            },
+            {
+                "key": "Dragon_6",
+                "value": 11
+            },
+            {
+                "key": "Dragon_7",
+                "value": 12
+            },
+            {
+                "key": "Dragon_8",
+                "value": 13
+            },
+            {
+                "key": "Dragon_9",
+                "value": 14
+            }
+        ],
+        "ObjectsByType": {
+            "value0": [
+                2
+            ],
+            "value1": [],
+            "value2": [],
+            "value3": [],
+            "value4": [],
+            "value5": [],
+            "value6": [],
+            "value7": [
+                3
+            ],
+            "value8": [
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14
+            ]
+        },
+        "ObjectsDictionary": [
+            {
+                "key": 2,
+                "value": {
+                    "polymorphic_id": 2147483649,
+                    "polymorphic_name": "gr::Mesh",
+                    "ptr_wrapper": {
+                        "valid": 1,
+                        "data": {
+                            "value0": {
+                                "ObjectName": "dragon.ply"
+                            },
+                            "Path": "..\\..\\..\\..\\dragon.ply",
+                            "LODs": [
+                                {
+                                    "value0": 8
+                                },
+                                {
+                                    "value0": 6
+                                },
+                                {
+                                    "value0": 5
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            {
+                "key": 3,
+                "value": {
+                    "polymorphic_id": 2147483650,
+                    "polymorphic_name": "gr::Scene",
+                    "ptr_wrapper": {
+                        "valid": 1,
+                        "data": {
+                            "value0": {
+                                "ObjectName": "new Scene"
+                            },
+                            "UiCameraGameObj": {
+                                "polymorphic_id": 1073741824,
+                                "ptr_wrapper": {
+                                    "valid": 1,
+                                    "data": {
+                                        "value0": {
+                                            "ObjectName": ""
+                                        },
+                                        "Transform": {
+                                            "Pos": {
+                                                "x": 0.9939476847648621,
+                                                "y": 1.4466674327850342,
+                                                "z": -2.084700107574463
+                                            },
+                                            "Scale": {
+                                                "x": 1.0,
+                                                "y": 1.0,
+                                                "z": 1.0
+                                            },
+                                            "Rotation": {
+                                                "w": -0.9698394536972046,
+                                                "x": -0.17100846767425538,
+                                                "y": 0.17100776731967927,
+                                                "z": -0.0301547572016716
+                                            }
+                                        },
+                                        "value1": 2,
+                                        "value2": {
+                                            "polymorphic_id": 2147483651,
+                                            "polymorphic_name": "gr::addon::Camera",
+                                            "ptr_wrapper": {
+                                                "valid": 1,
+                                                "data": {
+                                                    "Fov": 90.0,
+                                                    "Near": 0.10000000149011612,
+                                                    "Far": 100.0,
+                                                    "AspectRatio": {
+                                                        "x": 16.0,
+                                                        "y": 9.0
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "value3": {
+                                            "polymorphic_id": 2147483652,
+                                            "polymorphic_name": "gr::addon::SimplePlayerControl",
+                                            "ptr_wrapper": {
+                                                "valid": 1,
+                                                "data": {
+                                                    "Speed": 2.0,
+                                                    "MouseSpeed": 1.0
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "GameObjects": [
+                                4,
+                                5,
+                                6,
+                                7,
+                                8,
+                                9,
+                                10,
+                                11,
+                                12,
+                                13,
+                                14
+                            ],
+                            "AutomaticLOD": true
+                        }
+                    }
+                }
+            },
+            {
+                "key": 4,
+                "value": {
+                    "polymorphic_id": 2147483653,
+                    "polymorphic_name": "gr::GameObject",
+                    "ptr_wrapper": {
+                        "valid": 1,
+                        "data": {
+                            "value0": {
+                                "ObjectName": "Dragon"
+                            },
+                            "Transform": {
+                                "Pos": {
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "z": 0.0
+                                },
+                                "Scale": {
+                                    "x": 0.009999999776482582,
+                                    "y": 0.009999999776482582,
+                                    "z": 0.009999999776482582
+                                },
+                                "Rotation": {
+                                    "w": 1.0,
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "z": 0.0
+                                }
+                            },
+                            "value1": 1,
+                            "value2": {
+                                "polymorphic_id": 2147483654,
+                                "polymorphic_name": "gr::addon::Renderable",
+                                "ptr_wrapper": {
+                                    "valid": 1,
+                                    "data": {
+                                        "Mesh": 2
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "key": 5,
+                "value": {
+                    "polymorphic_id": 5,
+                    "ptr_wrapper": {
+                        "valid": 1,
+                        "data": {
+                            "value0": {
+                                "ObjectName": "Dragon_0"
+                            },
+                            "Transform": {
+                                "Pos": {
+                                    "x": 0.0,
+                                    "y": 0.9500000476837158,
+                                    "z": 0.0
+                                },
+                                "Scale": {
+                                    "x": 0.009999999776482582,
+                                    "y": 0.009999999776482582,
+                                    "z": 0.009999999776482582
+                                },
+                                "Rotation": {
+                                    "w": 1.0,
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "z": 0.0
+                                }
+                            },
+                            "value1": 1,
+                            "value2": {
+                                "polymorphic_id": 6,
+                                "ptr_wrapper": {
+                                    "valid": 1,
+                                    "data": {
+                                        "Mesh": 2
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "key": 6,
+                "value": {
+                    "polymorphic_id": 5,
+                    "ptr_wrapper": {
+                        "valid": 1,
+                        "data": {
+                            "value0": {
+                                "ObjectName": "Dragon_1"
+                            },
+                            "Transform": {
+                                "Pos": {
+                                    "x": -1.850000023841858,
+                                    "y": 0.9500000476837158,
+                                    "z": 0.0
+                                },
+                                "Scale": {
+                                    "x": 0.009999999776482582,
+                                    "y": 0.009999999776482582,
+                                    "z": 0.009999999776482582
+                                },
+                                "Rotation": {
+                                    "w": 1.0,
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "z": 0.0
+                                }
+                            },
+                            "value1": 1,
+                            "value2": {
+                                "polymorphic_id": 6,
+                                "ptr_wrapper": {
+                                    "valid": 1,
+                                    "data": {
+                                        "Mesh": 2
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "key": 7,
+                "value": {
+                    "polymorphic_id": 5,
+                    "ptr_wrapper": {
+                        "valid": 1,
+                        "data": {
+                            "value0": {
+                                "ObjectName": "Dragon_2"
+                            },
+                            "Transform": {
+                                "Pos": {
+                                    "x": -1.850000023841858,
+                                    "y": -1.100000023841858,
+                                    "z": 0.0
+                                },
+                                "Scale": {
+                                    "x": 0.009999999776482582,
+                                    "y": 0.009999999776482582,
+                                    "z": 0.009999999776482582
+                                },
+                                "Rotation": {
+                                    "w": 1.0,
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "z": 0.0
+                                }
+                            },
+                            "value1": 1,
+                            "value2": {
+                                "polymorphic_id": 6,
+                                "ptr_wrapper": {
+                                    "valid": 1,
+                                    "data": {
+                                        "Mesh": 2
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "key": 8,
+                "value": {
+                    "polymorphic_id": 5,
+                    "ptr_wrapper": {
+                        "valid": 1,
+                        "data": {
+                            "value0": {
+                                "ObjectName": "Dragon_3"
+                            },
+                            "Transform": {
+                                "Pos": {
+                                    "x": -1.850000023841858,
+                                    "y": -1.100000023841858,
+                                    "z": 5.050000190734863
+                                },
+                                "Scale": {
+                                    "x": 0.009999999776482582,
+                                    "y": 0.009999999776482582,
+                                    "z": 0.009999999776482582
+                                },
+                                "Rotation": {
+                                    "w": 1.0,
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "z": 0.0
+                                }
+                            },
+                            "value1": 1,
+                            "value2": {
+                                "polymorphic_id": 6,
+                                "ptr_wrapper": {
+                                    "valid": 1,
+                                    "data": {
+                                        "Mesh": 2
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "key": 9,
+                "value": {
+                    "polymorphic_id": 5,
+                    "ptr_wrapper": {
+                        "valid": 1,
+                        "data": {
+                            "value0": {
+                                "ObjectName": "Dragon_4"
+                            },
+                            "Transform": {
+                                "Pos": {
+                                    "x": 2.3500001430511476,
+                                    "y": -1.100000023841858,
+                                    "z": 5.050000190734863
+                                },
+                                "Scale": {
+                                    "x": 0.009999999776482582,
+                                    "y": 0.009999999776482582,
+                                    "z": 0.009999999776482582
+                                },
+                                "Rotation": {
+                                    "w": 1.0,
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "z": 0.0
+                                }
+                            },
+                            "value1": 1,
+                            "value2": {
+                                "polymorphic_id": 6,
+                                "ptr_wrapper": {
+                                    "valid": 1,
+                                    "data": {
+                                        "Mesh": 2
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "key": 10,
+                "value": {
+                    "polymorphic_id": 5,
+                    "ptr_wrapper": {
+                        "valid": 1,
+                        "data": {
+                            "value0": {
+                                "ObjectName": "Dragon_5"
+                            },
+                            "Transform": {
+                                "Pos": {
+                                    "x": -0.04999987781047821,
+                                    "y": -2.549999952316284,
+                                    "z": 7.600000381469727
+                                },
+                                "Scale": {
+                                    "x": 0.009999999776482582,
+                                    "y": 0.009999999776482582,
+                                    "z": 0.009999999776482582
+                                },
+                                "Rotation": {
+                                    "w": 1.0,
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "z": 0.0
+                                }
+                            },
+                            "value1": 1,
+                            "value2": {
+                                "polymorphic_id": 6,
+                                "ptr_wrapper": {
+                                    "valid": 1,
+                                    "data": {
+                                        "Mesh": 2
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "key": 11,
+                "value": {
+                    "polymorphic_id": 5,
+                    "ptr_wrapper": {
+                        "valid": 1,
+                        "data": {
+                            "value0": {
+                                "ObjectName": "Dragon_6"
+                            },
+                            "Transform": {
+                                "Pos": {
+                                    "x": 2.3500001430511476,
+                                    "y": -2.549999952316284,
+                                    "z": 5.050000190734863
+                                },
+                                "Scale": {
+                                    "x": 0.009999999776482582,
+                                    "y": 0.009999999776482582,
+                                    "z": 0.009999999776482582
+                                },
+                                "Rotation": {
+                                    "w": 1.0,
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "z": 0.0
+                                }
+                            },
+                            "value1": 1,
+                            "value2": {
+                                "polymorphic_id": 6,
+                                "ptr_wrapper": {
+                                    "valid": 1,
+                                    "data": {
+                                        "Mesh": 2
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "key": 12,
+                "value": {
+                    "polymorphic_id": 5,
+                    "ptr_wrapper": {
+                        "valid": 1,
+                        "data": {
+                            "value0": {
+                                "ObjectName": "Dragon_7"
+                            },
+                            "Transform": {
+                                "Pos": {
+                                    "x": 2.3500001430511476,
+                                    "y": -2.549999952316284,
+                                    "z": 5.050000190734863
+                                },
+                                "Scale": {
+                                    "x": 0.009999999776482582,
+                                    "y": 0.009999999776482582,
+                                    "z": 0.009999999776482582
+                                },
+                                "Rotation": {
+                                    "w": 1.0,
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "z": 0.0
+                                }
+                            },
+                            "value1": 1,
+                            "value2": {
+                                "polymorphic_id": 6,
+                                "ptr_wrapper": {
+                                    "valid": 1,
+                                    "data": {
+                                        "Mesh": 2
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "key": 13,
+                "value": {
+                    "polymorphic_id": 5,
+                    "ptr_wrapper": {
+                        "valid": 1,
+                        "data": {
+                            "value0": {
+                                "ObjectName": "Dragon_8"
+                            },
+                            "Transform": {
+                                "Pos": {
+                                    "x": 0.5000001192092896,
+                                    "y": -3.0,
+                                    "z": 6.900000095367432
+                                },
+                                "Scale": {
+                                    "x": 0.009999999776482582,
+                                    "y": 0.009999999776482582,
+                                    "z": 0.009999999776482582
+                                },
+                                "Rotation": {
+                                    "w": 1.0,
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "z": 0.0
+                                }
+                            },
+                            "value1": 1,
+                            "value2": {
+                                "polymorphic_id": 6,
+                                "ptr_wrapper": {
+                                    "valid": 1,
+                                    "data": {
+                                        "Mesh": 2
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "key": 14,
+                "value": {
+                    "polymorphic_id": 5,
+                    "ptr_wrapper": {
+                        "valid": 1,
+                        "data": {
+                            "value0": {
+                                "ObjectName": "Dragon_9"
+                            },
+                            "Transform": {
+                                "Pos": {
+                                    "x": -2.049999952316284,
+                                    "y": -3.0,
+                                    "z": 6.900000095367432
+                                },
+                                "Scale": {
+                                    "x": 0.009999999776482582,
+                                    "y": 0.009999999776482582,
+                                    "z": 0.009999999776482582
+                                },
+                                "Rotation": {
+                                    "w": 1.0,
+                                    "x": 0.0,
+                                    "y": 0.0,
+                                    "z": 0.0
+                                }
+                            },
+                            "value1": 1,
+                            "value2": {
+                                "polymorphic_id": 6,
+                                "ptr_wrapper": {
+                                    "valid": 1,
+                                    "data": {
+                                        "Mesh": 2
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

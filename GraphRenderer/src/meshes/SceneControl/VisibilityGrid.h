@@ -19,6 +19,8 @@ public:
 	void start(FrameContext* fc) override final;
 	void scheduleDestroy(FrameContext* fc) override final;
 	void renderImGui(FrameContext* fc, Gui* gui) override final;
+	void graphicsUpdate(FrameContext* fc, const SceneRenderContext& src);
+	void logicUpdate(FrameContext* fc);
 
 
 private:

@@ -34,7 +34,7 @@ public:
 	void freeDescriptorSet(vk::DescriptorSet descriptorSet, vk::DescriptorSetLayout layout);
 
 private:
-	static constexpr uint32_t MAX_SIZE_RESOURCE = 100;
+	static constexpr uint32_t MAX_SIZE_RESOURCE = 1000;
 	vk::DescriptorPool mDescriptorPool;
 
 	std::unordered_multimap<vk::DescriptorSetLayout, vk::DescriptorSet> mDescriptorSetsCache;

@@ -5,6 +5,7 @@
 #include "../meshes/ResourceDictionary.h"
 
 #include <filesystem>
+#include <functional>
 
 namespace gr
 {
@@ -38,6 +39,9 @@ public:
 	void saveProject() const;
 	bool loadProject(FrameContext *fc, const std::filesystem::path& projectPath);
 
+	void addNewLog(const std::string& log) const;
+	void setLogCallback(const std::function<void(const std::string&)>& callback);
+
 	void destroy();
 
 private:
@@ -51,6 +55,8 @@ private:
 	ResId mBoundScene;
 
 	std::filesystem::path mProjectPath = {};
+
+	std::function<void(const std::string&)> mLogFun;
 
 };
 

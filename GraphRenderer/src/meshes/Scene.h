@@ -32,6 +32,8 @@ public:
 
     void logicUpdate(FrameContext* fc);
 
+    double_t getTrianglesPerFrame() const { return mNumTrisFrame; }
+
 
 private:
 

@@ -504,6 +504,8 @@ void Mesh::renderImGui(FrameContext* fc, Gui* gui)
 		if (ImGui::Button("Save LODs")) {
 			this->saveLODModels(fc);
 		}
+		gui::helpMarker("Save the newly generated LODs into models in the same folder as the model");
+
 
 		ImGui::TreePop();
 		ImGui::PopID();

@@ -3,6 +3,8 @@
 #include <imgui/imgui.h>
 #include <filesystem>
 #include <queue>
+#include <chrono>
+#include <sstream>
 
 #include "../GameObjectAddons/Renderable.h"
 #include "../../control/FrameContext.h"
@@ -169,6 +171,8 @@ void VisibilityGrid::logicUpdate(FrameContext* fc)
 
 void VisibilityGrid::computeVisibility(FrameContext* fc, const std::set<ResId>& gameObjects)
 {
+	const auto start_timer = std::chrono::high_resolution_clock::now();
+
 	// create tmp rasterization of the gameobjects of the scene
 	std::vector<std::vector<std::set<ResId>>> objectsRasterized(mResolutionY, std::vector<std::set<ResId>>(mResolutionX));
 	// Rebuild visibility grid
@@ -336,7 +340,15 @@ void VisibilityGrid::computeVisibility(FrameContext* fc, const std::set<ResId>& 
 		}
 	}
 
+	// Log duration
+	const auto end_timer = std::chrono::high_resolution_clock::now();
+	typedef std::chrono::duration<double_t> Fsec;
 
+	Fsec dur = end_timer - start_timer;
+	std::stringstream ss;
+	ss << "Created Cell Visibillity for scene " << this->getObjectName() << '\n';
+	ss << "\tTook " << dur.count() << " seconds\n";
+	fc->gc().addNewLog(ss.str());
 }
 
 std::set<ResId> g_stupid_set;

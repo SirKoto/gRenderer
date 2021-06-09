@@ -2,11 +2,14 @@
 #include <glm/gtx/hash.hpp>
 
 #include "../Mesh.h"
+#include "../../control/FrameContext.h"
 
 #include <Eigen/Dense>
 #include <Eigen/src/SVD/JacobiSVD.h>
 #include <bitset>
 #include <array>
+#include <chrono>
+#include <sstream>
 
 
 typedef Eigen::Matrix4d Mat4;
@@ -68,13 +71,15 @@ struct OctNodeTask {
 
 void gr::Mesh::regenerateLODs(FrameContext* fc, bool useQuadricErrorMetric, bool useNormalClustering)
 {
-	//std::vector<Node> nodes;
 
 	std::stack<OctNodeTask> tasks;
 
 	if (mLODs.empty()) {
 		return;
 	}
+
+	const auto start_timer = std::chrono::high_resolution_clock::now();
+
 
 	// map depth to index of LOD
 	std::map<uint32_t, uint32_t> depthToLod;
@@ -268,4 +273,15 @@ void gr::Mesh::regenerateLODs(FrameContext* fc, bool useQuadricErrorMetric, bool
 		}
 	}
 
+	// Log duration
+	const auto end_timer = std::chrono::high_resolution_clock::now();
+	typedef std::chrono::duration<double_t> Fsec;
+
+	Fsec dur = end_timer - start_timer;
+	std::stringstream ss;
+	ss << "Created new Level of details for mesh " << this->getObjectName() << '\n';
+	ss << "\tTook " << dur.count() << " seconds\n";
+	ss << "\tGenerated " << mLODs.size() << " different LODs\n";
+
+	fc->gc().addNewLog(ss.str());
 }

@@ -225,6 +225,10 @@ void Gui::init(GlobalContext* gc)
         );
         mPipelineLayout = rc->getDevice().createPipelineLayout(createInfo);
     }
+
+
+    // logger
+    gc->setLogCallback([this](const std::string& log) { this->mLogger.addLog(log); });
 }
 
 void Gui::destroy(const vkg::RenderContext& rc)
@@ -566,6 +570,7 @@ void Gui::drawWindows(FrameContext* fc)
         ImGui::ShowMetricsWindow(&this->mWindowImGuiMetricsOpen);
     }
 
+
     if (mWindowStyleEditor) {
         ImGui::Begin("Style Editor", &this->mWindowStyleEditor);
         drawStyleWindow(fc);
@@ -579,6 +584,8 @@ void Gui::drawWindows(FrameContext* fc)
     drawInspectorWindow(fc);
 
     drawFilePicker(fc);
+
+    drawMetricsWindow(fc);
 
 }
 
@@ -718,7 +725,8 @@ void Gui::drawMainMenuBar(FrameContext* fc)
         if (ImGui::BeginMenu("View")) {
             ImGui::MenuItem("Scene", nullptr, &this->mWindowSceneOpen);
             ImGui::MenuItem("Inspector", nullptr, &this->mWindowInspectorOpen);
-            ImGui::MenuItem("Metrics", nullptr, &this->mWindowImGuiMetricsOpen);
+            ImGui::MenuItem("Metrics and Log", nullptr, &this->mWindowMetricsOpen);
+            ImGui::MenuItem("ImGui Metrics", nullptr, &this->mWindowImGuiMetricsOpen);
             ImGui::MenuItem("Style", nullptr, &this->mWindowStyleEditor);
             ImGui::EndMenu();
         }
@@ -1005,6 +1013,37 @@ void Gui::drawSceneWindow(FrameContext* fc)
     }
 
     ImGui::End();
+    ImGui::PopID();
+
+}
+
+void Gui::drawMetricsWindow(FrameContext* fc)
+{
+    if (!this->mWindowMetricsOpen) {
+        return;
+    }
+
+    ImGui::PushID("Metrics");
+
+    ImGui::SetNextWindowSize(ImVec2(0, 300), ImGuiCond_Appearing);
+    if (ImGui::Begin("Metrics", &this->mWindowMetricsOpen)) {
+        float_t dt = fc->dtf();
+        ImGui::Text("Average %.3f ms/frame (%.1f FPS)", dt * 1000.0f, 1.0 / dt);
+
+        const bool goodId = fc->gc().getDict().exists(fc->gc().getBoundScene());
+        double_t numTrisFrame = 0.0;
+        if (goodId) {
+            Scene* scn;
+            fc->gc().getDict().get(fc->gc().getBoundScene(), &scn);
+            numTrisFrame = scn->getTrianglesPerFrame();
+        }
+        ImGui::Text("Average %.3f triangles/frame", numTrisFrame);
+
+        mLogger.drawImGui();
+    }
+
+    ImGui::End();
+
     ImGui::PopID();
 
 }

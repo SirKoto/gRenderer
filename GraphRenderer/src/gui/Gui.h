@@ -2,6 +2,8 @@
 
 #include "../control/FrameContext.h"
 
+#include "Logger.h"
+
 namespace gr {
 
 
@@ -58,6 +60,7 @@ protected:
 
 	bool mCloseAppFlag = false;
 	bool mWindowImGuiMetricsOpen = false;
+	bool mWindowMetricsOpen = false;
 	bool mWindowStyleEditor = false;
 	bool mWindowMeshesOpen = false;
 	bool mWindowTexturesOpen = false;
@@ -71,6 +74,8 @@ protected:
 	ResId mRenameId;
 	ResId mInspectorResourceId;
 
+	Logger mLogger;
+
 
 	void drawWindows(FrameContext* fc);
 	void drawMainMenuBar(FrameContext* fc);
@@ -79,6 +84,7 @@ protected:
 	void drawResourcesWindows(FrameContext* fc);
 	void drawInspectorWindow(FrameContext* fc);
 	void drawSceneWindow(FrameContext* fc);
+	void drawMetricsWindow(FrameContext* fc);
 
 	void helpMarker(const char* text);
 

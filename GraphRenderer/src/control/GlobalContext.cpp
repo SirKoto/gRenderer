@@ -75,6 +75,18 @@ bool gr::GlobalContext::loadProject(FrameContext* fc, const std::filesystem::pat
 	return true;
 }
 
+void gr::GlobalContext::addNewLog(const std::string& log) const
+{
+	if (mLogFun) {
+		mLogFun(log);
+	}
+}
+
+void gr::GlobalContext::setLogCallback(const std::function<void(const std::string&)>& callback)
+{
+	mLogFun = callback;
+}
+
 void gr::GlobalContext::destroy()
 {
 	mWindow.destroy(mRenderContext.getInstance());

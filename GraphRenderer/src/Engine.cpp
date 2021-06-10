@@ -595,7 +595,7 @@ namespace gr
 			builder.setVertexAttirbuteDescriptions( vid.getAttributeDescriptions() );
 		}
 		builder.setFrontFace(vk::FrontFace::eCounterClockwise);
-		builder.setCulling(vk::CullModeFlagBits::eNone);
+		builder.setCulling(vk::CullModeFlagBits::eBack);
 		builder.setShaderStages(mShaderModules[0], mShaderModules[1]);
 		builder.setPrimitiveTopology(vk::PrimitiveTopology::eTriangleList);
 		builder.setViewportSize(mSwapChain.getExtent());

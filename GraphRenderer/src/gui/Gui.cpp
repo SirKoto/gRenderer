@@ -649,7 +649,7 @@ void Gui::drawMainMenuBar(FrameContext* fc)
                 ImGuiFileDialog::Instance()->OpenDialog(
                     IMPORT_MESH_STRING_KEY,
                     "Choose mesh to load",
-                    ".obj,.ply", // filter
+                    ".ply,.obj", // filter
                     "." // directory
                 );
 

@@ -398,10 +398,10 @@ void VisibilityGrid::updateWallCellGameObject(FrameContext* fc, uint32_t x, uint
 
 			obj->getAddon<addon::Transform>()->setPos(glm::vec3(x, 0, y));
 			if (vertical) {
-				obj->getAddon<addon::Transform>()->rotateArround(0.5f * glm::pi<float>(), glm::vec3(0,1,0));
+				obj->getAddon<addon::Transform>()->setScale(glm::vec3(0, 1, 1));
 			}
 			else {
-				obj->getAddon<addon::Transform>()->rotateArround(glm::pi<float>(), glm::vec3(0, 1, 0));
+				obj->getAddon<addon::Transform>()->setScale(glm::vec3(1, 1, 0));
 			}
 
 			mWallsGameObjects.emplace(WallKey{ x, y, vertical }, std::move(obj));

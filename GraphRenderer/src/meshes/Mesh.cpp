@@ -363,9 +363,17 @@ void Mesh::uploadDataToGPU(FrameContext* fc)
 
 void Mesh::saveLODModels(FrameContext* fc) const
 {
-	std::ofstream stream;
+	{
+		std::string log = "Saving " + std::to_string(mLODs.size()) + std::string(" LODs of ") + this->getObjectName();
+		fc->gc().addNewLog(log);
+	}
+	const auto start_timer = std::chrono::high_resolution_clock::now();
 
+	std::ofstream stream;
+	
 	for (uint32_t i = 0; i < (uint32_t)mLODs.size(); ++i) {
+		const auto start_inner_timer = std::chrono::high_resolution_clock::now();
+
 		std::filesystem::path modelPath = fc->gc().getAbsolutePathTo( getRelativeLodPath(i) );
 		stream.open(modelPath, std::ofstream::trunc | std::ofstream::binary);
 		if (!stream) {
@@ -412,7 +420,26 @@ void Mesh::saveLODModels(FrameContext* fc) const
 		file.write(stream, true);
 
 		stream.close();
+
+		const auto end_inner_timer = std::chrono::high_resolution_clock::now();
+		typedef std::chrono::duration<double_t> Fsec;
+
+		Fsec dur = end_inner_timer - start_inner_timer;
+		std::stringstream ss;
+		ss << "Stored Lod "<< i << ", computed at depth " << lod.depth << ", in " << modelPath << '\n';
+		ss << "\tTook " << dur.count() << " seconds";
+		fc->gc().addNewLog(ss.str());
 	}
+
+	const auto end_timer = std::chrono::high_resolution_clock::now();
+	typedef std::chrono::duration<double_t> Fsec;
+
+	Fsec dur = end_timer - start_timer;
+	std::stringstream ss;
+	ss << "All lods stored" << '\n';
+	ss << "\tTook " << dur.count() << " seconds\n";
+	fc->gc().addNewLog(ss.str());
+
 }
 
 std::string Mesh::getRelativeLodPath(uint32_t lod) const

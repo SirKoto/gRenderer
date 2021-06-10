@@ -9,9 +9,9 @@ namespace vkg
 namespace DebugVk
 {
 #ifdef _DEBUG 
-	const bool validationLayersVkEnabled = true;
+	const bool validationLayersVkEnabled = false;
 #else
-	const bool validationLayersVkEnabled = true;
+	const bool validationLayersVkEnabled = false;
 #endif // DEBUG
 
 	constexpr const char* debugExtensionName  =

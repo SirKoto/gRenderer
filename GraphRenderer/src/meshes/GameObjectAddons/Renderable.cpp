@@ -51,6 +51,11 @@ void Renderable::drawImGuiInspector(FrameContext* fc, GameObject* parent)
         }
         ImGui::EndDragDropTarget();
     }
+    mth::AABBox box = this->getBBox(fc, parent);
+    ImGui::Text("Bounding Box:");
+    ImGui::Text("\t(%.2f, %.2f, %.2f)\n\t(%.2f, %.2f, %.2f)", 
+        box.getMin().x, box.getMin().y, box.getMin().z,
+        box.getMax().x, box.getMax().y, box.getMax().z);
 
     ImGui::Separator();
 

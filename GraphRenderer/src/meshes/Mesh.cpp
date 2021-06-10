@@ -100,8 +100,9 @@ void Mesh::addToVertexInputDescription(
 	vid->addBinding(binding, sizeof(Vertex))
 		.addAttributeFloat(0, 3, offsetof(Vertex, Vertex::pos))
 		.addAttributeFloat(1, 3, offsetof(Vertex, Vertex::normal))
-		.addAttributeFloat(2, 3, offsetof(Vertex, Vertex::color))
-		.addAttributeFloat(3, 2, offsetof(Vertex, Vertex::texCoord));
+		//.addAttributeFloat(2, 3, offsetof(Vertex, Vertex::color))
+		//.addAttributeFloat(3, 2, offsetof(Vertex, Vertex::texCoord))
+		;
 }
 
 void Mesh::parseObj(const char* fileName, std::vector<Vertex>* outVertices, std::vector<uint32_t>* outIndices, mth::AABBox* outBBox)
@@ -140,12 +141,12 @@ void Mesh::parseObj(const char* fileName, std::vector<Vertex>* outVertices, std:
 				vertAttribs.vertices[3 * idx.vertex_index + 1],
 				vertAttribs.vertices[3 * idx.vertex_index + 2]
 			};
-			if (idx.texcoord_index >= 0) {
-				v.texCoord = {
-					vertAttribs.texcoords[2 * idx.texcoord_index + 0],
-					vertAttribs.texcoords[2 * idx.texcoord_index + 1]
-				};
-			}
+			//if (idx.texcoord_index >= 0) {
+			//	v.texCoord = {
+			//		vertAttribs.texcoords[2 * idx.texcoord_index + 0],
+			//		vertAttribs.texcoords[2 * idx.texcoord_index + 1]
+			//	};
+			//}
 			if (idx.normal_index >= 0) {
 				v.normal = {
 					vertAttribs.normals[3 * idx.normal_index + 0],
@@ -153,11 +154,11 @@ void Mesh::parseObj(const char* fileName, std::vector<Vertex>* outVertices, std:
 					vertAttribs.normals[3 * idx.normal_index + 2]
 				};
 			}
-			v.color = {
-				vertAttribs.colors[3 * idx.vertex_index + 0],
-				vertAttribs.colors[3 * idx.vertex_index + 1],
-				vertAttribs.colors[3 * idx.vertex_index + 2]
-			};
+			//v.color = {
+			//	vertAttribs.colors[3 * idx.vertex_index + 0],
+			//	vertAttribs.colors[3 * idx.vertex_index + 1],
+			//	vertAttribs.colors[3 * idx.vertex_index + 2]
+			//};
 
 			const decltype(verticesCache)::const_iterator it =
 				verticesCache.find(v);
@@ -224,9 +225,9 @@ void Mesh::parsePly(const char* fileName, std::vector<Vertex>* outVertices, std:
 	outVertices->resize(vertices->count);
 	for (size_t i = 0; i < vertices->count; ++i) {
 		std::memcpy(&(*outVertices)[i].pos, vertices->buffer.get() + i * 3 * sizeof(float), 3 * sizeof(float));
-		if (texcoords) {
-			std::memcpy(&(*outVertices)[i].texCoord, texcoords->buffer.get() + i * 2 * sizeof(float), 2 * sizeof(float));
-		}
+		//if (texcoords) {
+		//	std::memcpy(&(*outVertices)[i].texCoord, texcoords->buffer.get() + i * 2 * sizeof(float), 2 * sizeof(float));
+		//}
 		if (normals) {
 			std::memcpy(&(*outVertices)[i].normal, normals->buffer.get() + i * 3 * sizeof(float), 3 * sizeof(float));
 		}
@@ -428,17 +429,17 @@ std::string Mesh::getRelativeLodPath(uint32_t lod) const
 bool Mesh::Vertex::operator==(const Vertex& o) const
 {
 	return this->pos == o.pos &&
-		this->normal == o.normal &&
-		this->color == o.color &&
-		this->texCoord == o.texCoord;
+		this->normal == o.normal;//&&
+		//this->color == o.color &&
+		//this->texCoord == o.texCoord;
 }
 
 std::size_t Mesh::VertexHash::operator()(const Vertex& o) const
 {
 	return ((std::hash<glm::vec3>()(o.pos) ^
-		(std::hash<glm::vec3>()(o.normal)) ^
-		(std::hash<glm::vec3>()(o.color) << 1)) >> 1) ^
-		(std::hash<glm::vec2>()(o.texCoord) << 1);
+		(std::hash<glm::vec3>()(o.normal) << 1)));//^
+		//(std::hash<glm::vec3>()(o.color) << 1)) >> 1) ^
+		//(std::hash<glm::vec2>()(o.texCoord) << 1);
 }
 
 void Mesh::renderImGui(FrameContext* fc, Gui* gui)

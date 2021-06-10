@@ -55,6 +55,7 @@ public:
 	// add binding with locations:
 	// (location = 0) float3 vertexPosition
 	// (location = 1) float3 normal
+	// 	   TODO these are removed
 	// (location = 2) float3 vertexColor
 	// (location = 3) float2 texCoord
 	static void addToVertexInputDescription(uint32_t binding,
@@ -69,9 +70,9 @@ protected:
 
 	struct Vertex {
 		glm::vec3 pos = glm::vec3(0.0f);
-		glm::vec3 color = glm::vec3(0.0f);
+		//glm::vec3 color = glm::vec3(0.0f);
 		glm::vec3 normal = glm::vec3(0.0f);
-		glm::vec2 texCoord = glm::vec2(0.0f);
+		//glm::vec2 texCoord = glm::vec2(0.0f);
 
 		bool operator==(const Vertex&) const;
 	};

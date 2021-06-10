@@ -366,8 +366,8 @@ void Gui::render(FrameContext* fc, vk::CommandBuffer cmd)
     ImGuiIO& io = ImGui::GetIO();
     IM_ASSERT(io.Fonts->IsBuilt());
 
-
-    ImGui::ShowDemoWindow();
+    // ImGui Demo window
+    // ImGui::ShowDemoWindow();
 
     ImGui::Render();
 

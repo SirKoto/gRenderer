@@ -46,7 +46,7 @@ namespace gr
 
 		vkg::RenderContext* pRenderContext = &mGlobalContext.rc();
 		pRenderContext->createInstance({}, true);
-		mGlobalContext.getWindow().initialize(1280, 1024, {"Test", true});
+		mGlobalContext.getWindow().initialize(1280, 1024, {"Renderer", true});
 
 		mGlobalContext.getWindow().createVkSurface(pRenderContext->getInstance());
 

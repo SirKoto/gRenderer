@@ -5,6 +5,7 @@
 #include <queue>
 #include <chrono>
 #include <sstream>
+#include <random>
 
 #include "../GameObjectAddons/Renderable.h"
 #include "../../control/FrameContext.h"
@@ -196,7 +197,8 @@ void VisibilityGrid::computeVisibility(FrameContext* fc, const std::set<ResId>& 
 	std::set<ResId> gameObjectsInLine;
 	std::vector<glm::ivec2> cellsInLine;
 	constexpr uint32_t SAMPLES_PER_CELL = 1000;
-
+	//std::mt19937 mtengine(0);
+	//std::uniform_real_distribution<float> distr(0.0f, 1.0f);
 
 	// origin rays from all cells, even if it is redundant
 	for (uint32_t j = 0; j < mResolutionY; ++j) {
@@ -216,7 +218,7 @@ void VisibilityGrid::computeVisibility(FrameContext* fc, const std::set<ResId>& 
 					float errorprev = 0.0f;
 					glm::ivec2 pos(i, j);
 					if (std::abs(dir.x) >= std::abs(dir.y)) {
-						errorprev = error = dir.x * 0.5f; // start in the "middle"
+						errorprev = error = dir.x * 0.5f; 
 						while (true) {
 							// check if can advance in the x direction
 							bool canGoThrough = (step.x >= 0) ?
@@ -239,12 +241,14 @@ void VisibilityGrid::computeVisibility(FrameContext* fc, const std::set<ResId>& 
 								error -= dir.x; // remove corrected error
 								// 3 cases
 								const Cell& c = mWallsCells[pos.y][pos.x];
-								const bool canVert = (step.y >= 0 ? !c.down() : !c.up()) &&
+								const bool canVert = step.y == 0.0f || (
+									(step.y >= 0 ? !c.down() : !c.up()) &&
 									(pos.y - step.y) >= 0 &&
-									(pos.y - step.y) < (int32_t)mResolutionY;
-								const bool canHoriz = (step.x >= 0 ? !c.right() : !c.left()) &&
+									(pos.y - step.y) < (int32_t)mResolutionY);
+								const bool canHoriz = step.x == 0.0f || (
+									(step.x >= 0 ? !c.right() : !c.left()) &&
 									(pos.x - step.x) >= 0 &&
-									(pos.x - step.x) < (int32_t)mResolutionX;
+									(pos.x - step.x) < (int32_t)mResolutionX);
 								if (error + errorprev < dir.x) { // bottom
 									if (canVert) {
 										cellsInLine.push_back({ pos.x, pos.y - step.y });
@@ -270,7 +274,7 @@ void VisibilityGrid::computeVisibility(FrameContext* fc, const std::set<ResId>& 
 						}
 					}
 					else { // The same as the above
-						errorprev = error = dir.y * 0.5f; // start in the "middle"
+						errorprev = error = dir.y * 0.5f;
 						while (true) {
 							// check if can advance in the y direction
 							bool canGoThrough = (step.y >= 0) ?
@@ -293,12 +297,14 @@ void VisibilityGrid::computeVisibility(FrameContext* fc, const std::set<ResId>& 
 								error -= dir.y; // remove corrected error
 								// 3 cases
 								const Cell& c = mWallsCells[pos.y][pos.x];
-								const bool canVert = (step.y >= 0 ? !c.down() : !c.up()) &&
+								const bool canVert = step.y == 0.0f || (
+									(step.y >= 0 ? !c.down() : !c.up()) &&
 									(pos.y - step.y) >= 0 &&
-									(pos.y - step.y) < (int32_t)mResolutionY;
-								const bool canHoriz = (step.x >= 0 ? !c.right() : !c.left()) &&
+									(pos.y - step.y) < (int32_t)mResolutionY);
+								const bool canHoriz = step.x == 0.0f ||(
+									(step.x >= 0 ? !c.right() : !c.left()) &&
 									(pos.x - step.x) >= 0 &&
-									(pos.x - step.x) < (int32_t)mResolutionX;
+									(pos.x - step.x) < (int32_t)mResolutionX);
 								if (error + errorprev < dir.y) {
 									if (canHoriz) {
 										cellsInLine.push_back({ pos.x - step.x, pos.y });
@@ -335,6 +341,20 @@ void VisibilityGrid::computeVisibility(FrameContext* fc, const std::set<ResId>& 
 				// add to visibility grid
 				for (const glm::ivec2& v : cellsInLine) {
 					mVisibilityGrid[v.y][v.x].insert(gameObjectsInLine.begin(), gameObjectsInLine.end());
+				}
+				// also try adding to 4 neighbors, to account for error of starting
+				// at the center of the cells
+				if (i > 0 && !mWallsCells[j][j].left()) {
+					mVisibilityGrid[j][i-1].insert(gameObjectsInLine.begin(), gameObjectsInLine.end());
+				}
+				if (i < (mResolutionX - 1) && !mWallsCells[j][j].right()) {
+					mVisibilityGrid[j][i + 1].insert(gameObjectsInLine.begin(), gameObjectsInLine.end());
+				}
+				if (j > 0 && !mWallsCells[j][j].up()) {
+					mVisibilityGrid[j - 1][i].insert(gameObjectsInLine.begin(), gameObjectsInLine.end());
+				}
+				if (j < (mResolutionY - 1) && !mWallsCells[j][j].down()) {
+					mVisibilityGrid[j + 1][i].insert(gameObjectsInLine.begin(), gameObjectsInLine.end());
 				}
 			}
 		}
